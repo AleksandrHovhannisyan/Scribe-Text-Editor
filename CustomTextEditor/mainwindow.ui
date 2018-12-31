@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>612</width>
-    <height>275</height>
+    <width>730</width>
+    <height>354</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -31,7 +31,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>612</width>
+     <width>730</width>
      <height>26</height>
     </rect>
    </property>
@@ -58,7 +58,6 @@
     <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
-    <addaction name="actionDelete"/>
     <addaction name="separator"/>
     <addaction name="actionFind"/>
     <addaction name="actionFind_Next"/>
@@ -100,9 +99,19 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpen"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionPrint"/>
+   <addaction name="actionFind"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/new.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
@@ -111,6 +120,11 @@
    </property>
   </action>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/folder.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -119,6 +133,11 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/save.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -140,6 +159,11 @@
    </property>
   </action>
   <action name="actionPrint">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/printer.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Print...</string>
    </property>
@@ -153,6 +177,11 @@
    </property>
   </action>
   <action name="actionUndo">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/undo.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
@@ -161,6 +190,11 @@
    </property>
   </action>
   <action name="actionCut">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/cut.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Cut</string>
    </property>
@@ -169,6 +203,11 @@
    </property>
   </action>
   <action name="actionCopy">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/copy.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Copy</string>
    </property>
@@ -177,6 +216,11 @@
    </property>
   </action>
   <action name="actionPaste">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/paste.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Paste</string>
    </property>
@@ -184,15 +228,12 @@
     <string>Ctrl+V</string>
    </property>
   </action>
-  <action name="actionDelete">
-   <property name="text">
-    <string>Delete</string>
-   </property>
-   <property name="shortcut">
-    <string>Del</string>
-   </property>
-  </action>
   <action name="actionFind">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/search.bmp</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Find...</string>
    </property>
