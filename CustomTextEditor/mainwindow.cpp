@@ -24,7 +24,7 @@ MainWindow::~MainWindow()
  */
 void MainWindow::resetEditor()
 {
-    currentFile.clear();
+    currentFilePath.clear();
     ui->textEdit->setText(QString());
     setWindowTitle(defaultWindowTitle);
     fileNeedsToBeSaved = false;
@@ -74,6 +74,7 @@ void MainWindow::setFont(QString family, QFont::StyleHint styleHint,
  */
 QString MainWindow::getFileNameFromPath(QString filePath)
 {
+    // For unsaved documents
     if(filePath.isEmpty())
     {
         return defaultWindowTitle;
@@ -90,10 +91,11 @@ QString MainWindow::getFileNameFromPath(QString filePath)
  */
 void MainWindow::on_actionNew_triggered()
 {
+    // Don't create a new empty doc if there are unsaved changes in the current one
     if(fileNeedsToBeSaved)
     {
         QMessageBox::StandardButton userSelection;
-        userSelection = promptYesOrNo("", "Do you want to save the changes to " + getFileNameFromPath(currentFile) + "?");
+        userSelection = promptYesOrNo("", "Do you want to save the changes to " + getFileNameFromPath(currentFilePath) + "?");
 
         if(userSelection == QMessageBox::Yes)
         {
@@ -112,26 +114,29 @@ void MainWindow::on_actionNew_triggered()
  */
 void MainWindow::on_actionSave_triggered()
 {
-    QString filePath;
-
-    if(currentFile.isEmpty())
+    // If we have no active file (unsaved document)
+    if(currentFilePath.isEmpty())
     {
-        filePath = QFileDialog::getSaveFileName(this, "Save");
-        currentFile = filePath;
-    }
-    else
-    {
-        filePath = currentFile;
+        // Try to get a valid file path
+        QString filePath = QFileDialog::getSaveFileName(this, "Save");
+
+        // Don't do anything if the user changes their mind and hits Cancel
+        if(filePath.isNull())
+        {
+            return;
+        }
+        currentFilePath = filePath;
     }
 
-    QFile file(filePath);
+    // Attempt to create a file descriptor with the given path
+    QFile file(currentFilePath);
     if (!file.open(QIODevice::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
 
-    setWindowTitle(getFileNameFromPath(filePath));
+    setWindowTitle(getFileNameFromPath(currentFilePath));
     QTextStream out(&file);
 
     QString editorContents = ui->textEdit->toPlainText();
@@ -149,17 +154,38 @@ void MainWindow::on_actionSave_triggered()
  */
 void MainWindow::on_actionOpen_triggered()
 {
-    QString filePath = QFileDialog::getOpenFileName(this, "Open");
-    QFile file(filePath);
+    // Ensure we save any unsaved contents before opening a new file
+    if(fileNeedsToBeSaved)
+    {
+        QMessageBox::StandardButton userSelection;
+        userSelection = promptYesOrNo("", "Do you want to save the changes to " + getFileNameFromPath(currentFilePath) + "?");
 
+        // If the user wants to save, let them
+        if(userSelection == QMessageBox::Yes)
+        {
+            on_actionSave_triggered();
+        }
+    }
+
+    // Ask the user to specify the name of the file
+    QString filePath = QFileDialog::getOpenFileName(this, "Open");
+
+    // Ensure we don't change the current file path if the user hit Cancel
+    if(filePath.isNull())
+    {
+        return;
+    }
+    currentFilePath = filePath;
+
+    // Attempt to create a file descriptor for the file at the given path
+    QFile file(currentFilePath);
     if (!file.open(QIODevice::ReadOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
 
-    setWindowTitle(getFileNameFromPath(filePath));
-    currentFile = filePath;
+    setWindowTitle(getFileNameFromPath(currentFilePath));
 
     QTextStream in(&file);
     QString documentContents = in.readAll();

@@ -33,7 +33,7 @@ private:
     QFont font;
     int tabStopWidth;
     Ui::MainWindow *ui;
-    QString currentFile;
+    QString currentFilePath;
     bool fileNeedsToBeSaved = true;
 
 private slots:
