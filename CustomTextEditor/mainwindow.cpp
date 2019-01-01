@@ -34,9 +34,7 @@ QString MainWindow::getFileNameFromPath(QString filePath)
  */
 void MainWindow::on_actionNew_triggered()
 {
-    bool editorNotEmpty = !ui->textEdit->toPlainText().isEmpty();
-
-    if(editorNotEmpty && fileNeedsToBeSaved)
+    if(fileNeedsToBeSaved)
     {
         QMessageBox::StandardButton userSelection;
         userSelection = QMessageBox::question(this, "Text Editor",
