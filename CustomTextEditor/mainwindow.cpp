@@ -17,10 +17,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 }
 
+
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
 
 /* Resets the text editor to all of its defaults and
  * effectively creates an empty document from scratch.
@@ -32,16 +34,6 @@ void MainWindow::resetEditor()
     ui->textEdit->setText(QString());
     setWindowTitle(defaultWindowTitle);
     fileNeedsToBeSaved = false;
-}
-
-/* Prompts the user to make a yes or no selection from the message box.
- * @param title - the title of the message box window
- * @param prompt - the text prompt/question to show the user
- * @return the user's selection as a QMessageBox::StandardButton (Yes or No).
- */
-QMessageBox::StandardButton MainWindow::promptYesOrNo(QString title, QString prompt)
-{
-    return QMessageBox::question(this, title, prompt, QMessageBox::Yes | QMessageBox::No);
 }
 
 
@@ -89,6 +81,23 @@ QString MainWindow::getFileNameFromPath(QString filePath)
 }
 
 
+/* TODO document
+ */
+void MainWindow::allowUserToSave()
+{
+    QMessageBox::StandardButton userSelection;
+
+    userSelection = QMessageBox::question(this, "",
+                          "Do you want to save the changes to " + getFileNameFromPath(currentFilePath) + "?",
+                          QMessageBox::Yes | QMessageBox::No);
+
+    if(userSelection == QMessageBox::Yes)
+    {
+        on_actionSave_or_actionSaveAs_triggered();
+    }
+}
+
+
 /* Called when the user selects the new file creation option from the menu or toolbar.
  * If the current document has unsaved changes, it prompts the user to save or discard.
  * In either case, it ends up clearing the current file name and editor contents.
@@ -98,13 +107,7 @@ void MainWindow::on_actionNew_triggered()
     // Don't create a new empty doc if there are unsaved changes in the current one
     if(fileNeedsToBeSaved)
     {
-        QMessageBox::StandardButton userSelection;
-        userSelection = promptYesOrNo("", "Do you want to save the changes to " + getFileNameFromPath(currentFilePath) + "?");
-
-        if(userSelection == QMessageBox::Yes)
-        {
-            on_actionSave_or_actionSaveAs_triggered();
-        }
+        allowUserToSave();
     }
 
     resetEditor();
@@ -163,14 +166,7 @@ void MainWindow::on_actionOpen_triggered()
     // Ensure we save any unsaved contents before opening a new file
     if(fileNeedsToBeSaved)
     {
-        QMessageBox::StandardButton userSelection;
-        userSelection = promptYesOrNo("", "Do you want to save the changes to " + getFileNameFromPath(currentFilePath) + "?");
-
-        // If the user wants to save, let them
-        if(userSelection == QMessageBox::Yes)
-        {
-            on_actionSave_or_actionSaveAs_triggered();
-        }
+        allowUserToSave();
     }
 
     // Ask the user to specify the name of the file
@@ -202,8 +198,93 @@ void MainWindow::on_actionOpen_triggered()
 }
 
 
+/* Called when the user selects the exit option from the menu.
+ * Ensures the user can safely exit without losing unsaved changes.
+ * Terminates the program.
+ */
+void MainWindow::on_actionExit_triggered()
+{
+    if(fileNeedsToBeSaved)
+    {
+        allowUserToSave();
+    }
+
+    QApplication::quit();
+}
+
+
+/* Called when the user explicitly selects the Undo option from the menu.
+ */
+void MainWindow::on_actionUndo_triggered() { ui->textEdit->undo(); }
+
+
+/* Called when the user explicitly selects the Cut option from the menu.
+ */
+void MainWindow::on_actionCut_triggered() { ui->textEdit->cut(); }
+
+
+/* Called when the user explicitly selects the Copy option from the menu.
+ */
+void MainWindow::on_actionCopy_triggered() { ui->textEdit->copy(); }
+
+
+/* Called when the user explicitly selects the Paste option from the menu.
+ */
+void MainWindow::on_actionPaste_triggered() { ui->textEdit->paste(); }
+
+
+/* Called when the user explicitly selects the Find option from the menu.
+ * Launches a dialog that prompts the user to enter a search query. Locates
+ * the first matching instance in the document.
+ */
+void MainWindow::on_actionFind_triggered()
+{
+    // TODO add UI for searching
+    ui->textEdit->find("");
+}
+
+
+void MainWindow::on_actionFind_Next_triggered()
+{
+    // TODO fill in code
+}
+
+
+void MainWindow::on_actionReplace_triggered()
+{
+    // TODO add UI for replacing
+}
+
+
+void MainWindow::on_actionGo_To_triggered()
+{
+    // TODO fill in code
+}
+
+
+/* Called when the user explicitly selects the Select All option from the menu.
+ */
+void MainWindow::on_actionSelect_All_triggered() { ui->textEdit->selectAll(); }
+
+
 /* Called whenever the contents of the text editor change, even if they are deleted
  * and restored to their original state. Sets a flag that the current file needs to
- * be saved before any file creation or opening operations.
+ * be saved before any file creation, opening, or exiting operations.
  */
 void MainWindow::on_textEdit_textChanged() { fileNeedsToBeSaved = true; }
+
+
+/* Overrides the QWidget closeEvent virtual method. Called when the user tries
+ * to close the main application window. If the current document is unsaved,
+ * it allows the user to save before finally exiting. Otherwise, if there are
+ * no unsaved changes, it closes.
+ */
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if(fileNeedsToBeSaved)
+    {
+        event->ignore();
+        allowUserToSave();
+    }
+    event->accept();
+}

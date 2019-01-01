@@ -9,6 +9,8 @@
 #include <QStringRef>
 #include <QFont>
 #include <QFontMetrics>     // tab stop width
+#include <QApplication>     // quit
+#include <QCloseEvent>
 
 namespace Ui {
 class MainWindow;
@@ -22,14 +24,15 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void resetEditor();
-    QMessageBox::StandardButton promptYesOrNo(QString title, QString prompt);
     void setTabStopWidth(int width);
     void setFont(QString family, QFont::StyleHint styleHint,
                     bool fixedPitch, int pointSize);
+    void closeEvent(QCloseEvent *event);
     const QString defaultWindowTitle = "Untitled document";
 
 private:
     QString getFileNameFromPath(QString filePath);
+    void allowUserToSave();
     QFont font;
     int tabStopWidth;
     Ui::MainWindow *ui;
@@ -41,6 +44,16 @@ private slots:
     void on_actionSave_or_actionSaveAs_triggered();
     void on_actionOpen_triggered();
     void on_textEdit_textChanged();
+    void on_actionExit_triggered();
+    void on_actionUndo_triggered();
+    void on_actionCut_triggered();
+    void on_actionCopy_triggered();
+    void on_actionPaste_triggered();
+    void on_actionFind_triggered();
+    void on_actionFind_Next_triggered();
+    void on_actionReplace_triggered();
+    void on_actionGo_To_triggered();
+    void on_actionSelect_All_triggered();
 };
 
 #endif // MAINWINDOW_H
