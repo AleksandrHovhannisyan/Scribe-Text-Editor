@@ -19,6 +19,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void resetEditor();
+    QMessageBox::StandardButton promptYesOrNo(QString title, QString prompt);
+
     const QString defaultWindowTitle = "Untitled document";
 
 private:
@@ -26,7 +29,7 @@ private:
     QString currentFile;
     bool fileNeedsToBeSaved = true;
 
-    inline QString getFileNameFromPath(QString filePath);
+    QString getFileNameFromPath(QString filePath);
 
 private slots:
     void on_actionNew_triggered();

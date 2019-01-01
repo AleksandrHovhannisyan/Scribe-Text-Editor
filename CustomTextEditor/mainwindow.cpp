@@ -8,13 +8,33 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setWindowTitle(defaultWindowTitle);
-    fileNeedsToBeSaved = false;
+    resetEditor();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+/* Resets the text editor to all of its defaults.
+ * See the constructor and on_actionNew_triggered().
+ */
+void MainWindow::resetEditor()
+{
+    currentFile.clear();
+    ui->textEdit->setText(QString());
+    setWindowTitle(defaultWindowTitle);
+    fileNeedsToBeSaved = false;
+}
+
+/* Prompts the user to make a yes or no selection from the message box.
+ * @param title - the title of the message box window
+ * @param prompt - the text prompt/question to show the user
+ * @return the user's selection as a QMessageBox::StandardButton (Yes or No).
+ */
+QMessageBox::StandardButton MainWindow::promptYesOrNo(QString title, QString prompt)
+{
+    return QMessageBox::question(this, title, prompt, QMessageBox::Yes | QMessageBox::No);
 }
 
 /* Returns the actual name of the file that's part of the given path.
@@ -39,11 +59,8 @@ void MainWindow::on_actionNew_triggered()
 {
     if(fileNeedsToBeSaved)
     {
-        // TODO replace with a function call that we can reuse later for exiting
         QMessageBox::StandardButton userSelection;
-        userSelection = QMessageBox::question(this, "Text Editor",
-                              "Do you want to save the changes to " + getFileNameFromPath(currentFile) + "?",
-                              QMessageBox::Yes | QMessageBox::No);
+        userSelection = promptYesOrNo("", "Do you want to save the changes to " + getFileNameFromPath(currentFile) + "?");
 
         if(userSelection == QMessageBox::Yes)
         {
@@ -51,11 +68,7 @@ void MainWindow::on_actionNew_triggered()
         }
     }
 
-    // TODO wrap this all into one reusable function and call it in the constructor
-    currentFile.clear();
-    ui->textEdit->setText(QString());
-    setWindowTitle(defaultWindowTitle);
-    fileNeedsToBeSaved = false;
+    resetEditor();
 }
 
 /* TODO document
