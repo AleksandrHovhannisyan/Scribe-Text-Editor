@@ -7,6 +7,8 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <QStringRef>
+#include <QFont>
+#include <QFontMetrics>     // tab stop width
 
 namespace Ui {
 class MainWindow;
@@ -21,15 +23,18 @@ public:
     ~MainWindow();
     void resetEditor();
     QMessageBox::StandardButton promptYesOrNo(QString title, QString prompt);
-
+    void setTabStopWidth(int width);
+    void setFont(QString family, QFont::StyleHint styleHint,
+                    bool fixedPitch, int pointSize);
     const QString defaultWindowTitle = "Untitled document";
 
 private:
+    QString getFileNameFromPath(QString filePath);
+    QFont font;
+    int tabStopWidth;
     Ui::MainWindow *ui;
     QString currentFile;
     bool fileNeedsToBeSaved = true;
-
-    QString getFileNameFromPath(QString filePath);
 
 private slots:
     void on_actionNew_triggered();
