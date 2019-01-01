@@ -43,3 +43,5 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES +=
+
+RC_FILE = texteditor.rc
