@@ -11,6 +11,10 @@ MainWindow::MainWindow(QWidget *parent) :
     resetEditor();
     setFont("Courier", QFont::Monospace, true, 10);
     setTabStopWidth(5);
+
+    // Have to manually connect these signals to the single slot to handle both
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 }
 
 MainWindow::~MainWindow()
@@ -99,7 +103,7 @@ void MainWindow::on_actionNew_triggered()
 
         if(userSelection == QMessageBox::Yes)
         {
-            on_actionSave_triggered();
+            on_actionSave_or_actionSaveAs_triggered();
         }
     }
 
@@ -107,15 +111,17 @@ void MainWindow::on_actionNew_triggered()
 }
 
 
-/* Called when the user selects the save option from the menu or toolbar.
- * If the current document is unnamed/unsaved, it prompts the user to specify
- * a name and directory in which to save the file. Otherwise, it overwrites
- * the contents of the current file on the disk.
+/* Called when the user selects the Save or Save As option from the menu or toolbar.
+ * On success, saves the contents of the text editor to the disk using the file name
+ * provided by the user. If the current document was never saved, or if the user chose
+ * Save As, the program prompts the user to specify a name and directory for the file.
  */
-void MainWindow::on_actionSave_triggered()
+void MainWindow::on_actionSave_or_actionSaveAs_triggered()
 {
-    // If we have no active file (unsaved document)
-    if(currentFilePath.isEmpty())
+    bool saveAs = sender() == ui->actionSave_As;
+
+    // If user hit Save As or user hit Save but current document was never saved to disk
+    if(saveAs || currentFilePath.isEmpty())
     {
         // Try to get a valid file path
         QString filePath = QFileDialog::getSaveFileName(this, "Save");
@@ -163,7 +169,7 @@ void MainWindow::on_actionOpen_triggered()
         // If the user wants to save, let them
         if(userSelection == QMessageBox::Yes)
         {
-            on_actionSave_triggered();
+            on_actionSave_or_actionSaveAs_triggered();
         }
     }
 
