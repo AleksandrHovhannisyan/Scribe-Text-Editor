@@ -1,12 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// TODO ensure we prompt a save before the user exits the application if there's still stuff there!
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     setWindowTitle(defaultWindowTitle);
+    fileNeedsToBeSaved = false;
 }
 
 MainWindow::~MainWindow()
@@ -36,6 +39,7 @@ void MainWindow::on_actionNew_triggered()
 {
     if(fileNeedsToBeSaved)
     {
+        // TODO replace with a function call that we can reuse later for exiting
         QMessageBox::StandardButton userSelection;
         userSelection = QMessageBox::question(this, "Text Editor",
                               "Do you want to save the changes to " + getFileNameFromPath(currentFile) + "?",
@@ -47,9 +51,11 @@ void MainWindow::on_actionNew_triggered()
         }
     }
 
+    // TODO wrap this all into one reusable function and call it in the constructor
     currentFile.clear();
     ui->textEdit->setText(QString());
     setWindowTitle(defaultWindowTitle);
+    fileNeedsToBeSaved = false;
 }
 
 /* TODO document
