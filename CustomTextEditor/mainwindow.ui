@@ -71,7 +71,6 @@
     <property name="title">
      <string>Format</string>
     </property>
-    <addaction name="actionWord_Wrap"/>
     <addaction name="actionFont"/>
    </widget>
    <widget class="QMenu" name="menuView">
