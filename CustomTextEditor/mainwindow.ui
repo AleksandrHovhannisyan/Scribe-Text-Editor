@@ -53,6 +53,7 @@
      <string>Edit</string>
     </property>
     <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
     <addaction name="separator"/>
     <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
@@ -314,6 +315,19 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/redo.bmp</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>

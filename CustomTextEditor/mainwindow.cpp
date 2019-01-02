@@ -213,22 +213,27 @@ void MainWindow::on_actionExit_triggered()
 }
 
 
-/* Called when the user explicitly selects the Undo option from the menu.
+/* Called when the user performs the Undo operation.
  */
 void MainWindow::on_actionUndo_triggered() { ui->textEdit->undo(); }
 
 
-/* Called when the user explicitly selects the Cut option from the menu.
+/* Called when the user performs the Redo operation.
+ */
+void MainWindow::on_actionRedo_triggered(){ ui->textEdit->redo(); }
+
+
+/* Called when the user performs the Cut operation.
  */
 void MainWindow::on_actionCut_triggered() { ui->textEdit->cut(); }
 
 
-/* Called when the user explicitly selects the Copy option from the menu.
+/* Called when the user performs the Copy operation.
  */
 void MainWindow::on_actionCopy_triggered() { ui->textEdit->copy(); }
 
 
-/* Called when the user explicitly selects the Paste option from the menu.
+/* Called when the user performs the Paste operation.
  */
 void MainWindow::on_actionPaste_triggered() { ui->textEdit->paste(); }
 
