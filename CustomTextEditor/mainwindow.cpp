@@ -1,13 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <ctype.h>              // isspace, isalnum
+#include <QtDebug>
 
 // TODO use textEdit->copyAvailable() to check if copy/cut can be performed; if not, disable copy/cut buttons
-
-
 // TODO ensure we prompt a save before the user exits the application if there's still stuff there!
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
+    metrics(),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -291,11 +292,78 @@ void MainWindow::on_actionGo_To_triggered()
 void MainWindow::on_actionSelect_All_triggered() { ui->textEdit->selectAll(); }
 
 
+/* TODO document
+ * TODO maybe think about optimizing the code here so we don't recalculate everything
+ */
+void MainWindow::updateFileMetrics()
+{
+    QString documentContents = ui->textEdit->toPlainText();
+    int documentLength = documentContents.length();
+    metrics = DocumentMetrics();
+    QString currentWord = "";
+
+    // Loop through each character in the document
+    for(int i = 0; i < documentLength; i++)
+    {
+        // Updated on each iteration
+        metrics.charCount++;
+
+        char currentCharacter = documentContents[i].toLatin1();
+
+        // Alphanumeric character
+        if(isalnum(currentCharacter))
+        {
+            currentWord += currentCharacter;
+        }
+        else
+        {
+            // Newline
+            if(currentCharacter == '\n')
+            {
+                // Special case: newline following a word
+                if(!currentWord.isEmpty())
+                {
+                    metrics.wordCount++;
+                    currentWord.clear();
+                }
+                metrics.lineCount++;
+            }
+            // All other whitespace
+            else if(isspace(currentCharacter))
+            {
+                // Whitespace following a word means we completed a word
+                if(!currentWord.isEmpty())
+                {
+                    metrics.wordCount++;
+                    currentWord.clear();
+                }
+                // Consume all whitespace
+                else
+                {
+                    while(i + 1 < documentLength && isspace(documentContents[i + 1].toLatin1()))
+                    {
+                        i++;
+                    }
+                }
+            }
+        }
+    }
+
+    qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
+    // Adjust the character, word, and line counts accordingly
+}
+
+
 /* Called whenever the contents of the text editor change, even if they are deleted
  * and restored to their original state. Sets a flag that the current file needs to
  * be saved before any file creation, opening, or exiting operations.
  */
-void MainWindow::on_textEdit_textChanged() { fileNeedsToBeSaved = true; }
+void MainWindow::on_textEdit_textChanged()
+{
+    fileNeedsToBeSaved = true;
+    updateFileMetrics();
+    // TODO Send those metrics to the status bar
+}
 
 
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries

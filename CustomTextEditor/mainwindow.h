@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+
+#include "documentmetrics.h"
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QFile>
@@ -35,6 +37,8 @@ public:
 private:
     QString getFileNameFromPath(QString filePath);
     void allowUserToSave();
+    void updateFileMetrics();
+    DocumentMetrics metrics;
     QFont font;
     int tabStopWidth;
     Ui::MainWindow *ui;
