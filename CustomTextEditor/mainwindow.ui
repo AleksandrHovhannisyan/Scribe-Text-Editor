@@ -102,6 +102,12 @@
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="actionPrint"/>
+   <addaction name="separator"/>
+   <addaction name="actionUndo"/>
+   <addaction name="actionRedo"/>
+   <addaction name="actionCopy"/>
+   <addaction name="actionCut"/>
+   <addaction name="actionPaste"/>
    <addaction name="actionFind"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>

@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// TODO use textEdit->copyAvailable() to check if copy/cut can be performed; if not, disable copy/cut buttons
+
+
 // TODO ensure we prompt a save before the user exits the application if there's still stuff there!
 
 MainWindow::MainWindow(QWidget *parent) :
