@@ -35,7 +35,7 @@ MainWindow::~MainWindow()
 void MainWindow::resetEditor()
 {
     currentFilePath.clear();
-    ui->textEdit->setText(QString());
+    ui->textEdit->setText("");
     setWindowTitle(defaultWindowTitle);
     fileNeedsToBeSaved = false;
 }
@@ -103,7 +103,9 @@ QString MainWindow::getFileNameFromPath(QString filePath)
 }
 
 
-/* TODO document
+/* Launches a dialog box asking the user if they would like to save the current file.
+ * If the user selects "No" or closes the dialog window, the file will not be saved.
+ * Otherwise, if they select "Yes," the file will be saved.
  */
 void MainWindow::allowUserToSave()
 {
@@ -115,14 +117,14 @@ void MainWindow::allowUserToSave()
 
     if(userSelection == QMessageBox::Yes)
     {
-        on_actionSave_or_actionSaveAs_triggered();
+        on_actionSave_or_actionSaveAs_triggered(); // TODO go back to separate save and save as so we can just do save here and not save as!
     }
 }
 
 
 /* Called when the user selects the New option from the menu or toolbar (or uses Ctrl+N).
  * If the current document has unsaved changes, it prompts the user to save or discard.
- * In either case, it ends up clearing the current file name and editor contents.
+ * In either case, it ends up resetting the editor/document.
  */
 void MainWindow::on_actionNew_triggered()
 {
@@ -167,22 +169,22 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
         return;
     }
 
-    fileNeedsToBeSaved = false;
-    QString newFileName = getFileNameFromPath(currentFilePath);
-    setWindowTitle(newFileName.append(fileNeedsToBeSaved ? " [Unsaved changes]" : ""));
-
+    // Save the contents of the editor to the disk and close the file descriptor
     QTextStream out(&file);
     QString editorContents = ui->textEdit->toPlainText();
     out << editorContents;
-
     file.close();
+
+    fileNeedsToBeSaved = false;
+    setWindowTitle(getFileNameFromPath(currentFilePath));
 }
 
 
 /* Called when the user selects the Open option from the menu or toolbar
- * (or uses Ctrl+O). Launches a dialog box that allows the user to select
- * the file they want to open. Sets the editor's current file path to that
- * of the opened file on success and updates the app title.
+ * (or uses Ctrl+O). If the current document has unsaved changes, it first
+ * asks the user if they want to save. In any case, it launches a dialog box
+ * that allows the user to select the file they want to open. Sets the editor's
+ * current file path to thatof the opened file on success and updates the app state.
  */
 void MainWindow::on_actionOpen_triggered()
 {
@@ -210,16 +212,16 @@ void MainWindow::on_actionOpen_triggered()
         return;
     }
 
+    // Read the file contents into the editor and close the file descriptor
     QTextStream in(&file);
     QString documentContents = in.readAll();
-
     ui->textEdit->setText(documentContents);
+    file.close();
 
-    // Changing the edit text above will cause fileNeedsToBeSaved to be true, but we need to reset that here
+    // Changing the edit text above will trigger on_textEdit_changed, which will set
+    // fileNeedsToBeSaved to true, but we need to reset it here because we don't need to save
     fileNeedsToBeSaved = false;
     setWindowTitle(getFileNameFromPath(currentFilePath));
-
-    file.close();
 }
 
 
@@ -240,8 +242,7 @@ void MainWindow::on_actionPrint_triggered()
 
 
 /* Called when the user selects the Exit option from the menu (or uses Ctrl+W).
- * Ensures the user can safely exit without losing unsaved changes.
- * Terminates the program.
+ * Ensures that the user can safely exit without losing unsaved changes. Terminates the program.
  */
 void MainWindow::on_actionExit_triggered()
 {
@@ -394,7 +395,7 @@ void MainWindow::updateFileMetrics()
         currentWord.clear();
     }
 
-    qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
+    // qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
 }
 
 
@@ -413,8 +414,7 @@ void MainWindow::on_textEdit_textChanged()
 
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries
  * to close the main application window. If the current document is unsaved,
- * it allows the user to save before finally exiting. Otherwise, if there are
- * no unsaved changes, it closes.
+ * it allows the user to save before finally exiting.
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
