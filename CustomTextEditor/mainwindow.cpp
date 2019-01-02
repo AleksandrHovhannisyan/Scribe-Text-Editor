@@ -30,7 +30,7 @@ MainWindow::~MainWindow()
 
 /* Resets the text editor to all of its defaults and
  * effectively creates an empty document from scratch.
- * See the constructor and on_actionNew_triggered().
+ * See the constructor and on_actionNew_triggered for uses.
  */
 void MainWindow::resetEditor()
 {
@@ -83,7 +83,9 @@ void MainWindow::setFont(QString family, QFont::StyleHint styleHint,
     font.setFixedPitch(fixedPitch);
     font.setPointSize(pointSize);
     ui->textEdit->setFont(font);
-    ui->textEdit->setTabStopWidth(tabStopWidth);
+
+    QFontMetrics metrics(font);
+    ui->textEdit->setTabStopWidth(tabStopWidth * metrics.width(' '));
 }
 
 
@@ -117,7 +119,7 @@ void MainWindow::allowUserToSave()
 
     if(userSelection == QMessageBox::Yes)
     {
-        on_actionSave_or_actionSaveAs_triggered(); // TODO go back to separate save and save as so we can just do save here and not save as!
+        on_actionSave_or_actionSaveAs_triggered();
     }
 }
 
