@@ -8,9 +8,11 @@
 #include <QMessageBox>
 #include <QStringRef>
 #include <QFont>
-#include <QFontMetrics>     // tab stop width
-#include <QApplication>     // quit
-#include <QCloseEvent>
+#include <QFontMetrics>                 // tab stop width
+#include <QApplication>                 // quit
+#include <QCloseEvent>                  // closeEvent
+#include <QtPrintSupport/QPrinter>      // printing
+#include <QtPrintSupport/QPrintDialog>  // printing
 
 namespace Ui {
 class MainWindow;
@@ -55,6 +57,7 @@ private slots:
     void on_actionGo_To_triggered();
     void on_actionSelect_All_triggered();
     void on_actionRedo_triggered();
+    void on_actionPrint_triggered();
 };
 
 #endif // MAINWINDOW_H

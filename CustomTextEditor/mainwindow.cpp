@@ -101,7 +101,7 @@ void MainWindow::allowUserToSave()
 }
 
 
-/* Called when the user selects the new file creation option from the menu or toolbar.
+/* Called when the user selects the New option from the menu or toolbar (or uses Ctrl+N).
  * If the current document has unsaved changes, it prompts the user to save or discard.
  * In either case, it ends up clearing the current file name and editor contents.
  */
@@ -117,10 +117,10 @@ void MainWindow::on_actionNew_triggered()
 }
 
 
-/* Called when the user selects the Save or Save As option from the menu or toolbar.
- * On success, saves the contents of the text editor to the disk using the file name
- * provided by the user. If the current document was never saved, or if the user chose
- * Save As, the program prompts the user to specify a name and directory for the file.
+/* Called when the user selects the Save or Save As option from the menu or toolbar
+ * (or uses Ctrl+S). On success, saves the contents of the text editor to the disk using
+ * the file name provided by the user. If the current document was never saved, or if the
+ * user chose Save As, the program prompts the user to specify a name and directory for the file.
  */
 void MainWindow::on_actionSave_or_actionSaveAs_triggered()
 {
@@ -159,10 +159,10 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
 }
 
 
-/* Called when the user selects the open option from the menu or toolbar.
- * Launches a dialog box that allows the user to select the file they want
- * to open. Sets the editor's current file path to that of the opened file on
- * success.
+/* Called when the user selects the Open option from the menu or toolbar
+ * (or uses Ctrl+O). Launches a dialog box that allows the user to select
+ * the file they want to open. Sets the editor's current file path to that
+ * of the opened file on success.
  */
 void MainWindow::on_actionOpen_triggered()
 {
@@ -201,7 +201,23 @@ void MainWindow::on_actionOpen_triggered()
 }
 
 
-/* Called when the user selects the exit option from the menu.
+/* Called when the user selects the Print option from the menu or toolbar (or uses Ctrl+P).
+ * Allows the user to print the contents of the current document.
+ */
+void MainWindow::on_actionPrint_triggered()
+{
+    QPrinter printer;
+    printer.setPrinterName("Document printer");
+    QPrintDialog printDialog(&printer, this);
+
+    if(printDialog.exec() != QPrintDialog::Rejected)
+    {
+        ui->textEdit->print(&printer);
+    }
+}
+
+
+/* Called when the user selects the Exit option from the menu (or uses Ctrl+W).
  * Ensures the user can safely exit without losing unsaved changes.
  * Terminates the program.
  */
