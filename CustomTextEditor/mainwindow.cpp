@@ -9,11 +9,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    initializeStatusBarLabels(); // have to do this first before resetting the editor
     resetEditor();
-    setFont("Courier", QFont::Monospace, true, 10);
-    setTabStopWidth(5);
+    setFont("Courier", QFont::Monospace, true, 10, 5);
 
-    // Have to manually connect these signals to the single slot to handle both
+    // Have to manually connect these signals to the same slot. Feature unavailable in designer.
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 }
@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete wordCountLabel;
+    delete charCountLabel;
+    delete lineCountLabel;
     delete ui;
 }
 
@@ -38,14 +41,30 @@ void MainWindow::resetEditor()
 }
 
 
-/* Sets the editor's tab stop width to the specified value.
- * @param width - the width of the tab stop, in terms of the number of equivalent space characters.
+/* Initializes and updates the status bar labels.
  */
-void MainWindow::setTabStopWidth(int width)
+void MainWindow::initializeStatusBarLabels()
 {
-    tabStopWidth = width;
-    QFontMetrics metrics(font);
-    ui->textEdit->setTabStopWidth(tabStopWidth * metrics.width(' '));
+    wordCountLabel = new QLabel();
+    charCountLabel = new QLabel();
+    lineCountLabel = new QLabel();
+    ui->statusBar->addWidget(wordCountLabel);
+    ui->statusBar->addWidget(charCountLabel);
+    ui->statusBar->addWidget(lineCountLabel);
+    updateStatusBar();
+}
+
+
+/* Updates the status bar labels to reflect the most up-to-date document metrics.
+ */
+void MainWindow::updateStatusBar()
+{
+    QString wordText = "   Words: " + QString::number(metrics.wordCount) + "   ";
+    QString charText = "   Chars: " + QString::number(metrics.charCount) + "   ";
+    QString lineText = "   Lines: " + QString::number(metrics.lineCount) + "   ";
+    wordCountLabel->setText(wordText);
+    charCountLabel->setText(charText);
+    lineCountLabel->setText(lineText);
 }
 
 
@@ -54,15 +73,17 @@ void MainWindow::setTabStopWidth(int width)
  * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.
  * @param fixedPitch - if true, monospace font (equal-width characters)
  * @param pointSize - the size, in points, of the desired font (e.g., 12 for 12-pt font)
+ * @param tabStopWidth - the desired width of a tab in terms of the equivalent number of spaces
  */
 void MainWindow::setFont(QString family, QFont::StyleHint styleHint,
-                       bool fixedPitch, int pointSize)
+                       bool fixedPitch, int pointSize, int tabStopWidth)
 {
     font.setFamily(family);
     font.setStyleHint(styleHint);
     font.setFixedPitch(fixedPitch);
     font.setPointSize(pointSize);
     ui->textEdit->setFont(font);
+    ui->textEdit->setTabStopWidth(tabStopWidth);
 }
 
 
@@ -370,7 +391,7 @@ void MainWindow::updateFileMetrics()
         currentWord.clear();
     }
 
-    // qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
+    qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
 }
 
 
@@ -382,8 +403,7 @@ void MainWindow::on_textEdit_textChanged()
     fileNeedsToBeSaved = true;
     setWindowTitle(getFileNameFromPath(currentFilePath).append(" [Unsaved changes]"));
     updateFileMetrics();
-
-    // TODO Send those metrics to the status bar
+    updateStatusBar();
 }
 
 

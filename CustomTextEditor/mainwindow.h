@@ -30,9 +30,11 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void resetEditor();
+    void initializeStatusBarLabels();
+    void updateStatusBar();
     void setTabStopWidth(int width);
     void setFont(QString family, QFont::StyleHint styleHint,
-                    bool fixedPitch, int pointSize);
+                    bool fixedPitch, int pointSize, int tabStopWidth);
     void closeEvent(QCloseEvent *event);
 
 private:
@@ -41,8 +43,10 @@ private:
     void updateFileMetrics();
 
     DocumentMetrics metrics;
+    QLabel *wordCountLabel;
+    QLabel *charCountLabel;
+    QLabel *lineCountLabel;
     QFont font;
-    int tabStopWidth;
     Ui::MainWindow *ui;
     QString currentFilePath;
     bool fileNeedsToBeSaved = true;
