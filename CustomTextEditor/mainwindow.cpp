@@ -305,30 +305,30 @@ void MainWindow::updateFileMetrics()
     // Loop through each character in the document
     for(int i = 0; i < documentLength; i++)
     {
-        // Updated on each iteration
-        metrics.charCount++;
-
         char currentCharacter = documentContents[i].toLatin1();
 
-        // Alphanumeric character
-        if(isalnum(currentCharacter))
+        // Newline
+        if(currentCharacter == '\n')
         {
-            currentWord += currentCharacter;
+            // Special case: newline following a word
+            if(!currentWord.isEmpty())
+            {
+                metrics.wordCount++;
+                currentWord.clear();
+            }
+            metrics.lineCount++;
         }
+        // All other valid characters
         else
         {
-            // Newline
-            if(currentCharacter == '\n')
+            metrics.charCount++;
+
+            // Alphanumeric character
+            if(isalnum(currentCharacter))
             {
-                // Special case: newline following a word
-                if(!currentWord.isEmpty())
-                {
-                    metrics.wordCount++;
-                    currentWord.clear();
-                }
-                metrics.lineCount++;
+                currentWord += currentCharacter;
             }
-            // All other whitespace
+            // Whitespace (excluding newline, handled separately above)
             else if(isspace(currentCharacter))
             {
                 // Whitespace following a word means we completed a word
@@ -337,7 +337,7 @@ void MainWindow::updateFileMetrics()
                     metrics.wordCount++;
                     currentWord.clear();
                 }
-                // Consume all whitespace
+                // Consume all other instances of whitespace
                 else
                 {
                     while(i + 1 < documentLength && isspace(documentContents[i + 1].toLatin1()))
@@ -349,8 +349,14 @@ void MainWindow::updateFileMetrics()
         }
     }
 
+    // e.g., if we stopped typing and still had a word in progress, we need to count it
+    if(!currentWord.isEmpty())
+    {
+        metrics.wordCount++;
+        currentWord.clear();
+    }
+
     qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
-    // Adjust the character, word, and line counts accordingly
 }
 
 
