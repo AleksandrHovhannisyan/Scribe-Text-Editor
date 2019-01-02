@@ -313,15 +313,18 @@ void MainWindow::on_actionGo_To_triggered()
 void MainWindow::on_actionSelect_All_triggered() { ui->textEdit->selectAll(); }
 
 
-/* TODO document
+/* Toggles the visibility of the status bar labels for word, char, and line count.
  */
 void MainWindow::on_actionStatus_Bar_triggered()
 {
-    // TODO fill in code here
+    wordCountLabel->setVisible(!wordCountLabel->isVisible());
+    charCountLabel->setVisible(!charCountLabel->isVisible());
+    lineCountLabel->setVisible(!lineCountLabel->isVisible());
 }
 
 
-/* TODO document
+/* Scans the entire document character by character and tallies the number of
+ * characters, words, and lines for reporting purposes.
  * TODO maybe think about optimizing the code here so we don't recalculate everything
  */
 void MainWindow::updateFileMetrics()
@@ -396,12 +399,13 @@ void MainWindow::updateFileMetrics()
 
 
 /* Called whenever the contents of the text editor change, even if they are deleted
- * and restored to their original state. Updates the file metrics and status bar.
+ * and restored to their original state. Updates the file metrics, window title, and status bar.
  */
 void MainWindow::on_textEdit_textChanged()
 {
     fileNeedsToBeSaved = true;
-    setWindowTitle(getFileNameFromPath(currentFilePath).append(" [Unsaved changes]"));
+    QString newWindowTitle = getFileNameFromPath(currentFilePath).append(" [Unsaved changes]");
+    setWindowTitle(newWindowTitle);
     updateFileMetrics();
     updateStatusBar();
 }
