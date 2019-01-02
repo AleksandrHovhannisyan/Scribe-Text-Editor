@@ -3,9 +3,6 @@
 #include <ctype.h>              // isspace, isalnum
 #include <QtDebug>
 
-// TODO use textEdit->copyAvailable() to check if copy/cut can be performed; if not, disable copy/cut buttons
-// TODO ensure we prompt a save before the user exits the application if there's still stuff there!
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     metrics(),
@@ -149,21 +146,22 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
         return;
     }
 
-    setWindowTitle(getFileNameFromPath(currentFilePath));
-    QTextStream out(&file);
+    fileNeedsToBeSaved = false;
+    QString newFileName = getFileNameFromPath(currentFilePath);
+    setWindowTitle(newFileName.append(fileNeedsToBeSaved ? " [Unsaved changes]" : ""));
 
+    QTextStream out(&file);
     QString editorContents = ui->textEdit->toPlainText();
     out << editorContents;
 
     file.close();
-    fileNeedsToBeSaved = false;
 }
 
 
 /* Called when the user selects the Open option from the menu or toolbar
  * (or uses Ctrl+O). Launches a dialog box that allows the user to select
  * the file they want to open. Sets the editor's current file path to that
- * of the opened file on success.
+ * of the opened file on success and updates the app title.
  */
 void MainWindow::on_actionOpen_triggered()
 {
@@ -191,14 +189,16 @@ void MainWindow::on_actionOpen_triggered()
         return;
     }
 
-    setWindowTitle(getFileNameFromPath(currentFilePath));
-
     QTextStream in(&file);
     QString documentContents = in.readAll();
 
     ui->textEdit->setText(documentContents);
-    file.close();
+
+    // Changing the edit text above will cause fileNeedsToBeSaved to be true, but we need to reset that here
     fileNeedsToBeSaved = false;
+    setWindowTitle(getFileNameFromPath(currentFilePath));
+
+    file.close();
 }
 
 
@@ -293,6 +293,14 @@ void MainWindow::on_actionSelect_All_triggered() { ui->textEdit->selectAll(); }
 
 
 /* TODO document
+ */
+void MainWindow::on_actionStatus_Bar_triggered()
+{
+    // TODO fill in code here
+}
+
+
+/* TODO document
  * TODO maybe think about optimizing the code here so we don't recalculate everything
  */
 void MainWindow::updateFileMetrics()
@@ -306,6 +314,12 @@ void MainWindow::updateFileMetrics()
     for(int i = 0; i < documentLength; i++)
     {
         char currentCharacter = documentContents[i].toLatin1();
+
+        // Debug assertion error caused for invalid file formats like PDF
+        if(currentCharacter < -1 || currentCharacter > 255)
+        {
+            return;
+        }
 
         // Newline
         if(currentCharacter == '\n')
@@ -356,18 +370,19 @@ void MainWindow::updateFileMetrics()
         currentWord.clear();
     }
 
-    qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
+    // qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
 }
 
 
 /* Called whenever the contents of the text editor change, even if they are deleted
- * and restored to their original state. Sets a flag that the current file needs to
- * be saved before any file creation, opening, or exiting operations.
+ * and restored to their original state. Updates the file metrics and status bar.
  */
 void MainWindow::on_textEdit_textChanged()
 {
     fileNeedsToBeSaved = true;
+    setWindowTitle(getFileNameFromPath(currentFilePath).append(" [Unsaved changes]"));
     updateFileMetrics();
+
     // TODO Send those metrics to the status bar
 }
 

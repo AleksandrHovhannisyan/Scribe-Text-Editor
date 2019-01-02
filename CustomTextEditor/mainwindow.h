@@ -15,6 +15,8 @@
 #include <QCloseEvent>                  // closeEvent
 #include <QtPrintSupport/QPrinter>      // printing
 #include <QtPrintSupport/QPrintDialog>  // printing
+#include <QList>
+#include <QLabel>
 
 namespace Ui {
 class MainWindow;
@@ -32,18 +34,19 @@ public:
     void setFont(QString family, QFont::StyleHint styleHint,
                     bool fixedPitch, int pointSize);
     void closeEvent(QCloseEvent *event);
-    const QString defaultWindowTitle = "Untitled document";
 
 private:
     QString getFileNameFromPath(QString filePath);
     void allowUserToSave();
     void updateFileMetrics();
+
     DocumentMetrics metrics;
     QFont font;
     int tabStopWidth;
     Ui::MainWindow *ui;
     QString currentFilePath;
     bool fileNeedsToBeSaved = true;
+    const QString defaultWindowTitle = "Untitled document";
 
 private slots:
     void on_actionNew_triggered();
@@ -62,6 +65,7 @@ private slots:
     void on_actionSelect_All_triggered();
     void on_actionRedo_triggered();
     void on_actionPrint_triggered();
+    void on_actionStatus_Bar_triggered();
 };
 
 #endif // MAINWINDOW_H
