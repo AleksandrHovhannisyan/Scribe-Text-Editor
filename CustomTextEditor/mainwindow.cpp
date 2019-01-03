@@ -3,6 +3,9 @@
 #include <ctype.h>              // isspace, isalnum
 #include <QtDebug>
 
+/* Sets up the text editor with all necessary parameters. Resets the editor to its
+ * default state, initializes status bar labels, and sets the default editor font.
+ */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     metrics(),
@@ -19,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 
+/* Performs all necessary memory cleanup operations on dynamically allocated objects.
+ */
 MainWindow::~MainWindow()
 {
     delete wordCountLabel;
@@ -407,7 +412,7 @@ void MainWindow::updateFileMetrics()
 void MainWindow::on_textEdit_textChanged()
 {
     fileNeedsToBeSaved = true;
-    QString newWindowTitle = getFileNameFromPath(currentFilePath).append(" [Unsaved changes]");
+    QString newWindowTitle = getFileNameFromPath(currentFilePath).append(" [Unsaved]");
     setWindowTitle(newWindowTitle);
     updateFileMetrics();
     updateStatusBar();
