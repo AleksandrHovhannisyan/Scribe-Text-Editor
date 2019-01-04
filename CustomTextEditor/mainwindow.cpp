@@ -15,10 +15,15 @@ MainWindow::MainWindow(QWidget *parent) :
     initializeStatusBarLabels(); // have to do this first before resetting the editor
     resetEditor();
     setFont("Courier", QFont::Monospace, true, 10, 5);
+    findDialog = new FindDialog();
+    findDialog->setWindowFlags(Qt::WindowStaysOnTopHint);
 
     // Have to manually connect these signals to the same slot. Feature unavailable in designer.
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+
+    // The FindDialog object will emit a signal when the query is ready for processing
+    connect(findDialog, SIGNAL(queryTextReady(QString)), this, SLOT(on_findQueryText_ready(QString)));
 }
 
 
@@ -64,9 +69,9 @@ void MainWindow::initializeStatusBarLabels()
  */
 void MainWindow::updateStatusBar()
 {
-    QString wordText = "   Words: " + QString::number(metrics.wordCount) + "   ";
-    QString charText = "   Chars: " + QString::number(metrics.charCount) + "   ";
-    QString lineText = "   Lines: " + QString::number(metrics.lineCount) + "   ";
+    QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
+    QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
+    QString lineText = tr("   Lines: ") + QString::number(metrics.lineCount) + tr("   ");
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
     lineCountLabel->setText(lineText);
@@ -119,7 +124,7 @@ void MainWindow::allowUserToSave()
     QMessageBox::StandardButton userSelection;
 
     userSelection = QMessageBox::question(this, "",
-                          "Do you want to save the changes to " + getFileNameFromPath(currentFilePath) + "?",
+                          tr("Do you want to save the changes to ") + getFileNameFromPath(currentFilePath) + tr("?"),
                           QMessageBox::Yes | QMessageBox::No);
 
     if(userSelection == QMessageBox::Yes)
@@ -158,7 +163,7 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
     if(saveAs || currentFilePath.isEmpty())
     {
         // Try to get a valid file path
-        QString filePath = QFileDialog::getSaveFileName(this, "Save");
+        QString filePath = QFileDialog::getSaveFileName(this, tr("Save"));
 
         // Don't do anything if the user changes their mind and hits Cancel
         if(filePath.isNull())
@@ -202,7 +207,7 @@ void MainWindow::on_actionOpen_triggered()
     }
 
     // Ask the user to specify the name of the file
-    QString filePath = QFileDialog::getOpenFileName(this, "Open");
+    QString filePath = QFileDialog::getOpenFileName(this, tr("Open"));
 
     // Ensure we don't change the current file path if the user hit Cancel
     if(filePath.isNull())
@@ -238,7 +243,7 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionPrint_triggered()
 {
     QPrinter printer;
-    printer.setPrinterName("Document printer");
+    printer.setPrinterName(tr("Document printer"));
     QPrintDialog printDialog(&printer, this);
 
     if(printDialog.exec() != QPrintDialog::Rejected)
@@ -288,13 +293,43 @@ void MainWindow::on_actionPaste_triggered() { ui->textEdit->paste(); }
 
 
 /* Called when the user explicitly selects the Find option from the menu.
- * Launches a dialog that prompts the user to enter a search query. Locates
- * the first matching instance in the document.
+ * Launches a dialog that prompts the user to enter a search query.
  */
-void MainWindow::on_actionFind_triggered()
+void MainWindow::on_actionFind_triggered() { findDialog->show(); }
+
+
+/* Called when the findDialog object emits its queryTextReady signal.
+ * Initiates the actual searching within the editor. If a match is
+ * found, it's highlighted in the editor. Otherwise, feedback is given
+ * to the user in the search window, which remains open for further
+ * searches.
+ * @param queryText - the text the user wants to search for
+ */
+void MainWindow::on_findQueryText_ready(QString queryText)
 {
-    // TODO add UI for searching
-    ui->textEdit->find("");
+    // Keep track of the original cursor position
+    int oldCursorPosition = ui->textEdit->textCursor().position();
+
+    // Have to do this for QTextEdit::find to work
+    ui->textEdit->moveCursor(QTextCursor::Start);
+
+    // Note: don't have to worry about empty queryText, findDialog takes care of that on its end
+    bool matchFound = ui->textEdit->find(queryText, QTextDocument::FindWholeWords);
+
+    if(matchFound)
+    {
+        findDialog->hide();
+    }
+    // Reset the cursor to its original position prior to searching
+    else
+    {
+        QTextCursor newCursor = ui->textEdit->textCursor();
+        newCursor.setPosition(oldCursorPosition);
+        ui->textEdit->setTextCursor(newCursor);
+
+        // TODO display failure text on the dialog
+    }
+
 }
 
 
@@ -412,7 +447,7 @@ void MainWindow::updateFileMetrics()
 void MainWindow::on_textEdit_textChanged()
 {
     fileNeedsToBeSaved = true;
-    QString newWindowTitle = getFileNameFromPath(currentFilePath).append(" [Unsaved]");
+    QString newWindowTitle = getFileNameFromPath(currentFilePath).append(tr(" [Unsaved]"));
     setWindowTitle(newWindowTitle);
     updateFileMetrics();
     updateStatusBar();

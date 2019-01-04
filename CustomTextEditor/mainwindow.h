@@ -1,8 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
 #include "documentmetrics.h"
+#include "finddialog.h"
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QFile>
@@ -17,6 +17,7 @@
 #include <QtPrintSupport/QPrintDialog>  // printing
 #include <QList>
 #include <QLabel>
+
 
 namespace Ui {
 class MainWindow;
@@ -42,12 +43,13 @@ private:
     void allowUserToSave();
     void updateFileMetrics();
 
+    Ui::MainWindow *ui;
     DocumentMetrics metrics;
     QLabel *wordCountLabel;
     QLabel *charCountLabel;
     QLabel *lineCountLabel;
     QFont font;
-    Ui::MainWindow *ui;
+    FindDialog *findDialog;
     QString currentFilePath;
     bool fileNeedsToBeSaved = true;
     const QString defaultWindowTitle = "Untitled document";
@@ -63,6 +65,7 @@ private slots:
     void on_actionCopy_triggered();
     void on_actionPaste_triggered();
     void on_actionFind_triggered();
+    void on_findQueryText_ready(QString queryText);
     void on_actionFind_Next_triggered();
     void on_actionReplace_triggered();
     void on_actionGo_To_triggered();

@@ -26,11 +26,13 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        finddialog.cpp
 
 HEADERS += \
         mainwindow.h \
-    documentmetrics.h
+        documentmetrics.h \
+        finddialog.h
 
 FORMS += \
         mainwindow.ui
