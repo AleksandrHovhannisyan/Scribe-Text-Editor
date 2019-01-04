@@ -298,8 +298,8 @@ void MainWindow::on_actionCopy_triggered() { ui->textEdit->copy(); }
 void MainWindow::on_actionPaste_triggered() { ui->textEdit->paste(); }
 
 
-/* Called when the user explicitly selects the Find option from the menu.
- * Launches a dialog that prompts the user to enter a search query.
+/* Called when the user explicitly selects the Find option from the menu
+ * (or uses Ctrl+F). Launches a dialog that prompts the user to enter a search query.
  */
 void MainWindow::on_actionFind_triggered()
 {
@@ -371,9 +371,9 @@ void MainWindow::on_actionFind_Next_triggered()
 {
     /* The FindDialog itself will determine whether it needs to emit
      * queryTextReady(..., true) or queryTextReady(..., false). If it emits it
-     * with the true flag, then we'll proceed with a findNext operation. Otherwise,
+     * with the true flag, then we'll proceed with a Find Next operation. Otherwise,
      * it will simply trigger a normal, first-time Find operation. This is how
-     * Find Next should behave, so that's why we make this call.
+     * Find Next should behave, so that's why we delegate all the handling to this call.
      */
     on_actionFind_triggered();
 }
@@ -391,7 +391,7 @@ void MainWindow::on_actionGo_To_triggered()
 }
 
 
-/* Called when the user explicitly selects the Select All option from the menu.
+/* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).
  */
 void MainWindow::on_actionSelect_All_triggered() { ui->textEdit->selectAll(); }
 
@@ -407,7 +407,7 @@ void MainWindow::on_actionStatus_Bar_triggered()
 
 
 /* Scans the entire document character by character and tallies the number of
- * characters, words, and lines for reporting purposes.
+ * characters, words, and lines and storing the counts internally for reporting.
  */
 void MainWindow::updateFileMetrics()
 {

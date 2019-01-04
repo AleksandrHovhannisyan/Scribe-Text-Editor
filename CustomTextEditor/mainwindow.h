@@ -4,20 +4,17 @@
 #include "documentmetrics.h"
 #include "finddialog.h"
 #include <QMainWindow>
-#include <QFileDialog>
-#include <QFile>
-#include <QTextStream>
-#include <QMessageBox>
-#include <QStringRef>
-#include <QFont>
+#include <QFileDialog>                  // file open/save dialogs
+#include <QFile>                        // file descriptors, IO
+#include <QTextStream>                  // file IO
+#include <QMessageBox>                  // alerts and notifications
+#include <QFont>                        // working with fonts
 #include <QFontMetrics>                 // tab stop width
 #include <QApplication>                 // quit
 #include <QCloseEvent>                  // closeEvent
 #include <QtPrintSupport/QPrinter>      // printing
 #include <QtPrintSupport/QPrintDialog>  // printing
-#include <QList>
 #include <QLabel>
-
 
 namespace Ui {
 class MainWindow;
