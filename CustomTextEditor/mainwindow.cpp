@@ -15,8 +15,10 @@ MainWindow::MainWindow(QWidget *parent) :
     initializeStatusBarLabels(); // have to do this first before resetting the editor
     resetEditor();
     setFont("Courier", QFont::Monospace, true, 10, 5);
+
     findDialog = new FindDialog();
-    findDialog->setWindowFlags(Qt::WindowStaysOnTopHint);
+    findDialog->setWindowFlags(Qt::WindowStaysOnTopHint); // so it doesn't disappear if we click off the dialog box
+    findDialog->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint); // to prevent resizing
 
     // Have to manually connect these signals to the same slot. Feature unavailable in designer.
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
