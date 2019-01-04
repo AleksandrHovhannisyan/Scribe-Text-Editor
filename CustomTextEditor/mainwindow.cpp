@@ -463,10 +463,19 @@ void MainWindow::on_textEdit_textChanged()
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    // If unsaved document in progress, pause termination and allow user to save
     if(fileNeedsToBeSaved)
     {
         event->ignore();
         allowUserToSave();
     }
+
+    // Special case: Ctrl+F followed by a close = find dialog lingers, so forcefully close it
+    if(!findDialog->isHidden())
+    {
+        findDialog->close();
+    }
+
+    // Finally allow the exit to go through
     event->accept();
 }
