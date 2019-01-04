@@ -51,7 +51,8 @@ private:
     QFont font;
     FindDialog *findDialog;
     QString currentFilePath;
-    bool fileNeedsToBeSaved = true;
+    bool fileNeedsToBeSaved;
+    int positionOfLastFindMatch;
     const QString defaultWindowTitle = "Untitled document";
 
 private slots:
@@ -65,7 +66,7 @@ private slots:
     void on_actionCopy_triggered();
     void on_actionPaste_triggered();
     void on_actionFind_triggered();
-    void on_findQueryText_ready(QString queryText);
+    void on_findQueryText_ready(QString queryText, bool findNext);
     void on_actionFind_Next_triggered();
     void on_actionReplace_triggered();
     void on_actionGo_To_triggered();

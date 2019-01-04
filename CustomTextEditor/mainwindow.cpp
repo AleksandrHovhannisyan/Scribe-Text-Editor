@@ -17,15 +17,15 @@ MainWindow::MainWindow(QWidget *parent) :
     setFont("Courier", QFont::Monospace, true, 10, 5);
 
     findDialog = new FindDialog();
-    findDialog->setWindowFlags(Qt::WindowStaysOnTopHint); // so it doesn't disappear if we click off the dialog box
-    findDialog->setWindowFlags(Qt::MSWindowsFixedSizeDialogHint); // to prevent resizing
+    findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
+    positionOfLastFindMatch = -1;
 
     // Have to manually connect these signals to the same slot. Feature unavailable in designer.
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 
     // The FindDialog object will emit a signal when the query is ready for processing
-    connect(findDialog, SIGNAL(queryTextReady(QString)), this, SLOT(on_findQueryText_ready(QString)));
+    connect(findDialog, SIGNAL(queryTextReady(QString, bool)), this, SLOT(on_findQueryText_ready(QString, bool)));
 }
 
 
@@ -298,7 +298,13 @@ void MainWindow::on_actionPaste_triggered() { ui->textEdit->paste(); }
 /* Called when the user explicitly selects the Find option from the menu.
  * Launches a dialog that prompts the user to enter a search query.
  */
-void MainWindow::on_actionFind_triggered() { findDialog->show(); }
+void MainWindow::on_actionFind_triggered()
+{
+    if(findDialog->isHidden())
+    {
+        findDialog->show();
+    }
+}
 
 
 /* Called when the findDialog object emits its queryTextReady signal.
@@ -308,27 +314,47 @@ void MainWindow::on_actionFind_triggered() { findDialog->show(); }
  * searches.
  * @param queryText - the text the user wants to search for
  */
-void MainWindow::on_findQueryText_ready(QString queryText)
+void MainWindow::on_findQueryText_ready(QString queryText, bool findNext)
 {
-    // Keep track of the original cursor position
-    int oldCursorPosition = ui->textEdit->textCursor().position();
+    // Keep track of cursor position prior to search
+    int cursorPositionPriorToSearch = ui->textEdit->textCursor().position();
 
-    // Have to do this for QTextEdit::find to work
-    ui->textEdit->moveCursor(QTextCursor::Start);
-
-    // Note: don't have to worry about empty queryText, findDialog takes care of that on its end
-    bool matchFound = ui->textEdit->find(queryText, QTextDocument::FindWholeWords);
-
-    if(matchFound)
+    // For Find Next, set the cursor position to the end of the last match we found
+    if(findNext && positionOfLastFindMatch != -1)
     {
-        findDialog->clearLineEdit();
-        findDialog->hide();
+        ui->textEdit->textCursor().setPosition(positionOfLastFindMatch);
     }
+    // For regular Find operation, set cursor to the very start of the document
     else
     {
+        ui->textEdit->moveCursor(QTextCursor::Start);
+    }
+
+    // Note: don't have to worry about empty queryText, findDialog takes care of that on its end
+    // TODO allow the user to specify case sensitivity with a checkbox in the find dialog
+    bool matchFound = ui->textEdit->find(queryText, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
+
+    // Always give Find Next a second chance to re-search at the beginning of the document
+    if(!matchFound && findNext)
+    {
+        ui->textEdit->moveCursor(QTextCursor::Start);
+        matchFound = ui->textEdit->find(queryText, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
+    }
+
+    // Found (Find or Find Next)
+    if(matchFound)
+    {
+        positionOfLastFindMatch = ui->textEdit->textCursor().position();
+    }
+    // Didn't find anything for either
+    else
+    {        
+        // If we try another Find Next, this will indicate we never found one to begin with
+        positionOfLastFindMatch = -1;
+
         // Reset the cursor to its original position prior to searching
         QTextCursor newCursor = ui->textEdit->textCursor();
-        newCursor.setPosition(oldCursorPosition);
+        newCursor.setPosition(cursorPositionPriorToSearch);
         ui->textEdit->setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
@@ -340,7 +366,13 @@ void MainWindow::on_findQueryText_ready(QString queryText)
 
 void MainWindow::on_actionFind_Next_triggered()
 {
-    // TODO fill in code
+    /* The FindDialog itself will determine whether it needs to emit
+     * queryTextReady(..., true) or queryTextReady(..., false). If it emits it
+     * with the true flag, then we'll proceed with a findNext operation. Otherwise,
+     * it will simply trigger a normal, first-time Find operation. This is how
+     * Find Next should behave, so that's why we make this call.
+     */
+    on_actionFind_triggered();
 }
 
 
@@ -373,7 +405,6 @@ void MainWindow::on_actionStatus_Bar_triggered()
 
 /* Scans the entire document character by character and tallies the number of
  * characters, words, and lines for reporting purposes.
- * TODO maybe think about optimizing the code here so we don't recalculate everything
  */
 void MainWindow::updateFileMetrics()
 {
