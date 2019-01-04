@@ -34,6 +34,7 @@ MainWindow::~MainWindow()
     delete wordCountLabel;
     delete charCountLabel;
     delete lineCountLabel;
+    delete findDialog;
     delete ui;
 }
 
@@ -318,16 +319,18 @@ void MainWindow::on_findQueryText_ready(QString queryText)
 
     if(matchFound)
     {
+        findDialog->clearLineEdit();
         findDialog->hide();
     }
-    // Reset the cursor to its original position prior to searching
     else
     {
+        // Reset the cursor to its original position prior to searching
         QTextCursor newCursor = ui->textEdit->textCursor();
         newCursor.setPosition(oldCursorPosition);
         ui->textEdit->setTextCursor(newCursor);
 
-        // TODO display failure text on the dialog
+        // Inform the user of the unsuccessful search
+        QMessageBox::information(findDialog, tr("Find unsuccessful"), tr("No results found."));
     }
 
 }

@@ -42,7 +42,6 @@ void FindDialog::on_findButton_clicked()
     }
 
     queryText = query;
-    lineEdit->clear();
 
     emit(queryTextReady(queryText));
 }

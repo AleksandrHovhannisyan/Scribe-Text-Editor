@@ -12,6 +12,7 @@ class FindDialog : public QDialog
 public:
     FindDialog(QWidget *parent = nullptr);
     inline QString getQueryText(){ return queryText; }
+    void clearLineEdit() { lineEdit->clear(); }
 
 signals:
     void queryTextReady(QString queryText);
