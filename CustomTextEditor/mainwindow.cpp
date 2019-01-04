@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    initializeStatusBarLabels(); // have to do this first before resetting the editor
+    initializeStatusBarLabels(); // must do this before resetEditor to ensure labels are initialized
     resetEditor();
     setFont("Courier", QFont::Monospace, true, 10, 5);
 
@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 
-    // The FindDialog object will emit a signal when the query is ready for processing
+    // The FindDialog object will emit queryTextReady when the query is ready for processing
     connect(findDialog, SIGNAL(queryTextReady(QString, bool)), this, SLOT(on_findQueryText_ready(QString, bool)));
 }
 
@@ -165,8 +165,11 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
     // If user hit Save As or user hit Save but current document was never saved to disk
     if(saveAs || currentFilePath.isEmpty())
     {
+        // Title to be used for saving dialog
+        QString saveDialogWindowTitle = saveAs ? tr("Save As") : tr("Save");
+
         // Try to get a valid file path
-        QString filePath = QFileDialog::getSaveFileName(this, tr("Save"));
+        QString filePath = QFileDialog::getSaveFileName(this, saveDialogWindowTitle);
 
         // Don't do anything if the user changes their mind and hits Cancel
         if(filePath.isNull())
