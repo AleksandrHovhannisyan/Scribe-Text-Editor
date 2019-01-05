@@ -18,16 +18,13 @@ public:
     inline QString getQueryText(){ return queryText; }
 
 signals:
-    void queryTextReady(QString queryText, bool findNext,
-                        bool caseSensitive, bool wholeWords);
+    void queryTextReady(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
 
 public slots:
-    void on_findButton_clicked();
     void on_findNextButton_clicked();
 
 private:
     QLabel *findLabel;
-    QPushButton *findButton;
     QPushButton *findNextButton;
     QLineEdit *lineEdit;
     QCheckBox *caseSensitiveCheckBox;

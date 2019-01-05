@@ -315,32 +315,31 @@ void MainWindow::on_actionFind_triggered()
     }
 }
 
-// TODO get rid of "Find" functionality and just keep "Find Next". By definition, initial "Find Next" is just "Find"
 
-
-/* Called when the findDialog object emits its queryTextReady signal.
- * Initiates the actual searching within the editor. If a match is
- * found, it's highlighted in the editor. Otherwise, feedback is given
- * to the user in the search window, which remains open for further
+/* Called when the findDialog object emits its queryTextReady signal. Initiates the
+ * actual searching within the editor. If a match is found, it's highlighted in the editor.
+ * Otherwise, feedback is given to the user in the search window, which remains open for further
  * searches.
  * @param queryText - the text the user wants to search for
  * @param findNext - flag denoting whether the search should find the next instance of the query
+ * @param caseSensitive - flag denoting whether the search should heed the case of results
+ * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
  */
-void MainWindow::on_findQueryText_ready(QString queryText, bool findNext,
-                                        bool caseSensitive, bool wholeWords)
+void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords)
 {
     // Keep track of cursor position prior to search
     int cursorPositionPriorToSearch = ui->textEdit->textCursor().position();
 
-    // For Find Next, set the cursor position to the end of the last match we found
-    if(findNext && positionOfLastFindMatch != -1)
-    {
-        ui->textEdit->textCursor().setPosition(positionOfLastFindMatch);
-    }
-    // For regular Find operation, set cursor to the very start of the document
-    else
+    // If this is the first time we're searching for this term, start from the beginning
+    // TODO continue to end of doc, then prompt re-search from start
+    if(!findNext && positionOfLastFindMatch == -1)
     {
         ui->textEdit->moveCursor(QTextCursor::Start);
+    }
+    // For a find next operation
+    else
+    {
+        ui->textEdit->textCursor().setPosition(positionOfLastFindMatch);
     }
 
     // Specify the options we'll be searching with
@@ -357,20 +356,20 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext,
     // Don't worry about empty queryText, findDialog takes care of that on its end
     bool matchFound = ui->textEdit->find(queryText, searchOptions);
 
-    // Always give Find Next a second chance to re-search at the beginning of the document
+    // Always give it a second chance to re-search at the beginning of the document
     // TODO let the user decide if they'd like to do this
-    if(!matchFound && findNext)
+    if(!matchFound)
     {
         ui->textEdit->moveCursor(QTextCursor::Start);
-        matchFound = ui->textEdit->find(queryText, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
+        matchFound = ui->textEdit->find(queryText, searchOptions);
     }
 
-    // Found (Find or Find Next)
+    // Final testing
     if(matchFound)
     {
         positionOfLastFindMatch = ui->textEdit->textCursor().position();
     }
-    // Didn't find anything for either
+    // Didn't find anything
     else
     {        
         // If we try another Find Next, this will indicate we never found one to begin with
@@ -384,18 +383,6 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext,
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
     }
-}
-
-
-void MainWindow::on_actionFind_Next_triggered()
-{
-    /* The FindDialog itself will determine whether it needs to emit
-     * queryTextReady(..., true) or queryTextReady(..., false). If it emits it
-     * with the true flag, then we'll proceed with a Find Next operation. Otherwise,
-     * it will simply trigger a normal, first-time Find operation. This is how
-     * Find Next should behave, so that's why we delegate all the handling to this call.
-     */
-    on_actionFind_triggered();
 }
 
 

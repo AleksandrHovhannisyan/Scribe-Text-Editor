@@ -60,7 +60,6 @@
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
     <addaction name="actionFind"/>
-    <addaction name="actionFind_Next"/>
     <addaction name="actionReplace"/>
     <addaction name="actionGo_To"/>
     <addaction name="separator"/>

@@ -63,9 +63,7 @@ private slots:
     void on_actionCopy_triggered();
     void on_actionPaste_triggered();
     void on_actionFind_triggered();
-    void on_findQueryText_ready(QString queryText, bool findNext,
-                                bool caseSensitive, bool wholeWords);
-    void on_actionFind_Next_triggered();
+    void on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
     void on_actionReplace_triggered();
     void on_actionGo_To_triggered();
     void on_actionSelect_All_triggered();
