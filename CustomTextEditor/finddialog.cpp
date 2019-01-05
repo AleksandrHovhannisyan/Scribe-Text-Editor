@@ -1,11 +1,10 @@
 #include "finddialog.h"
 #include <QHBoxLayout>
 #include <QMessageBox>
-#include <QtDebug> // TODO remove
 #include <QSplitter>
 
-/*
- *
+
+/* Initializes this FindDialog object.
  */
 FindDialog::FindDialog(QWidget *parent)
     : QDialog(parent)
@@ -58,12 +57,8 @@ FindDialog::~FindDialog()
 }
 
 
-// TODO combine find and find next button handlers in one, since most of the code is very similar
-
-
-/* Called when the user clicks the Find next button. If the query is empty, it informs the user.
- * Otherwise, it emits a signal for queryTextReady, with a flag of true to denote that the handler
- * should proceed with a Find Next operation.
+/* Called when the user clicks the Find Next button. If the query is empty, it informs the user.
+ * Otherwise, it emits an appropriate signal for queryTextReady with all relevant search criteria.
  */
 void FindDialog::on_findNextButton_clicked()
 {
