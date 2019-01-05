@@ -29,6 +29,7 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
+    QMessageBox::StandardButton promptYesOrNo(QString title, QString prompt);
     QString getFileNameFromPath(QString filePath);
     void allowUserToSave();
     void updateFileMetrics();
