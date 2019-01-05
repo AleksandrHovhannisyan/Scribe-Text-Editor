@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
-    positionOfLastFindMatch = -1;
 
     // Have to manually connect these signals to the same slot. Feature unavailable in designer.
     connect(ui->actionSave, SIGNAL(triggered()),
@@ -54,6 +53,7 @@ void MainWindow::resetEditor()
     ui->textEdit->setText("");
     setWindowTitle(defaultWindowTitle);
     fileNeedsToBeSaved = false;
+    positionOfLastFindMatch = -1;
 }
 
 
@@ -315,6 +315,8 @@ void MainWindow::on_actionFind_triggered()
     }
 }
 
+// TODO get rid of "Find" functionality and just keep "Find Next". By definition, initial "Find Next" is just "Find"
+
 
 /* Called when the findDialog object emits its queryTextReady signal.
  * Initiates the actual searching within the editor. If a match is
@@ -380,7 +382,7 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext,
         ui->textEdit->setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
-        QMessageBox::information(findDialog, tr("Find unsuccessful"), tr("No results found."));
+        QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
     }
 }
 
@@ -508,6 +510,10 @@ void MainWindow::on_textEdit_textChanged()
     setWindowTitle(newWindowTitle);
     updateFileMetrics();
     updateStatusBar();
+
+    // We have to do this in case the user is sneaky and adds in another copy
+    // of the previous search between two searches
+    positionOfLastFindMatch = -1;
 }
 
 
