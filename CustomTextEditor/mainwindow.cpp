@@ -113,6 +113,15 @@ void MainWindow::setFont(QString family, QFont::StyleHint styleHint,
 }
 
 
+/* Launches a Yes or No message box that prompts the user to make a selection.
+ * See allowUserToSave and on_findQueryText_ready for uses.
+ */
+QMessageBox::StandardButton MainWindow::promptYesOrNo(QString title, QString prompt)
+{
+    return QMessageBox::question(this, title, prompt, QMessageBox::Yes | QMessageBox::No);
+}
+
+
 /* Returns the actual name of the file that's part of the given path.
  * @param filePath - the forward-slash-delimited path of the file
  */
@@ -137,9 +146,8 @@ void MainWindow::allowUserToSave()
 {
     QMessageBox::StandardButton userSelection;
 
-    userSelection = QMessageBox::question(this, "",
-                          tr("Do you want to save the changes to ") + getFileNameFromPath(currentFilePath) + tr("?"),
-                          QMessageBox::Yes | QMessageBox::No);
+    userSelection = promptYesOrNo("Unsaved changes", tr("Do you want to save the changes to ") +
+                                  getFileNameFromPath(currentFilePath) + tr("?"));
 
     if(userSelection == QMessageBox::Yes)
     {
@@ -338,13 +346,8 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
     // Keep track of cursor position prior to search
     int cursorPositionPriorToSearch = ui->textEdit->textCursor().position();
 
-    // If first time searching for this term, start from the beginning
-    if(!findNext || positionOfLastFindMatch == -1)
-    {
-        ui->textEdit->moveCursor(QTextCursor::Start);
-    }
-    // If it's a repeat search for the same term, start at last found position
-    else
+    // If this is a repeat search, start from last found location; otherwise, start from current location
+    if(findNext && positionOfLastFindMatch != -1)
     {
         ui->textEdit->textCursor().setPosition(positionOfLastFindMatch);
     }
@@ -363,21 +366,28 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
     // Don't worry about empty queryText, findDialog takes care of that on its end
     bool matchFound = ui->textEdit->find(queryText, searchOptions);
 
-    // Always give it a second chance to re-search from top
-    // TODO let the user decide if they'd like to do this
-    if(!matchFound && cursorPositionPriorToSearch != 0)
+    // If we didn't find a match, ask user if they want to search from top of document
+    if(!matchFound)
     {
-        qDebug() << "Starting from the top";
-        ui->textEdit->moveCursor(QTextCursor::Start);
-        matchFound = ui->textEdit->find(queryText, searchOptions);
+        QMessageBox::StandardButton userSelection;
+        userSelection = promptYesOrNo("Find", "Reached end of document. Search from start?");
+
+        if(userSelection == QMessageBox::StandardButton::Yes)
+        {
+            ui->textEdit->moveCursor(QTextCursor::Start);
+            matchFound = ui->textEdit->find(queryText, searchOptions);
+        }
+
+        findDialog->activateWindow();
     }
 
-    // Final testing
+    // TODO in addition to the position of the last find, keep track of the position of the first find. If we cycle back to start, then display no results found.
+
+    // Final evaluation after second chance given
     if(matchFound)
     {
         positionOfLastFindMatch = ui->textEdit->textCursor().position();
     }
-    // Didn't find anything
     else
     {        
         // If we try another Find Next, this will indicate we never found one to begin with
