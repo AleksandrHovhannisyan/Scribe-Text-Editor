@@ -306,6 +306,9 @@ void MainWindow::on_actionFind_triggered()
     if(findDialog->isHidden())
     {
         findDialog->show();
+        findDialog->activateWindow();
+        findDialog->raise();
+        findDialog->setFocus();
     }
 }
 
