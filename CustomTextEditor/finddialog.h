@@ -4,6 +4,9 @@
 #include <QString>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QCheckBox>
+#include <QLabel>
+#include <QLayout>
 
 class FindDialog : public QDialog
 {
@@ -11,6 +14,7 @@ class FindDialog : public QDialog
 
 public:
     FindDialog(QWidget *parent = nullptr);
+    ~FindDialog();
     inline QString getQueryText(){ return queryText; }
 
 signals:
@@ -21,10 +25,17 @@ public slots:
     void on_findNextButton_clicked();
 
 private:
+    QLabel *findLabel;
     QPushButton *findButton;
     QPushButton *findNextButton;
     QLineEdit *lineEdit;
+    QCheckBox *caseSensitiveCheckBox;
+    QCheckBox *wholeWordsCheckBox;
     QString queryText;
+    QHBoxLayout *horizontalLayout;
+    QHBoxLayout *optionsLayout;
+    QVBoxLayout *verticalLayout;
+
 
 };
 

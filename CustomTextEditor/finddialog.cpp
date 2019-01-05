@@ -1,5 +1,4 @@
 #include "finddialog.h"
-#include <QLabel>
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QtDebug> // TODO remove
@@ -10,27 +9,58 @@
 FindDialog::FindDialog(QWidget *parent)
     : QDialog(parent)
 {
-    QLabel *findLabel = new QLabel(tr("Find what:"));
+    // Initialize all members
+    findLabel = new QLabel(tr("Find what:"));
     lineEdit = new QLineEdit();
-
     findButton = new QPushButton(tr("&Find"));
     findNextButton = new QPushButton(tr("&Find next"));
+    caseSensitiveCheckBox = new QCheckBox(tr("&Case sensitive"));
+    wholeWordsCheckBox = new QCheckBox(tr("&Whole words"));
     queryText = "";
 
-    // TODO add a nested horizontal layout within a main vertical layout
+    // Ensures that the line edit gets the focus whenever the dialog is the active window
+    setFocusProxy(lineEdit);
 
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->addWidget(findLabel);
-    layout->addWidget(lineEdit);
-    layout->addWidget(findButton);
-    layout->addWidget(findNextButton);
+    // Set up all the  widgets and layouts
+    horizontalLayout = new QHBoxLayout();
+    optionsLayout = new QHBoxLayout();
+    verticalLayout = new QVBoxLayout();
 
-    setLayout(layout);
+    verticalLayout->addLayout(horizontalLayout);
+    verticalLayout->addLayout(optionsLayout);
+
+    horizontalLayout->addWidget(findLabel);
+    horizontalLayout->addWidget(lineEdit);
+    horizontalLayout->addWidget(findButton);
+    horizontalLayout->addWidget(findNextButton);
+
+    optionsLayout->setSizeConstraint(QLayout::SetMaximumSize);
+    optionsLayout->addWidget(caseSensitiveCheckBox);
+    optionsLayout->addWidget(wholeWordsCheckBox);
+
+    setLayout(verticalLayout);
     setWindowTitle(tr("Find"));
 
     connect(findButton, SIGNAL(clicked()), this, SLOT(on_findButton_clicked()));
     connect(findNextButton, SIGNAL(clicked()), this, SLOT(on_findNextButton_clicked()));
 }
+
+
+/* Performs all required memory cleanup operations.
+ */
+FindDialog::~FindDialog()
+{
+    delete findLabel;
+    delete lineEdit;
+    delete findButton;
+    delete findNextButton;
+    delete caseSensitiveCheckBox;
+    delete wholeWordsCheckBox;
+    delete horizontalLayout;
+    delete verticalLayout;
+    delete optionsLayout;
+}
+
 
 
 /* Called when the user clicks the Find button. If the query is empty, it informs the user.
