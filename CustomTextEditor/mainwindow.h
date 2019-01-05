@@ -4,17 +4,10 @@
 #include "documentmetrics.h"
 #include "finddialog.h"
 #include <QMainWindow>
-#include <QFileDialog>                  // file open/save dialogs
-#include <QFile>                        // file descriptors, IO
-#include <QTextStream>                  // file IO
-#include <QMessageBox>                  // alerts and notifications
 #include <QFont>                        // working with fonts
-#include <QFontMetrics>                 // tab stop width
-#include <QApplication>                 // quit
 #include <QCloseEvent>                  // closeEvent
-#include <QtPrintSupport/QPrinter>      // printing
-#include <QtPrintSupport/QPrintDialog>  // printing
-#include <QLabel>
+#include <QLabel>                       // GUI labels
+#include <QMessageBox>                  // alerts and notifications
 
 namespace Ui {
 class MainWindow;
@@ -42,7 +35,7 @@ private:
 
     Ui::MainWindow *ui;
     DocumentMetrics metrics;
-    QLabel *wordCountLabel;
+    QLabel *wordCountLabel; // TODO maybe consider grouping these labels together in a custom StatusBar class
     QLabel *charCountLabel;
     QLabel *lineCountLabel;
     QFont font;

@@ -1,7 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <ctype.h>              // isspace, isalnum
+#include <ctype.h>                      // isspace, isalnum
 #include <QtDebug>
+#include <QtPrintSupport/QPrinter>      // printing
+#include <QtPrintSupport/QPrintDialog>  // printing
+#include <QFileDialog>                  // file open/save dialogs
+#include <QFile>                        // file descriptors, IO
+#include <QTextStream>                  // file IO
+#include <QFontMetrics>                 // tab stop width
+#include <QApplication>                 // quit
+
 
 /* Sets up the text editor with all necessary parameters. Resets the editor to its
  * default state, initializes status bar labels, and sets the default editor font.
@@ -330,13 +338,12 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
     // Keep track of cursor position prior to search
     int cursorPositionPriorToSearch = ui->textEdit->textCursor().position();
 
-    // If this is the first time we're searching for this term, start from the beginning
-    // TODO continue to end of doc, then prompt re-search from start
-    if(!findNext && positionOfLastFindMatch == -1)
+    // If first time searching for this term, start from the beginning
+    if(!findNext || positionOfLastFindMatch == -1)
     {
         ui->textEdit->moveCursor(QTextCursor::Start);
     }
-    // For a find next operation
+    // If it's a repeat search for the same term, start at last found position
     else
     {
         ui->textEdit->textCursor().setPosition(positionOfLastFindMatch);
@@ -356,10 +363,11 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
     // Don't worry about empty queryText, findDialog takes care of that on its end
     bool matchFound = ui->textEdit->find(queryText, searchOptions);
 
-    // Always give it a second chance to re-search at the beginning of the document
+    // Always give it a second chance to re-search from top
     // TODO let the user decide if they'd like to do this
-    if(!matchFound)
+    if(!matchFound && cursorPositionPriorToSearch != 0)
     {
+        qDebug() << "Starting from the top";
         ui->textEdit->moveCursor(QTextCursor::Start);
         matchFound = ui->textEdit->find(queryText, searchOptions);
     }
