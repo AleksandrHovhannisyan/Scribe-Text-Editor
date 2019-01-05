@@ -18,7 +18,8 @@ public:
     inline QString getQueryText(){ return queryText; }
 
 signals:
-    void queryTextReady(QString queryText, bool findNext);
+    void queryTextReady(QString queryText, bool findNext,
+                        bool caseSensitive, bool wholeWords);
 
 public slots:
     void on_findButton_clicked();

@@ -21,11 +21,14 @@ MainWindow::MainWindow(QWidget *parent) :
     positionOfLastFindMatch = -1;
 
     // Have to manually connect these signals to the same slot. Feature unavailable in designer.
-    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
-    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+    connect(ui->actionSave, SIGNAL(triggered()),
+            this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+    connect(ui->actionSave_As, SIGNAL(triggered()),
+            this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 
     // The FindDialog object will emit queryTextReady when the query is ready for processing
-    connect(findDialog, SIGNAL(queryTextReady(QString, bool)), this, SLOT(on_findQueryText_ready(QString, bool)));
+    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)),
+            this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
 }
 
 
@@ -319,8 +322,10 @@ void MainWindow::on_actionFind_triggered()
  * to the user in the search window, which remains open for further
  * searches.
  * @param queryText - the text the user wants to search for
+ * @param findNext - flag denoting whether the search should find the next instance of the query
  */
-void MainWindow::on_findQueryText_ready(QString queryText, bool findNext)
+void MainWindow::on_findQueryText_ready(QString queryText, bool findNext,
+                                        bool caseSensitive, bool wholeWords)
 {
     // Keep track of cursor position prior to search
     int cursorPositionPriorToSearch = ui->textEdit->textCursor().position();
@@ -336,11 +341,22 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext)
         ui->textEdit->moveCursor(QTextCursor::Start);
     }
 
-    // Note: don't have to worry about empty queryText, findDialog takes care of that on its end
-    // TODO allow the user to specify case sensitivity with a checkbox in the find dialog
-    bool matchFound = ui->textEdit->find(queryText, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
+    // Specify the options we'll be searching with
+    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
+    if(caseSensitive)
+    {
+        searchOptions |= QTextDocument::FindCaseSensitively;
+    }
+    if(wholeWords)
+    {
+        searchOptions |= QTextDocument::FindWholeWords;
+    }
+
+    // Don't worry about empty queryText, findDialog takes care of that on its end
+    bool matchFound = ui->textEdit->find(queryText, searchOptions);
 
     // Always give Find Next a second chance to re-search at the beginning of the document
+    // TODO let the user decide if they'd like to do this
     if(!matchFound && findNext)
     {
         ui->textEdit->moveCursor(QTextCursor::Start);
@@ -366,7 +382,6 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext)
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find unsuccessful"), tr("No results found."));
     }
-
 }
 
 

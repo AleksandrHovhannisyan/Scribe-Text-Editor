@@ -2,6 +2,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QtDebug> // TODO remove
+#include <QSplitter>
 
 /*
  *
@@ -14,8 +15,8 @@ FindDialog::FindDialog(QWidget *parent)
     lineEdit = new QLineEdit();
     findButton = new QPushButton(tr("&Find"));
     findNextButton = new QPushButton(tr("&Find next"));
-    caseSensitiveCheckBox = new QCheckBox(tr("&Case sensitive"));
-    wholeWordsCheckBox = new QCheckBox(tr("&Whole words"));
+    caseSensitiveCheckBox = new QCheckBox(tr("&Match case"));
+    wholeWordsCheckBox = new QCheckBox(tr("&Find whole words only"));
     queryText = "";
 
     // Ensures that the line edit gets the focus whenever the dialog is the active window
@@ -31,12 +32,11 @@ FindDialog::FindDialog(QWidget *parent)
 
     horizontalLayout->addWidget(findLabel);
     horizontalLayout->addWidget(lineEdit);
-    horizontalLayout->addWidget(findButton);
-    horizontalLayout->addWidget(findNextButton);
 
-    optionsLayout->setSizeConstraint(QLayout::SetMaximumSize);
     optionsLayout->addWidget(caseSensitiveCheckBox);
     optionsLayout->addWidget(wholeWordsCheckBox);
+    optionsLayout->addWidget(findButton);
+    optionsLayout->addWidget(findNextButton);
 
     setLayout(verticalLayout);
     setWindowTitle(tr("Find"));
@@ -62,6 +62,8 @@ FindDialog::~FindDialog()
 }
 
 
+// TODO combine find and find next button handlers in one, since most of the code is very similar
+
 
 /* Called when the user clicks the Find button. If the query is empty, it informs the user.
  * If the query matches the previous search, it asks the user if they would like to instead
@@ -83,7 +85,9 @@ void FindDialog::on_findButton_clicked()
         return;
     }
     queryText = query;
-    emit(queryTextReady(queryText, false));
+    bool caseSensitive = caseSensitiveCheckBox->isChecked();
+    bool wholeWords = wholeWordsCheckBox->isChecked();
+    emit(queryTextReady(queryText, false, caseSensitive, wholeWords));
 }
 
 
@@ -100,5 +104,7 @@ void FindDialog::on_findNextButton_clicked()
         return;
     }
     queryText = query;
-    emit(queryTextReady(queryText, true));
+    bool caseSensitive = caseSensitiveCheckBox->isChecked();
+    bool wholeWords = wholeWordsCheckBox->isChecked();
+    emit(queryTextReady(queryText, true, caseSensitive, wholeWords));
 }
