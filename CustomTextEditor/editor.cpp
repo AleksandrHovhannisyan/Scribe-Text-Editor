@@ -173,6 +173,81 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
 }
 
 
+/* Scans the entire document character by character and tallies the number of
+ * characters, words, and lines and storing the counts internally for reporting.
+ */
+void Editor::updateFileMetrics()
+{
+    QString documentContents = toPlainText();
+    int documentLength = documentContents.length();
+    metrics = DocumentMetrics();
+
+    QString currentWord = "";
+
+    // TODO count columns too
+
+    // Loop through each character in the document
+    for(int i = 0; i < documentLength; i++)
+    {
+        char currentCharacter = documentContents[i].toLatin1();
+
+        // Debug assertion error caused for invalid file formats like PDF
+        if(currentCharacter < -1 || currentCharacter > 255)
+        {
+            return;
+        }
+
+        // Newline
+        if(currentCharacter == '\n')
+        {
+            // Special case: newline following a word
+            if(!currentWord.isEmpty())
+            {
+                metrics.wordCount++;
+                currentWord.clear();
+            }
+            metrics.lineCount++;
+        }
+        // All other valid characters
+        else
+        {
+            metrics.charCount++;
+
+            // Alphanumeric character
+            if(isalnum(currentCharacter))
+            {
+                currentWord += currentCharacter;
+            }
+            // Whitespace (excluding newline, handled separately above)
+            else if(isspace(currentCharacter))
+            {
+                // Whitespace following a word means we completed a word
+                if(!currentWord.isEmpty())
+                {
+                    metrics.wordCount++;
+                    currentWord.clear();
+                }
+                // Consume all other instances of whitespace
+                else
+                {
+                    while(i + 1 < documentLength && isspace(documentContents[i + 1].toLatin1()))
+                    {
+                        i++;
+                    }
+                }
+            }
+        }
+    }
+
+    // e.g., if we stopped typing and still had a word in progress, we need to count it
+    if(!currentWord.isEmpty())
+    {
+        metrics.wordCount++;
+        currentWord.clear();
+    }
+}
+
+
 /* -----------------------------------------------------------
  * All functions below this line are used for lineNumberArea
  * -----------------------------------------------------------

@@ -27,7 +27,7 @@ public:
     QString getFileName() const;
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);;
     void launchFindDialog();
-
+    void updateFileMetrics();
 
     // All line number area functions below this line
     void lineNumberAreaPaintEvent(QPaintEvent *event);
