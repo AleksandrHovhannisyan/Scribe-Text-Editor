@@ -23,13 +23,14 @@ public:
     Editor(QWidget *parent = nullptr);
     ~Editor() override;
     void reset();
-    QString getFileName() const;
-    void setCurrentFilePath(QString newPath);
+    inline QString getFileName() const { return getFileNameFromPath(); }
+    inline void setCurrentFilePath(QString newPath) { currentFilePath = newPath; }
+    inline QString getCurrentFilePath() const { return currentFilePath; }
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void launchFindDialog();
     void updateFileMetrics();
     bool isUnsaved() const;
-    void setSaveStatus(bool status);
+    void setFileNeedsToBeSaved(bool status);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();

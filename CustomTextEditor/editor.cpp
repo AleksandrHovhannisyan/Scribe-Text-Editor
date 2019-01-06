@@ -19,7 +19,6 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
-    reset();
     updateLineNumberAreaWidth();
     highlightCurrentLine();
 }
@@ -38,8 +37,8 @@ Editor::~Editor()
 void Editor::reset()
 {
     currentFilePath.clear();
+    setPlainText(QString()); // this will trigger on_textChanged
     fileNeedsToBeSaved = false;
-    metrics = DocumentMetrics();
 }
 
 
@@ -58,19 +57,6 @@ QString Editor::getFileNameFromPath() const
     QString fileName = currentFilePath.mid(indexOfLastForwardSlash + 1, lengthOfFileName);
     return fileName;
 }
-
-
-/* Returns the name of the file corresponding to the contents currently in the editor.
- */
-QString Editor::getFileName() const
-{
-    return getFileNameFromPath();
-}
-
-
-/* Sets the current file path of the editor to the given string path.
- */
-void Editor::setCurrentFilePath(QString newPath) { currentFilePath = newPath; }
 
 
 /* Sets the editor's font using the specified parameters.
@@ -145,7 +131,7 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
     if(!matchFound)
     {
         QMessageBox::StandardButton userSelection;
-        userSelection = promptYesOrNo(this, "Find", "Reached end of document. Search from start?");
+        userSelection = Utility::promptYesOrNo(this, "Find", "Reached end of document. Search from start?");
 
         if(userSelection == QMessageBox::StandardButton::Yes)
         {
@@ -261,7 +247,7 @@ bool Editor::isUnsaved() const { return fileNeedsToBeSaved; }
 
 /* Sets a flag denoting whether the current file has to be saved.
  */
-void Editor::setSaveStatus(bool status) { fileNeedsToBeSaved = status; }
+void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
 
 
 /* Called whenever the contents of the text editor change, even if they are deleted
