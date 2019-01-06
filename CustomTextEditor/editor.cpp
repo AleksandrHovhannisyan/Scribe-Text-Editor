@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "linenumberarea.h"
+#include "utilityfunctions.h"
 #include <QPainter>
 #include <QTextBlock>
 
@@ -15,6 +16,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
 
     reset();
     updateLineNumberAreaWidth();
@@ -99,7 +101,76 @@ void Editor::launchFindDialog()
 }
 
 
+/* Called when the findDialog object emits its queryTextReady signal. Initiates the
+ * actual searching within the editor. If a match is found, it's highlighted in the editor.
+ * Otherwise, feedback is given to the user in the search window, which remains open for further
+ * searches.
+ * @param queryText - the text the user wants to search for
+ * @param findNext - flag denoting whether the search should find the next instance of the query
+ * @param caseSensitive - flag denoting whether the search should heed the case of results
+ * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
+ */
+void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords)
+{
+    // Keep track of cursor position prior to search
+    int cursorPositionPriorToSearch = textCursor().position();
 
+    // If this is a repeat search, start from last found location; otherwise, start from current location
+    if(findNext && metrics.positionOfLastFindMatch != -1)
+    {
+        textCursor().setPosition(metrics.positionOfLastFindMatch);
+    }
+
+    // Specify the options we'll be searching with
+    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
+    if(caseSensitive)
+    {
+        searchOptions |= QTextDocument::FindCaseSensitively;
+    }
+    if(wholeWords)
+    {
+        searchOptions |= QTextDocument::FindWholeWords;
+    }
+
+    // Don't worry about empty queryText, findDialog takes care of that on its end
+    bool matchFound = find(queryText, searchOptions);
+
+    // If we didn't find a match, ask user if they want to search from top of document
+    if(!matchFound)
+    {
+        QMessageBox::StandardButton userSelection;
+        userSelection = promptYesOrNo(this, "Find", "Reached end of document. Search from start?");
+
+        if(userSelection == QMessageBox::StandardButton::Yes)
+        {
+            moveCursor(QTextCursor::Start);
+            matchFound = find(queryText, searchOptions);
+        }
+
+        findDialog->activateWindow();
+    }
+
+    // TODO in addition to the position of the last find, keep track of the position of the first find. If we cycle back to start, then display no results found.
+
+    // Final evaluation after second chance given
+    if(matchFound)
+    {
+        metrics.positionOfLastFindMatch = textCursor().position();
+    }
+    else
+    {
+        // If we try another Find Next, this will indicate we never found one to begin with
+        metrics.positionOfLastFindMatch = -1;
+
+        // Reset the cursor to its original position prior to searching
+        QTextCursor newCursor = textCursor();
+        newCursor.setPosition(cursorPositionPriorToSearch);
+        setTextCursor(newCursor);
+
+        // Inform the user of the unsuccessful search
+        QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
+    }
+}
 
 
 /* -----------------------------------------------------------
