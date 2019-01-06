@@ -3,7 +3,10 @@
 #include <QString>
 #include <QMessageBox>
 
-QMessageBox::StandardButton promptYesOrNo(QWidget *parent, QString title, QString prompt);
+class Utility {
+public:
+    static QMessageBox::StandardButton promptYesOrNo(QWidget *parent, QString title, QString prompt);
+};
 
 
 #endif // UTILITYFUNCTIONS_H
