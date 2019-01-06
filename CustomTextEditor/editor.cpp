@@ -8,14 +8,15 @@
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
-    reset();
     lineNumberArea = new LineNumberArea(this);
+    findDialog = new FindDialog();
+    findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-    // Have to do this for the initial load-up
+    reset();
     updateLineNumberAreaWidth();
     highlightCurrentLine();
 }
@@ -37,6 +38,65 @@ void Editor::reset()
     fileNeedsToBeSaved = false;
     metrics = DocumentMetrics();
 }
+
+
+/* Private helper function that extracts a file name from the current file path stored internally.
+ */
+QString Editor::getFileNameFromPath() const
+{
+    if(currentFilePath.isEmpty())
+    {
+        return currentFilePath;
+    }
+
+    int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');
+    int lengthOfFileName = currentFilePath.length() - indexOfLastForwardSlash;
+
+    QString fileName = currentFilePath.mid(indexOfLastForwardSlash + 1, lengthOfFileName);
+    return fileName;
+}
+
+
+/* Returns the name of the file corresponding to the contents currently in the editor.
+ */
+QString Editor::getFileName() const
+{
+    return getFileNameFromPath();
+}
+
+
+/* Sets the editor's font using the specified parameters.
+ * @param family - the name of the font family
+ * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.
+ * @param fixedPitch - if true, monospace font (equal-width characters)
+ * @param pointSize - the size, in points, of the desired font (e.g., 12 for 12-pt font)
+ * @param tabStopWidth - the desired width of a tab in terms of the equivalent number of spaces
+ */
+void Editor::setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth)
+{
+    font.setFamily(family);
+    font.setStyleHint(styleHint);
+    font.setFixedPitch(fixedPitch);
+    font.setPointSize(pointSize);
+    QPlainTextEdit::setFont(font);
+
+    QFontMetrics metrics(font);
+    setTabStopWidth(tabStopWidth * metrics.width(' '));
+}
+
+
+
+
+
+
+
+
+/* -----------------------------------------------------------
+ * All functions below this line are used for lineNumberArea
+ * -----------------------------------------------------------
+ */
+
+
 
 
 /* Returns the width of the editor's line number area by computing the number of digits in the last

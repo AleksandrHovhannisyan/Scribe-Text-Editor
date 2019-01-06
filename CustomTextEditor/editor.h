@@ -23,7 +23,10 @@ public:
     Editor(QWidget *parent = nullptr);
     ~Editor() override;
     void reset();
+    QString getFileName() const;
+    void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
 
+    // All line number area functions below this line
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
 
@@ -31,12 +34,15 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private slots:
+    // All line number area functions below this line
     void updateLineNumberAreaWidth();
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rectToBeRedrawn,
                               int numPixelsScrolledVertically);
 
 private:
+    QString getFileNameFromPath() const;
+
     DocumentMetrics metrics;
     QString currentFilePath;
     bool fileNeedsToBeSaved;
