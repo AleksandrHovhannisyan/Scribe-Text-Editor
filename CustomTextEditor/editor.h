@@ -19,19 +19,26 @@ class Editor : public QPlainTextEdit
 {
     Q_OBJECT
 
+
 public:
     Editor(QWidget *parent = nullptr);
     ~Editor() override;
     void reset();
     QString getFileName() const;
-    void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
+    void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);;
+    void launchFindDialog();
 
     // All line number area functions below this line
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
 
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
+
+
+public slots:
+
 
 private slots:
     // All line number area functions below this line
@@ -39,6 +46,7 @@ private slots:
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rectToBeRedrawn,
                               int numPixelsScrolledVertically);
+
 
 private:
     QString getFileNameFromPath() const;

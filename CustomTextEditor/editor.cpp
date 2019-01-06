@@ -85,7 +85,18 @@ void Editor::setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch
 }
 
 
-
+/* Launches the Find dialog box if it isn't already visible and sets its focus.
+ */
+void Editor::launchFindDialog()
+{
+    if(findDialog->isHidden())
+    {
+        findDialog->show();
+        findDialog->activateWindow();
+        findDialog->raise();
+        findDialog->setFocus();
+    }
+}
 
 
 
