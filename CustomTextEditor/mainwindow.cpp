@@ -52,6 +52,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// TODO move this to Editor
 
 /* Resets the text editor to all of its defaults and
  * effectively creates an empty document from scratch.
@@ -73,7 +74,7 @@ void MainWindow::initializeStatusBarLabels()
 {
     wordCountLabel = new QLabel();
     charCountLabel = new QLabel();
-    lineCountLabel = new QLabel();
+    lineCountLabel = new QLabel(); // TODO get rid of this, no longer needed
     ui->statusBar->addWidget(wordCountLabel);
     ui->statusBar->addWidget(charCountLabel);
     ui->statusBar->addWidget(lineCountLabel);
@@ -93,6 +94,8 @@ void MainWindow::updateStatusBar()
     lineCountLabel->setText(lineText);
 }
 
+
+// TODO move to editor
 
 /* Sets the editor's font using the specified parameters.
  * @param family - the name of the font family

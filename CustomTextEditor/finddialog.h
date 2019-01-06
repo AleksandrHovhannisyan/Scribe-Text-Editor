@@ -33,8 +33,6 @@ private:
     QHBoxLayout *horizontalLayout;
     QHBoxLayout *optionsLayout;
     QVBoxLayout *verticalLayout;
-
-
 };
 
 #endif // FINDDIALOG_H

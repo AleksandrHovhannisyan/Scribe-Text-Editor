@@ -23,7 +23,7 @@ private slots:
 
 private:
     QWidget *lineNumberArea;
-    const int lineNumberAreaPadding = 15;
+    const int lineNumberAreaPadding = 30;
 
 };
 
