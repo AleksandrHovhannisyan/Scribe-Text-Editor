@@ -1,43 +1,31 @@
 #include "mainwindow.h"
+#include "utilityfunctions.h"
 #include "ui_mainwindow.h"
-#include <ctype.h>                      // isspace, isalnum
 #include <QtDebug>
 #include <QtPrintSupport/QPrinter>      // printing
 #include <QtPrintSupport/QPrintDialog>  // printing
 #include <QFileDialog>                  // file open/save dialogs
 #include <QFile>                        // file descriptors, IO
 #include <QTextStream>                  // file IO
-#include <QFontMetrics>                 // tab stop width
 #include <QApplication>                 // quit
 
 
-/* Sets up the text editor with all necessary parameters. Resets the editor to its
- * default state, initializes status bar labels, and sets the default editor font.
+/* Sets up the main application window and all of its children/widgets.
  */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    metrics(),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     editor = ui->textEdit;
+    editor->setFont("Courier", QFont::Monospace, true, 10, 5);
 
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
     initializeStatusBarLabels(); // must do this before resetEditor to ensure labels are initialized
-    resetEditor();
-    setFont("Courier", QFont::Monospace, true, 10, 5);
+    editor->reset();
 
-    findDialog = new FindDialog();
-    findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
-
-    // Have to manually connect these signals to the same slot. Feature unavailable in designer.
-    connect(ui->actionSave, SIGNAL(triggered()),
-            this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
-    connect(ui->actionSave_As, SIGNAL(triggered()),
-            this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
-
-    // The FindDialog object will emit queryTextReady when the query is ready for processing
-    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)),
-            this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
 }
 
 
@@ -48,23 +36,7 @@ MainWindow::~MainWindow()
     delete wordCountLabel;
     delete charCountLabel;
     delete lineCountLabel;
-    delete findDialog;
     delete ui;
-}
-
-// TODO move this to Editor
-
-/* Resets the text editor to all of its defaults and
- * effectively creates an empty document from scratch.
- * See the constructor and on_actionNew_triggered for uses.
- */
-void MainWindow::resetEditor()
-{
-    currentFilePath.clear();
-    editor->setPlainText("");
-    setWindowTitle(defaultWindowTitle);
-    fileNeedsToBeSaved = false;
-    positionOfLastFindMatch = -1;
 }
 
 
@@ -78,13 +50,12 @@ void MainWindow::initializeStatusBarLabels()
     ui->statusBar->addWidget(wordCountLabel);
     ui->statusBar->addWidget(charCountLabel);
     ui->statusBar->addWidget(lineCountLabel);
-    updateStatusBar();
 }
 
 
-/* Updates the status bar labels to reflect the most up-to-date document metrics.
+/* Updates the window and status bar labels to reflect the most up-to-date document metrics.
  */
-void MainWindow::updateStatusBar()
+void MainWindow::updateWindow(DocumentMetrics metrics)
 {
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
@@ -92,54 +63,11 @@ void MainWindow::updateStatusBar()
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
     lineCountLabel->setText(lineText);
-}
 
+    QString fileName = editor->getFileName();
+    if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
 
-// TODO move to editor
-
-/* Sets the editor's font using the specified parameters.
- * @param family - the name of the font family
- * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.
- * @param fixedPitch - if true, monospace font (equal-width characters)
- * @param pointSize - the size, in points, of the desired font (e.g., 12 for 12-pt font)
- * @param tabStopWidth - the desired width of a tab in terms of the equivalent number of spaces
- */
-void MainWindow::setFont(QString family, QFont::StyleHint styleHint,
-                       bool fixedPitch, int pointSize, int tabStopWidth)
-{
-    font.setFamily(family);
-    font.setStyleHint(styleHint);
-    font.setFixedPitch(fixedPitch);
-    font.setPointSize(pointSize);
-    editor->setFont(font);
-
-    QFontMetrics metrics(font);
-    editor->setTabStopWidth(tabStopWidth * metrics.width(' '));
-}
-
-
-/* Launches a Yes or No message box that prompts the user to make a selection.
- * See allowUserToSave and on_findQueryText_ready for uses.
- */
-QMessageBox::StandardButton MainWindow::promptYesOrNo(QString title, QString prompt)
-{
-    return QMessageBox::question(this, title, prompt, QMessageBox::Yes | QMessageBox::No);
-}
-
-
-/* Returns the actual name of the file that's part of the given path.
- * @param filePath - the forward-slash-delimited path of the file
- */
-QString MainWindow::getFileNameFromPath(QString filePath)
-{
-    // For unsaved documents
-    if(filePath.isEmpty())
-    {
-        return defaultWindowTitle;
-    }
-    int indexOfLastForwardSlash = filePath.lastIndexOf('/');
-    QString fileName = filePath.mid(indexOfLastForwardSlash + 1, filePath.length() - indexOfLastForwardSlash);
-    return fileName;
+    setWindowTitle(fileName.append(editor->isUnsaved() ? tr(" [Unsaved]") : ""));
 }
 
 
@@ -151,8 +79,11 @@ void MainWindow::allowUserToSave()
 {
     QMessageBox::StandardButton userSelection;
 
-    userSelection = promptYesOrNo("Unsaved changes", tr("Do you want to save the changes to ") +
-                                  getFileNameFromPath(currentFilePath) + tr("?"));
+    QString fileName = editor->getFileName();
+    if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
+
+    userSelection = Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") +
+                                  fileName + tr("?"));
 
     if(userSelection == QMessageBox::Yes)
     {
@@ -168,12 +99,11 @@ void MainWindow::allowUserToSave()
 void MainWindow::on_actionNew_triggered()
 {
     // Don't create a new empty doc if there are unsaved changes in the current one
-    if(fileNeedsToBeSaved)
+    if(editor->isUnsaved())
     {
         allowUserToSave();
     }
-
-    resetEditor();
+    editor->reset();
 }
 
 
@@ -185,6 +115,7 @@ void MainWindow::on_actionNew_triggered()
 void MainWindow::on_actionSave_or_actionSaveAs_triggered()
 {
     bool saveAs = sender() == ui->actionSave_As;
+    QString currentFilePath = editor->getCurrentFilePath();
 
     // If user hit Save As or user hit Save but current document was never saved to disk
     if(saveAs || currentFilePath.isEmpty())
@@ -200,11 +131,11 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
         {
             return;
         }
-        currentFilePath = filePath;
+        editor->setCurrentFilePath(filePath);
     }
 
     // Attempt to create a file descriptor with the given path
-    QFile file(currentFilePath);
+    QFile file(editor->getCurrentFilePath());
     if (!file.open(QIODevice::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
@@ -217,8 +148,8 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
     out << editorContents;
     file.close();
 
-    fileNeedsToBeSaved = false;
-    setWindowTitle(getFileNameFromPath(currentFilePath));
+    editor->setFileNeedsToBeSaved(false);
+    setWindowTitle(editor->getFileName());
 }
 
 
@@ -231,7 +162,7 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
 void MainWindow::on_actionOpen_triggered()
 {
     // Ensure we save any unsaved contents before opening a new file
-    if(fileNeedsToBeSaved)
+    if(editor->isUnsaved())
     {
         allowUserToSave();
     }
@@ -244,10 +175,10 @@ void MainWindow::on_actionOpen_triggered()
     {
         return;
     }
-    currentFilePath = filePath;
+    editor->setCurrentFilePath(filePath);
 
     // Attempt to create a file descriptor for the file at the given path
-    QFile file(currentFilePath);
+    QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
@@ -260,10 +191,10 @@ void MainWindow::on_actionOpen_triggered()
     editor->setPlainText(documentContents);
     file.close();
 
-    // Changing the edit text above will trigger on_textEdit_changed, which will set
+    // Changing the editor's text above will trigger editor->on_textChanged, which will set
     // fileNeedsToBeSaved to true, but we need to reset it here because we don't need to save
-    fileNeedsToBeSaved = false;
-    setWindowTitle(getFileNameFromPath(currentFilePath));
+    editor->setFileNeedsToBeSaved(false);
+    setWindowTitle(editor->getFileName());
 }
 
 
@@ -288,7 +219,7 @@ void MainWindow::on_actionPrint_triggered()
  */
 void MainWindow::on_actionExit_triggered()
 {
-    if(fileNeedsToBeSaved)
+    if(editor->isUnsaved())
     {
         allowUserToSave();
     }
@@ -325,88 +256,7 @@ void MainWindow::on_actionPaste_triggered() { editor->paste(); }
 /* Called when the user explicitly selects the Find option from the menu
  * (or uses Ctrl+F). Launches a dialog that prompts the user to enter a search query.
  */
-void MainWindow::on_actionFind_triggered()
-{
-    if(findDialog->isHidden())
-    {
-        findDialog->show();
-        findDialog->activateWindow();
-        findDialog->raise();
-        findDialog->setFocus();
-    }
-}
-
-
-/* Called when the findDialog object emits its queryTextReady signal. Initiates the
- * actual searching within the editor. If a match is found, it's highlighted in the editor.
- * Otherwise, feedback is given to the user in the search window, which remains open for further
- * searches.
- * @param queryText - the text the user wants to search for
- * @param findNext - flag denoting whether the search should find the next instance of the query
- * @param caseSensitive - flag denoting whether the search should heed the case of results
- * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
- */
-void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords)
-{
-    // Keep track of cursor position prior to search
-    int cursorPositionPriorToSearch = editor->textCursor().position();
-
-    // If this is a repeat search, start from last found location; otherwise, start from current location
-    if(findNext && positionOfLastFindMatch != -1)
-    {
-        editor->textCursor().setPosition(positionOfLastFindMatch);
-    }
-
-    // Specify the options we'll be searching with
-    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
-    if(caseSensitive)
-    {
-        searchOptions |= QTextDocument::FindCaseSensitively;
-    }
-    if(wholeWords)
-    {
-        searchOptions |= QTextDocument::FindWholeWords;
-    }
-
-    // Don't worry about empty queryText, findDialog takes care of that on its end
-    bool matchFound = editor->find(queryText, searchOptions);
-
-    // If we didn't find a match, ask user if they want to search from top of document
-    if(!matchFound)
-    {
-        QMessageBox::StandardButton userSelection;
-        userSelection = promptYesOrNo("Find", "Reached end of document. Search from start?");
-
-        if(userSelection == QMessageBox::StandardButton::Yes)
-        {
-            editor->moveCursor(QTextCursor::Start);
-            matchFound = editor->find(queryText, searchOptions);
-        }
-
-        findDialog->activateWindow();
-    }
-
-    // TODO in addition to the position of the last find, keep track of the position of the first find. If we cycle back to start, then display no results found.
-
-    // Final evaluation after second chance given
-    if(matchFound)
-    {
-        positionOfLastFindMatch = editor->textCursor().position();
-    }
-    else
-    {        
-        // If we try another Find Next, this will indicate we never found one to begin with
-        positionOfLastFindMatch = -1;
-
-        // Reset the cursor to its original position prior to searching
-        QTextCursor newCursor = editor->textCursor();
-        newCursor.setPosition(cursorPositionPriorToSearch);
-        editor->setTextCursor(newCursor);
-
-        // Inform the user of the unsuccessful search
-        QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
-    }
-}
+void MainWindow::on_actionFind_triggered() { editor->launchFindDialog(); }
 
 
 void MainWindow::on_actionReplace_triggered()
@@ -436,97 +286,6 @@ void MainWindow::on_actionStatus_Bar_triggered()
 }
 
 
-/* Scans the entire document character by character and tallies the number of
- * characters, words, and lines and storing the counts internally for reporting.
- */
-void MainWindow::updateFileMetrics()
-{
-    QString documentContents = editor->toPlainText();
-    int documentLength = documentContents.length();
-    metrics = DocumentMetrics();
-    QString currentWord = "";
-
-    // Loop through each character in the document
-    for(int i = 0; i < documentLength; i++)
-    {
-        char currentCharacter = documentContents[i].toLatin1();
-
-        // Debug assertion error caused for invalid file formats like PDF
-        if(currentCharacter < -1 || currentCharacter > 255)
-        {
-            return;
-        }
-
-        // Newline
-        if(currentCharacter == '\n')
-        {
-            // Special case: newline following a word
-            if(!currentWord.isEmpty())
-            {
-                metrics.wordCount++;
-                currentWord.clear();
-            }
-            metrics.lineCount++;
-        }
-        // All other valid characters
-        else
-        {
-            metrics.charCount++;
-
-            // Alphanumeric character
-            if(isalnum(currentCharacter))
-            {
-                currentWord += currentCharacter;
-            }
-            // Whitespace (excluding newline, handled separately above)
-            else if(isspace(currentCharacter))
-            {
-                // Whitespace following a word means we completed a word
-                if(!currentWord.isEmpty())
-                {
-                    metrics.wordCount++;
-                    currentWord.clear();
-                }
-                // Consume all other instances of whitespace
-                else
-                {
-                    while(i + 1 < documentLength && isspace(documentContents[i + 1].toLatin1()))
-                    {
-                        i++;
-                    }
-                }
-            }
-        }
-    }
-
-    // e.g., if we stopped typing and still had a word in progress, we need to count it
-    if(!currentWord.isEmpty())
-    {
-        metrics.wordCount++;
-        currentWord.clear();
-    }
-
-    // qDebug() << "Chars: " << metrics.charCount << " Words: " << metrics.wordCount << " Lines: " << metrics.lineCount;
-}
-
-
-/* Called whenever the contents of the text editor change, even if they are deleted
- * and restored to their original state. Updates the file metrics, window title, and status bar.
- */
-void MainWindow::on_textEdit_textChanged()
-{
-    fileNeedsToBeSaved = true;
-    QString newWindowTitle = getFileNameFromPath(currentFilePath).append(tr(" [Unsaved]"));
-    setWindowTitle(newWindowTitle);
-    updateFileMetrics();
-    updateStatusBar();
-
-    // We have to do this in case the user is sneaky and adds in another copy
-    // of the previous search between two searches
-    positionOfLastFindMatch = -1;
-}
-
-
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries
  * to close the main application window. If the current document is unsaved,
  * it allows the user to save before finally exiting.
@@ -534,16 +293,10 @@ void MainWindow::on_textEdit_textChanged()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // If unsaved document in progress, pause termination and allow user to save
-    if(fileNeedsToBeSaved)
+    if(editor->isUnsaved())
     {
         event->ignore();
         allowUserToSave();
-    }
-
-    // Special case: Ctrl+F followed by a close = find dialog lingers, so forcefully close it
-    if(!findDialog->isHidden())
-    {
-        findDialog->close();
     }
 
     // Finally allow the exit to go through
