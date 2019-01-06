@@ -9,9 +9,11 @@
 
 /* Disclaimer: the code for painting the editor line numbers was not written by me.
  * I only changed some of the variable names and code to make things clearer,
- * but most of the content comes from this official Qt tutorial:
+ * but most of those functions are from this official Qt tutorial on line numbering:
  *
  * http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
+ *
+ * All other code is my own.
  */
 
 
@@ -29,7 +31,7 @@ public:
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void launchFindDialog();
     void updateFileMetrics();
-    bool isUnsaved() const;
+    inline bool isUnsaved() const { return fileNeedsToBeSaved; }
     void setFileNeedsToBeSaved(bool status);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
@@ -61,7 +63,6 @@ private:
     FindDialog *findDialog;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
-
 };
 
 #endif // EDITOR_H

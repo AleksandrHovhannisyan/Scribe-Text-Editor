@@ -239,11 +239,6 @@ void Editor::updateFileMetrics()
 }
 
 
-/* Returns true if the current file contents need to be saved and false otherwise.
- */
-bool Editor::isUnsaved() const { return fileNeedsToBeSaved; }
-
-
 /* Sets a flag denoting whether the current file has to be saved.
  */
 void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
