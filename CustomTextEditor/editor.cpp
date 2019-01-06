@@ -3,7 +3,7 @@
 #include "utilityfunctions.h"
 #include <QPainter>
 #include <QTextBlock>
-
+#include <QtDebug>
 
 /* Initializes this Editor.
  */
@@ -173,10 +173,7 @@ void Editor::updateFileMetrics()
     QString documentContents = toPlainText();
     int documentLength = documentContents.length();
     metrics = DocumentMetrics();
-
     QString currentWord = "";
-
-    // TODO count columns too
 
     // Loop through each character in the document
     for(int i = 0; i < documentLength; i++)
@@ -236,6 +233,9 @@ void Editor::updateFileMetrics()
         metrics.wordCount++;
         currentWord.clear();
     }
+
+    // Column metric
+    metrics.currentColumn = textCursor().positionInBlock() + 1;
 }
 
 

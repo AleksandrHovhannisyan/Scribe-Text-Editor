@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     editor->setFont("Courier", QFont::Monospace, true, 10, 5);
 
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
+
     initializeStatusBarLabels(); // must do this before resetEditor to ensure labels are initialized
     editor->reset();
 
@@ -45,8 +46,10 @@ void MainWindow::initializeStatusBarLabels()
 {
     wordCountLabel = new QLabel();
     charCountLabel = new QLabel();
+    columnLabel = new QLabel();
     ui->statusBar->addWidget(wordCountLabel);
     ui->statusBar->addWidget(charCountLabel);
+    ui->statusBar->addWidget(columnLabel);
 }
 
 
@@ -56,12 +59,13 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
 {
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
+    QString colText = tr("   Column: ") + QString::number(metrics.currentColumn);
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
+    columnLabel->setText(colText);
 
     QString fileName = editor->getFileName();
     if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
-
     setWindowTitle(fileName.append(editor->isUnsaved() ? tr(" [Unsaved]") : ""));
 }
 
@@ -277,6 +281,7 @@ void MainWindow::on_actionStatus_Bar_triggered()
 {
     wordCountLabel->setVisible(!wordCountLabel->isVisible());
     charCountLabel->setVisible(!charCountLabel->isVisible());
+    columnLabel->setVisible(!columnLabel->isVisible());
 }
 
 
