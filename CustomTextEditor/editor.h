@@ -1,6 +1,10 @@
 #ifndef EDITOR_H
 #define EDITOR_H
+
+#include "finddialog.h"
+#include "documentmetrics.h"
 #include <QPlainTextEdit>
+#include <QFont>
 
 
 /* Disclaimer: the code for painting the editor line numbers was not written by me.
@@ -18,6 +22,8 @@ class Editor : public QPlainTextEdit
 public:
     Editor(QWidget *parent = nullptr);
     ~Editor() override;
+    void reset();
+
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
 
@@ -31,6 +37,11 @@ private slots:
                               int numPixelsScrolledVertically);
 
 private:
+    DocumentMetrics metrics;
+    QString currentFilePath;
+    bool fileNeedsToBeSaved;
+    QFont font;
+    FindDialog *findDialog;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
 

@@ -8,12 +8,14 @@
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
+    reset();
     lineNumberArea = new LineNumberArea(this);
 
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
+    // Have to do this for the initial load-up
     updateLineNumberAreaWidth();
     highlightCurrentLine();
 }
@@ -27,7 +29,17 @@ Editor::~Editor()
 }
 
 
-/* Returns the width of the line number area by computing the number of digits in the last
+/* Resets the editor to its default state.
+ */
+void Editor::reset()
+{
+    currentFilePath.clear();
+    fileNeedsToBeSaved = false;
+    metrics = DocumentMetrics();
+}
+
+
+/* Returns the width of the editor's line number area by computing the number of digits in the last
  * line number in the editor, multiplying this by the max width of any digit, and then adding
  * a fixed amount of padding.
  */
