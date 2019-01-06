@@ -68,6 +68,11 @@ QString Editor::getFileName() const
 }
 
 
+/* Sets the current file path of the editor to the given string path.
+ */
+void Editor::setCurrentFilePath(QString newPath) { currentFilePath = newPath; }
+
+
 /* Sets the editor's font using the specified parameters.
  * @param family - the name of the font family
  * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.

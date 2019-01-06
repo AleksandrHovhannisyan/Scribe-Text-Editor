@@ -24,6 +24,7 @@ public:
     ~Editor() override;
     void reset();
     QString getFileName() const;
+    void setCurrentFilePath(QString newPath);
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void launchFindDialog();
     void updateFileMetrics();
