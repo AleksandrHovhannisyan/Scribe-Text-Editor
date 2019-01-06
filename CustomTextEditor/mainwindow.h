@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "documentmetrics.h"
+#include "editor.h"
 #include "finddialog.h"
 #include <QMainWindow>
 #include <QFont>                        // working with fonts
@@ -35,6 +36,7 @@ private:
     void updateFileMetrics();
 
     Ui::MainWindow *ui;
+    Editor *editor;
     DocumentMetrics metrics;
     QLabel *wordCountLabel; // TODO maybe consider grouping these labels together in a custom StatusBar class
     QLabel *charCountLabel;

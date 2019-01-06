@@ -20,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    editor = ui->textEdit;
+
     initializeStatusBarLabels(); // must do this before resetEditor to ensure labels are initialized
     resetEditor();
     setFont("Courier", QFont::Monospace, true, 10, 5);
@@ -58,7 +60,7 @@ MainWindow::~MainWindow()
 void MainWindow::resetEditor()
 {
     currentFilePath.clear();
-    ui->textEdit->setText("");
+    editor->setPlainText("");
     setWindowTitle(defaultWindowTitle);
     fileNeedsToBeSaved = false;
     positionOfLastFindMatch = -1;
@@ -106,10 +108,10 @@ void MainWindow::setFont(QString family, QFont::StyleHint styleHint,
     font.setStyleHint(styleHint);
     font.setFixedPitch(fixedPitch);
     font.setPointSize(pointSize);
-    ui->textEdit->setFont(font);
+    editor->setFont(font);
 
     QFontMetrics metrics(font);
-    ui->textEdit->setTabStopWidth(tabStopWidth * metrics.width(' '));
+    editor->setTabStopWidth(tabStopWidth * metrics.width(' '));
 }
 
 
@@ -208,7 +210,7 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
 
     // Save the contents of the editor to the disk and close the file descriptor
     QTextStream out(&file);
-    QString editorContents = ui->textEdit->toPlainText();
+    QString editorContents = editor->toPlainText();
     out << editorContents;
     file.close();
 
@@ -252,7 +254,7 @@ void MainWindow::on_actionOpen_triggered()
     // Read the file contents into the editor and close the file descriptor
     QTextStream in(&file);
     QString documentContents = in.readAll();
-    ui->textEdit->setText(documentContents);
+    editor->setPlainText(documentContents);
     file.close();
 
     // Changing the edit text above will trigger on_textEdit_changed, which will set
@@ -273,7 +275,7 @@ void MainWindow::on_actionPrint_triggered()
 
     if(printDialog.exec() != QPrintDialog::Rejected)
     {
-        ui->textEdit->print(&printer);
+        editor->print(&printer);
     }
 }
 
@@ -294,27 +296,27 @@ void MainWindow::on_actionExit_triggered()
 
 /* Called when the user performs the Undo operation.
  */
-void MainWindow::on_actionUndo_triggered() { ui->textEdit->undo(); }
+void MainWindow::on_actionUndo_triggered() { editor->undo(); }
 
 
 /* Called when the user performs the Redo operation.
  */
-void MainWindow::on_actionRedo_triggered(){ ui->textEdit->redo(); }
+void MainWindow::on_actionRedo_triggered(){ editor->redo(); }
 
 
 /* Called when the user performs the Cut operation.
  */
-void MainWindow::on_actionCut_triggered() { ui->textEdit->cut(); }
+void MainWindow::on_actionCut_triggered() { editor->cut(); }
 
 
 /* Called when the user performs the Copy operation.
  */
-void MainWindow::on_actionCopy_triggered() { ui->textEdit->copy(); }
+void MainWindow::on_actionCopy_triggered() { editor->copy(); }
 
 
 /* Called when the user performs the Paste operation.
  */
-void MainWindow::on_actionPaste_triggered() { ui->textEdit->paste(); }
+void MainWindow::on_actionPaste_triggered() { editor->paste(); }
 
 
 /* Called when the user explicitly selects the Find option from the menu
@@ -344,12 +346,12 @@ void MainWindow::on_actionFind_triggered()
 void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords)
 {
     // Keep track of cursor position prior to search
-    int cursorPositionPriorToSearch = ui->textEdit->textCursor().position();
+    int cursorPositionPriorToSearch = editor->textCursor().position();
 
     // If this is a repeat search, start from last found location; otherwise, start from current location
     if(findNext && positionOfLastFindMatch != -1)
     {
-        ui->textEdit->textCursor().setPosition(positionOfLastFindMatch);
+        editor->textCursor().setPosition(positionOfLastFindMatch);
     }
 
     // Specify the options we'll be searching with
@@ -364,7 +366,7 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
     }
 
     // Don't worry about empty queryText, findDialog takes care of that on its end
-    bool matchFound = ui->textEdit->find(queryText, searchOptions);
+    bool matchFound = editor->find(queryText, searchOptions);
 
     // If we didn't find a match, ask user if they want to search from top of document
     if(!matchFound)
@@ -374,8 +376,8 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
 
         if(userSelection == QMessageBox::StandardButton::Yes)
         {
-            ui->textEdit->moveCursor(QTextCursor::Start);
-            matchFound = ui->textEdit->find(queryText, searchOptions);
+            editor->moveCursor(QTextCursor::Start);
+            matchFound = editor->find(queryText, searchOptions);
         }
 
         findDialog->activateWindow();
@@ -386,7 +388,7 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
     // Final evaluation after second chance given
     if(matchFound)
     {
-        positionOfLastFindMatch = ui->textEdit->textCursor().position();
+        positionOfLastFindMatch = editor->textCursor().position();
     }
     else
     {        
@@ -394,9 +396,9 @@ void MainWindow::on_findQueryText_ready(QString queryText, bool findNext, bool c
         positionOfLastFindMatch = -1;
 
         // Reset the cursor to its original position prior to searching
-        QTextCursor newCursor = ui->textEdit->textCursor();
+        QTextCursor newCursor = editor->textCursor();
         newCursor.setPosition(cursorPositionPriorToSearch);
-        ui->textEdit->setTextCursor(newCursor);
+        editor->setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
@@ -418,7 +420,7 @@ void MainWindow::on_actionGo_To_triggered()
 
 /* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).
  */
-void MainWindow::on_actionSelect_All_triggered() { ui->textEdit->selectAll(); }
+void MainWindow::on_actionSelect_All_triggered() { editor->selectAll(); }
 
 
 /* Toggles the visibility of the status bar labels for word, char, and line count.
@@ -436,7 +438,7 @@ void MainWindow::on_actionStatus_Bar_triggered()
  */
 void MainWindow::updateFileMetrics()
 {
-    QString documentContents = ui->textEdit->toPlainText();
+    QString documentContents = editor->toPlainText();
     int documentLength = documentContents.length();
     metrics = DocumentMetrics();
     QString currentWord = "";

@@ -27,12 +27,15 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        finddialog.cpp
+        finddialog.cpp \
+    editor.cpp
 
 HEADERS += \
         mainwindow.h \
         documentmetrics.h \
-        finddialog.h
+        finddialog.h \
+    editor.h \
+    linenumberarea.h
 
 FORMS += \
         mainwindow.ui
