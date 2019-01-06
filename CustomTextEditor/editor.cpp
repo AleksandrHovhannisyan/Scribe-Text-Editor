@@ -17,6 +17,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
     connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
+    connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
     reset();
     updateLineNumberAreaWidth();
@@ -260,12 +261,14 @@ void Editor::setSaveStatus(bool status) { fileNeedsToBeSaved = status; }
 
 /* Called whenever the contents of the text editor change, even if they are deleted
  * and restored to their original state. Marks the document as needing to be saved
- * and updates the file metrics.
+ * and updates the file metrics. Emits the windowNeedsToBeUpdated signal when it's done
+ * to direct its parent window to update any information it displays to the user.
  */
 void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
     updateFileMetrics();
+    emit(windowNeedsToBeUpdated(metrics));
 }
 
 
@@ -273,8 +276,6 @@ void Editor::on_textChanged()
  * All functions below this line are used for lineNumberArea
  * -----------------------------------------------------------
  */
-
-
 
 
 /* Returns the width of the editor's line number area by computing the number of digits in the last
