@@ -28,19 +28,19 @@ public:
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);;
     void launchFindDialog();
     void updateFileMetrics();
+    bool isUnsaved() const;
+    void setSaveStatus(bool status);
 
     // All line number area functions below this line
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
 
-
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
-
 public slots:
     void on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
-
+    void on_textChanged();
 
 private slots:
     // All line number area functions below this line

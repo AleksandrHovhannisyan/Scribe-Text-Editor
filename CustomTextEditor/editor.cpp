@@ -248,6 +248,27 @@ void Editor::updateFileMetrics()
 }
 
 
+/* Returns true if the current file contents need to be saved and false otherwise.
+ */
+bool Editor::isUnsaved() const { return fileNeedsToBeSaved; }
+
+
+/* Sets a flag denoting whether the current file has to be saved.
+ */
+void Editor::setSaveStatus(bool status) { fileNeedsToBeSaved = status; }
+
+
+/* Called whenever the contents of the text editor change, even if they are deleted
+ * and restored to their original state. Marks the document as needing to be saved
+ * and updates the file metrics.
+ */
+void Editor::on_textChanged()
+{
+    fileNeedsToBeSaved = true;
+    updateFileMetrics();
+}
+
+
 /* -----------------------------------------------------------
  * All functions below this line are used for lineNumberArea
  * -----------------------------------------------------------
