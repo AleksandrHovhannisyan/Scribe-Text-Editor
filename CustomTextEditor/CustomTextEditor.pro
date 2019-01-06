@@ -28,14 +28,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         finddialog.cpp \
-    editor.cpp
+    editor.cpp \
+    utilityfunctions.cpp
 
 HEADERS += \
         mainwindow.h \
         documentmetrics.h \
         finddialog.h \
     editor.h \
-    linenumberarea.h
+    linenumberarea.h \
+    utilityfunctions.h
 
 FORMS += \
         mainwindow.ui
