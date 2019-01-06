@@ -198,7 +198,6 @@ void Editor::updateFileMetrics()
                 metrics.wordCount++;
                 currentWord.clear();
             }
-            metrics.lineCount++;
         }
         // All other valid characters
         else

@@ -28,7 +28,6 @@ private:
     Editor *editor;
     QLabel *wordCountLabel;
     QLabel *charCountLabel;
-    QLabel *lineCountLabel;
     const QString defaultWindowTitle = "Untitled document";
 
 public slots:

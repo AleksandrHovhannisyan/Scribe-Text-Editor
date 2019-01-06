@@ -35,7 +35,6 @@ MainWindow::~MainWindow()
 {
     delete wordCountLabel;
     delete charCountLabel;
-    delete lineCountLabel;
     delete ui;
 }
 
@@ -46,10 +45,8 @@ void MainWindow::initializeStatusBarLabels()
 {
     wordCountLabel = new QLabel();
     charCountLabel = new QLabel();
-    lineCountLabel = new QLabel(); // TODO get rid of this, no longer needed
     ui->statusBar->addWidget(wordCountLabel);
     ui->statusBar->addWidget(charCountLabel);
-    ui->statusBar->addWidget(lineCountLabel);
 }
 
 
@@ -59,10 +56,8 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
 {
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
-    QString lineText = tr("   Lines: ") + QString::number(metrics.lineCount) + tr("   ");
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
-    lineCountLabel->setText(lineText);
 
     QString fileName = editor->getFileName();
     if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
@@ -282,7 +277,6 @@ void MainWindow::on_actionStatus_Bar_triggered()
 {
     wordCountLabel->setVisible(!wordCountLabel->isVisible());
     charCountLabel->setVisible(!charCountLabel->isVisible());
-    lineCountLabel->setVisible(!lineCountLabel->isVisible());
 }
 
 
