@@ -17,12 +17,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    editor = ui->textEdit;
-    editor->setFont("Courier", QFont::Monospace, true, 10, 5);
 
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
 
-    initializeStatusBarLabels(); // must do this before resetEditor to ensure labels are initialized
+    initializeStatusBarLabels(); // must do this before editor->reset() to ensure labels are initialized
+
+    editor = ui->textEdit;
+    editor->setFont("Courier", QFont::Monospace, true, 10, 5);
     editor->reset();
 
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
@@ -36,6 +37,7 @@ MainWindow::~MainWindow()
 {
     delete wordCountLabel;
     delete charCountLabel;
+    delete columnLabel;
     delete ui;
 }
 
@@ -76,11 +78,10 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
  */
 void MainWindow::allowUserToSave()
 {
-    QMessageBox::StandardButton userSelection;
-
     QString fileName = editor->getFileName();
     if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
 
+    QMessageBox::StandardButton userSelection;
     userSelection = Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") +
                                   fileName + tr("?"));
 
@@ -156,7 +157,7 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
  * (or uses Ctrl+O). If the current document has unsaved changes, it first
  * asks the user if they want to save. In any case, it launches a dialog box
  * that allows the user to select the file they want to open. Sets the editor's
- * current file path to thatof the opened file on success and updates the app state.
+ * current file path to that of the opened file on success and updates the app state.
  */
 void MainWindow::on_actionOpen_triggered()
 {
@@ -275,7 +276,7 @@ void MainWindow::on_actionGo_To_triggered()
 void MainWindow::on_actionSelect_All_triggered() { editor->selectAll(); }
 
 
-/* Toggles the visibility of the status bar labels for word, char, and line count.
+/* Toggles the visibility of the status bar labels.
  */
 void MainWindow::on_actionStatus_Bar_triggered()
 {
