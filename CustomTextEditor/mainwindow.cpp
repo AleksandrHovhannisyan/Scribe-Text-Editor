@@ -17,13 +17,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    editor = ui->textEdit;
+    editor->setFont("Courier", QFont::Monospace, true, 10, 5);
 
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
 
     initializeStatusBarLabels(); // must do this before editor->reset() to ensure labels are initialized
-
-    editor = ui->textEdit;
-    editor->setFont("Courier", QFont::Monospace, true, 10, 5);
     editor->reset();
 
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
