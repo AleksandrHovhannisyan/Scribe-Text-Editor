@@ -10,35 +10,44 @@ FindDialog::FindDialog(QWidget *parent)
     : QDialog(parent)
 {
     // Initialize all members
-    findLabel = new QLabel(tr("Find what:"));
-    lineEdit = new QLineEdit();
+    findLabel = new QLabel(tr("Find what:    "));
+    replaceLabel = new QLabel(tr("Replace with:"));
+    findLineEdit = new QLineEdit();
+    replaceLineEdit = new QLineEdit();
     findNextButton = new QPushButton(tr("&Find next"));
+    replaceButton = new QPushButton(tr("&Replace"));
     caseSensitiveCheckBox = new QCheckBox(tr("&Match case"));
     wholeWordsCheckBox = new QCheckBox(tr("&Find whole words only"));
     queryText = "";
 
     // Ensures that the line edit gets the focus whenever the dialog is the active window
-    setFocusProxy(lineEdit);
+    setFocusProxy(findLineEdit);
 
     // Set up all the  widgets and layouts
-    horizontalLayout = new QHBoxLayout();
+    findHorizontalLayout = new QHBoxLayout();
+    replaceHorizontalLayout = new QHBoxLayout();
     optionsLayout = new QHBoxLayout();
     verticalLayout = new QVBoxLayout();
 
-    verticalLayout->addLayout(horizontalLayout);
+    verticalLayout->addLayout(findHorizontalLayout);
+    verticalLayout->addLayout(replaceHorizontalLayout);
     verticalLayout->addLayout(optionsLayout);
 
-    horizontalLayout->addWidget(findLabel);
-    horizontalLayout->addWidget(lineEdit);
+    findHorizontalLayout->addWidget(findLabel);
+    findHorizontalLayout->addWidget(findLineEdit);
+    replaceHorizontalLayout->addWidget(replaceLabel);
+    replaceHorizontalLayout->addWidget(replaceLineEdit);
 
     optionsLayout->addWidget(caseSensitiveCheckBox);
     optionsLayout->addWidget(wholeWordsCheckBox);
     optionsLayout->addWidget(findNextButton);
+    optionsLayout->addWidget(replaceButton);
 
     setLayout(verticalLayout);
-    setWindowTitle(tr("Find"));
+    setWindowTitle(tr("Find and Replace"));
 
     connect(findNextButton, SIGNAL(clicked()), this, SLOT(on_findNextButton_clicked()));
+    connect(replaceButton, SIGNAL(clicked()), this, SLOT(on_replaceButton_clicked()));
 }
 
 
@@ -47,11 +56,15 @@ FindDialog::FindDialog(QWidget *parent)
 FindDialog::~FindDialog()
 {
     delete findLabel;
-    delete lineEdit;
+    delete replaceLabel;
+    delete findLineEdit;
+    delete replaceLineEdit;
     delete findNextButton;
+    delete replaceButton;
     delete caseSensitiveCheckBox;
     delete wholeWordsCheckBox;
-    delete horizontalLayout;
+    delete findHorizontalLayout;
+    delete replaceHorizontalLayout;
     delete verticalLayout;
     delete optionsLayout;
 }
@@ -62,7 +75,7 @@ FindDialog::~FindDialog()
  */
 void FindDialog::on_findNextButton_clicked()
 {
-    QString query = lineEdit->text();
+    QString query = findLineEdit->text();
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
     bool wholeWords = wholeWordsCheckBox->isChecked();
     bool findNext = false;
@@ -79,4 +92,15 @@ void FindDialog::on_findNextButton_clicked()
     queryText = query;
 
     emit(queryTextReady(queryText, findNext, caseSensitive, wholeWords));
+}
+
+
+void FindDialog::on_replaceButton_clicked()
+{
+    // First find and highlight a result, if any
+    on_findNextButton_clicked();
+
+    // Then broadcast the replacement
+    QString replacementText = replaceLineEdit->text();
+    emit(replacementTextReady(replacementText));
 }

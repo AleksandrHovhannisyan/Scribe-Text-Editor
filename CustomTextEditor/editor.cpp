@@ -16,8 +16,10 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
-    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
+
+    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
+    connect(findDialog, SIGNAL(replacementTextReady(QString)), this, SLOT(on_replacementText_ready(QString)));
 
     updateLineNumberAreaWidth();
     highlightCurrentLine();
@@ -160,6 +162,19 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
     }
+}
+
+
+void Editor::on_replacementText_ready(QString replacementText)
+{
+    // If a replace was triggered but no match found for the Find text
+    if(metrics.positionOfLastFindMatch == -1)
+    {
+        return;
+    }
+
+    QTextCursor cursor = textCursor();
+    cursor.insertText(replacementText);
 }
 
 

@@ -19,18 +19,24 @@ public:
 
 signals:
     void queryTextReady(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
+    void replacementTextReady(QString replacementText);
 
 public slots:
     void on_findNextButton_clicked();
+    void on_replaceButton_clicked();
 
 private:
     QLabel *findLabel;
+    QLabel *replaceLabel;
     QPushButton *findNextButton;
-    QLineEdit *lineEdit;
+    QPushButton *replaceButton;
+    QLineEdit *findLineEdit;
+    QLineEdit *replaceLineEdit;
     QCheckBox *caseSensitiveCheckBox;
     QCheckBox *wholeWordsCheckBox;
     QString queryText;
-    QHBoxLayout *horizontalLayout;
+    QHBoxLayout *findHorizontalLayout;
+    QHBoxLayout *replaceHorizontalLayout;
     QHBoxLayout *optionsLayout;
     QVBoxLayout *verticalLayout;
 };
