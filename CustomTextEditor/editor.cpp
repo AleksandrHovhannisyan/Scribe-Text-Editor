@@ -142,8 +142,6 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
         findDialog->activateWindow();
     }
 
-    // TODO in addition to the position of the last find, keep track of the position of the first find. If we cycle back to start, then display no results found.
-
     // Final evaluation after second chance given
     if(matchFound)
     {
@@ -321,8 +319,6 @@ void Editor::resizeEvent(QResizeEvent *event)
 }
 
 
-// TODO not working
-
 /* Called when the cursor changes position. Highlights the line the cursor is on.
  */
 void Editor::highlightCurrentLine()
@@ -340,8 +336,6 @@ void Editor::highlightCurrentLine()
        selection.cursor.clearSelection();
        extraSelections.append(selection);
     }
-
-    qDebug() << extraSelections.size();
 
     setExtraSelections(extraSelections);
 }
