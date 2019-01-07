@@ -329,17 +329,19 @@ void Editor::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
-   if (!isReadOnly())
-   {
+    if (!isReadOnly())
+    {
        QTextEdit::ExtraSelection selection;
-       QColor lineColor = QColor(Qt::gray).lighter(160);
+       QColor lineColor = QColor(Qt::lightGray).lighter(125);
 
        selection.format.setBackground(lineColor);
        selection.format.setProperty(QTextFormat::FullWidthSelection, true);
        selection.cursor = textCursor();
        selection.cursor.clearSelection();
        extraSelections.append(selection);
-   }
+    }
+
+    qDebug() << extraSelections.size();
 
     setExtraSelections(extraSelections);
 }
