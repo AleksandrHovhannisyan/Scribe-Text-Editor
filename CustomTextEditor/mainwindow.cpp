@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+    connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
 }
 
 
@@ -256,12 +257,6 @@ void MainWindow::on_actionPaste_triggered() { editor->paste(); }
  * (or uses Ctrl+F). Launches a dialog that prompts the user to enter a search query.
  */
 void MainWindow::on_actionFind_triggered() { editor->launchFindDialog(); }
-
-
-void MainWindow::on_actionReplace_triggered()
-{
-    // TODO add UI for replacing
-}
 
 
 void MainWindow::on_actionGo_To_triggered()

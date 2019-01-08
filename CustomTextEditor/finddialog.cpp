@@ -16,8 +16,9 @@ FindDialog::FindDialog(QWidget *parent)
     replaceLineEdit = new QLineEdit();
     findNextButton = new QPushButton(tr("&Find next"));
     replaceButton = new QPushButton(tr("&Replace"));
+    replaceAllButton = new QPushButton(tr("&Replace all"));
     caseSensitiveCheckBox = new QCheckBox(tr("&Match case"));
-    wholeWordsCheckBox = new QCheckBox(tr("&Find whole words only"));
+    wholeWordsCheckBox = new QCheckBox(tr("&Whole words"));
     queryText = "";
 
     // Ensures that the line edit gets the focus whenever the dialog is the active window
@@ -42,12 +43,14 @@ FindDialog::FindDialog(QWidget *parent)
     optionsLayout->addWidget(wholeWordsCheckBox);
     optionsLayout->addWidget(findNextButton);
     optionsLayout->addWidget(replaceButton);
+    optionsLayout->addWidget(replaceAllButton);
 
     setLayout(verticalLayout);
     setWindowTitle(tr("Find and Replace"));
 
     connect(findNextButton, SIGNAL(clicked()), this, SLOT(on_findNextButton_clicked()));
     connect(replaceButton, SIGNAL(clicked()), this, SLOT(on_replaceButton_clicked()));
+    connect(replaceAllButton, SIGNAL(clicked()), this, SLOT(on_replaceAllButton_clicked()));
 }
 
 
@@ -61,6 +64,7 @@ FindDialog::~FindDialog()
     delete replaceLineEdit;
     delete findNextButton;
     delete replaceButton;
+    delete replaceAllButton;
     delete caseSensitiveCheckBox;
     delete wholeWordsCheckBox;
     delete findHorizontalLayout;
@@ -95,6 +99,8 @@ void FindDialog::on_findNextButton_clicked()
 }
 
 
+/* TODO document
+ */
 void FindDialog::on_replaceButton_clicked()
 {
     // First find and highlight a result, if any
@@ -103,4 +109,20 @@ void FindDialog::on_replaceButton_clicked()
     // Then broadcast the replacement
     QString replacementText = replaceLineEdit->text();
     emit(replacementTextReady(replacementText));
+}
+
+
+/* TODO document
+ */
+void FindDialog::on_replaceAllButton_clicked()
+{
+    while(true)
+    {
+        on_replaceButton_clicked();
+
+        // todo should the editor tell us when to stop by emitting a signal?
+    }
+    // keep calling replace while there are things to replace... except we have to also
+    // implement code in our Editor to stop finding if we hit our original find location
+    // otherwise it can end up doing a recursive loop
 }

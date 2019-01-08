@@ -24,12 +24,14 @@ signals:
 public slots:
     void on_findNextButton_clicked();
     void on_replaceButton_clicked();
+    void on_replaceAllButton_clicked();
 
 private:
     QLabel *findLabel;
     QLabel *replaceLabel;
     QPushButton *findNextButton;
     QPushButton *replaceButton;
+    QPushButton *replaceAllButton;
     QLineEdit *findLineEdit;
     QLineEdit *replaceLineEdit;
     QCheckBox *caseSensitiveCheckBox;
