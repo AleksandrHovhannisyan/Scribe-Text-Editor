@@ -3,11 +3,9 @@
 
 struct DocumentMetrics
 {
-    DocumentMetrics() : charCount(0), wordCount(0),
-        positionOfLastFindMatch(-1), currentColumn(1) {}
+    DocumentMetrics() : charCount(0), wordCount(0), currentColumn(1) {}
     int charCount;
     int wordCount;
-    int positionOfLastFindMatch;
     int currentColumn;
 };
 

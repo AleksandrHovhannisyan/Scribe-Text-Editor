@@ -109,14 +109,8 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
     // Keep track of cursor position prior to search
     int cursorPositionPriorToSearch = textCursor().position();
 
-    // If this is a repeat search, start from last found location; otherwise, start from current location
-    if(findNext && metrics.positionOfLastFindMatch != -1)
-    {
-        textCursor().setPosition(metrics.positionOfLastFindMatch);
-    }
-
     // Specify the options we'll be searching with
-    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
+    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();    
     if(caseSensitive)
     {
         searchOptions |= QTextDocument::FindCaseSensitively;
@@ -126,34 +120,29 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
         searchOptions |= QTextDocument::FindWholeWords;
     }
 
-    // Don't worry about empty queryText, findDialog takes care of that on its end
+    // Search until the end of the document
     bool matchFound = find(queryText, searchOptions);
 
-    // If we didn't find a match, ask user if they want to search from top of document
+    // If we didn't find a match, search from top of document
     if(!matchFound)
     {
-        QMessageBox::StandardButton userSelection;
-        userSelection = Utility::promptYesOrNo(this, "Find", "Reached end of document. Search from start?");
+        moveCursor(QTextCursor::Start);
+        matchFound = find(queryText, searchOptions);
 
-        if(userSelection == QMessageBox::StandardButton::Yes)
+        // If we land back at the start position, don't count it as a match
+        if(textCursor().position() == cursorPositionPriorToSearch)
         {
-            moveCursor(QTextCursor::Start);
-            matchFound = find(queryText, searchOptions);
+            QMessageBox::information(this, "Title", "Looped back to start pos.");
+
+            // Reset the cursor to its original position prior to searching
+            QTextCursor newCursor = textCursor();
+            newCursor.setPosition(cursorPositionPriorToSearch);
+            setTextCursor(newCursor);
         }
-
-        findDialog->activateWindow();
     }
 
-    // Final evaluation after second chance given
-    if(matchFound)
+    if(!matchFound)
     {
-        metrics.positionOfLastFindMatch = textCursor().position();
-    }
-    else
-    {
-        // If we try another Find Next, this will indicate we never found one to begin with
-        metrics.positionOfLastFindMatch = -1;
-
         // Reset the cursor to its original position prior to searching
         QTextCursor newCursor = textCursor();
         newCursor.setPosition(cursorPositionPriorToSearch);
@@ -168,14 +157,13 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
 }
 
 
+/* Called when the user clicks the Replace button in FindDialog, which emits a signal to pass
+ * along the replacement text.
+ * @param replacementText - the string to be used for replacement
+ */
 void Editor::on_replacementText_ready(QString replacementText)
 {
-    // If a replace was triggered but no match found for the Find text
-    if(metrics.positionOfLastFindMatch == -1)
-    {
-        return;
-    }
-
+    // TODO this still inserts even if no match was found, fix
     QTextCursor cursor = textCursor();
     cursor.beginEditBlock();
     cursor.insertText(replacementText);
