@@ -161,6 +161,9 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
 
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
+
+        // If findDialog triggered searching from a replace all
+        findDialog->concludeReplaceAll(); // set some sort of boolean flag to false that FindDialog checks in while loop of replace all!
     }
 }
 
@@ -174,7 +177,9 @@ void Editor::on_replacementText_ready(QString replacementText)
     }
 
     QTextCursor cursor = textCursor();
+    cursor.beginEditBlock();
     cursor.insertText(replacementText);
+    cursor.endEditBlock();
 }
 
 

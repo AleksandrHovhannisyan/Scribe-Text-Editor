@@ -16,6 +16,7 @@ public:
     FindDialog(QWidget *parent = nullptr);
     ~FindDialog();
     inline QString getQueryText(){ return queryText; }
+    inline void concludeReplaceAll() { replaceAllCanContinue = false; }
 
 signals:
     void queryTextReady(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
@@ -32,6 +33,7 @@ private:
     QPushButton *findNextButton;
     QPushButton *replaceButton;
     QPushButton *replaceAllButton;
+    bool replaceAllCanContinue;
     QLineEdit *findLineEdit;
     QLineEdit *replaceLineEdit;
     QCheckBox *caseSensitiveCheckBox;

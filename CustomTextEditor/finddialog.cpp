@@ -116,7 +116,10 @@ void FindDialog::on_replaceButton_clicked()
  */
 void FindDialog::on_replaceAllButton_clicked()
 {
-    while(true)
+    replaceAllCanContinue = true;
+
+    // See editor.cpp for when this gets set to false (when there's no result found)
+    while(replaceAllCanContinue)
     {
         on_replaceButton_clicked();
 
