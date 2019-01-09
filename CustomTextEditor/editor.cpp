@@ -18,7 +18,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
-    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool, bool)));
+    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool)));
     connect(findDialog, SIGNAL(replacementTextReady(QString)), this, SLOT(on_replacementText_ready(QString)));
 
     updateLineNumberAreaWidth();
@@ -100,11 +100,10 @@ void Editor::launchFindDialog()
  * Otherwise, feedback is given to the user in the search window, which remains open for further
  * searches.
  * @param queryText - the text the user wants to search for
- * @param findNext - flag denoting whether the search should find the next instance of the query
  * @param caseSensitive - flag denoting whether the search should heed the case of results
  * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
  */
-void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseSensitive, bool wholeWords)
+void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool wholeWords)
 {
     // Keep track of cursor position prior to search
     int cursorPositionPriorToSearch = textCursor().position();
@@ -152,7 +151,8 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
         qDebug() << "Previously found: " << previouslyFound;
 
         // Log the first position at which this queryText was found in the current document state
-        // Note that the search history is always reset on each editor text change!
+        // Note that the search history is always reset on each editor text change and whenever
+        // we do a full cycle back to the first match
         if(!previouslyFound)
         {
             qDebug() << "Logging first position";

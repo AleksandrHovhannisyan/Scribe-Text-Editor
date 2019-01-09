@@ -89,13 +89,9 @@ void FindDialog::on_findNextButton_clicked()
         QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
         return;
     }
-    else if(query == queryText)
-    {
-        findNext = true;
-    }
     queryText = query;
 
-    emit(queryTextReady(queryText, findNext, caseSensitive, wholeWords));
+    emit(queryTextReady(queryText, caseSensitive, wholeWords));
 }
 
 

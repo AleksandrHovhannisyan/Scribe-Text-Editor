@@ -27,7 +27,7 @@ public:
     inline int firstPositionOf(QString term){ return searchHistory[term].second; }
 
 signals:
-    void queryTextReady(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
+    void queryTextReady(QString queryText, bool caseSensitive, bool wholeWords);
     void replacementTextReady(QString replacementText);
 
 public slots:
