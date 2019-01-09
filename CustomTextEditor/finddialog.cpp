@@ -129,3 +129,14 @@ void FindDialog::on_replaceAllButton_clicked()
     // implement code in our Editor to stop finding if we hit our original find location
     // otherwise it can end up doing a recursive loop
 }
+
+
+/* TODO document
+ */
+void FindDialog::addToSearchHistory(QString term, int positionPriorToSearch, int firstMatchPosition)
+{
+    QPair<int,int> locations;
+    locations.first = positionPriorToSearch;
+    locations.second = firstMatchPosition;
+    searchHistory.insert(term, locations);
+}

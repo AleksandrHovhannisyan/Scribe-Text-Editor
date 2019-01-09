@@ -7,6 +7,8 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QLayout>
+#include <QMap>         // for search history
+#include <QPair>        // for search history
 
 class FindDialog : public QDialog
 {
@@ -17,6 +19,12 @@ public:
     ~FindDialog();
     inline QString getQueryText(){ return queryText; }
     inline void concludeReplaceAll() { replaceAllCanContinue = false; }
+
+    inline void clearSearchHistory() { searchHistory.clear(); }
+    void addToSearchHistory(QString term, int positionPriorToSearch, int firstMatchPosition);
+    inline bool previouslyFound(QString term) { return searchHistory.find(term) != searchHistory.end(); }
+    inline int positionPriorToSearch(QString term) { return searchHistory[term].first; }
+    inline int firstPositionOf(QString term){ return searchHistory[term].second; }
 
 signals:
     void queryTextReady(QString queryText, bool findNext, bool caseSensitive, bool wholeWords);
@@ -43,6 +51,7 @@ private:
     QHBoxLayout *replaceHorizontalLayout;
     QHBoxLayout *optionsLayout;
     QVBoxLayout *verticalLayout;
+    QMap<QString, QPair<int, int>> searchHistory;
 };
 
 #endif // FINDDIALOG_H

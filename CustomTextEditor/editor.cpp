@@ -141,7 +141,44 @@ void Editor::on_findQueryText_ready(QString queryText, bool findNext, bool caseS
         }
     }
 
-    if(!matchFound)
+    // If we found a match, just make sure it's not a repeat
+    if(matchFound)
+    {
+        int foundPosition = textCursor().position();
+        bool previouslyFound = findDialog->previouslyFound(queryText);
+
+        qDebug() << "Match found!";
+        qDebug() << "Found position: " << foundPosition;
+        qDebug() << "Previously found: " << previouslyFound;
+
+        // Log the first position at which this queryText was found in the current document state
+        // Note that the search history is always reset on each editor text change!
+        if(!previouslyFound)
+        {
+            qDebug() << "Logging first position";
+            findDialog->addToSearchHistory(queryText, cursorPositionPriorToSearch, foundPosition);
+        }
+        // If term was previously found, check that we didn't cycle back to the first-ever find
+        else
+        {
+            // If we looped back to the very first match we ever found, reset search history and cursor
+            if(foundPosition == findDialog->firstPositionOf(queryText))
+            {
+                // Reset the cursor to its original position prior to first search for this term
+                QTextCursor newCursor = textCursor();
+                int positionPriorToSearch = findDialog->positionPriorToSearch(queryText);
+                newCursor.setPosition(positionPriorToSearch);
+                setTextCursor(newCursor);
+
+                // Clear search history
+                findDialog->clearSearchHistory();
+
+                // Inform the user of the unsuccessful search
+                QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
+            }
+        }
+    }
+    else
     {
         // Reset the cursor to its original position prior to searching
         QTextCursor newCursor = textCursor();
@@ -258,6 +295,7 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
 void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
+    findDialog->clearSearchHistory();
     updateFileMetrics();
     emit(windowNeedsToBeUpdated(metrics));
 }
