@@ -82,7 +82,6 @@ void FindDialog::on_findNextButton_clicked()
     QString query = findLineEdit->text();
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
     bool wholeWords = wholeWordsCheckBox->isChecked();
-    bool findNext = false;
 
     if(query.isEmpty())
     {
@@ -91,7 +90,7 @@ void FindDialog::on_findNextButton_clicked()
     }
     queryText = query;
 
-    emit(queryTextReady(queryText, caseSensitive, wholeWords));
+   emit(queryTextReady(queryText, caseSensitive, wholeWords));
 }
 
 
@@ -111,19 +110,14 @@ void FindDialog::on_replaceButton_clicked()
 /* TODO document
  */
 void FindDialog::on_replaceAllButton_clicked()
-{
+{    
     replaceAllCanContinue = true;
 
-    // See editor.cpp for when this gets set to false (when there's no result found)
+    // See editor.cpp for when this gets set to false
     while(replaceAllCanContinue)
     {
         on_replaceButton_clicked();
-
-        // todo should the editor tell us when to stop by emitting a signal?
     }
-    // keep calling replace while there are things to replace... except we have to also
-    // implement code in our Editor to stop finding if we hit our original find location
-    // otherwise it can end up doing a recursive loop
 }
 
 

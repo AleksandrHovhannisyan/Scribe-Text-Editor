@@ -127,17 +127,6 @@ void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool 
     {
         moveCursor(QTextCursor::Start);
         matchFound = find(queryText, searchOptions);
-
-        // If we land back at the start position, don't count it as a match
-        if(textCursor().position() == cursorPositionPriorToSearch)
-        {
-            QMessageBox::information(this, "Title", "Looped back to start pos.");
-
-            // Reset the cursor to its original position prior to searching
-            QTextCursor newCursor = textCursor();
-            newCursor.setPosition(cursorPositionPriorToSearch);
-            setTextCursor(newCursor);
-        }
     }
 
     // If we found a match, just make sure it's not a repeat
@@ -166,8 +155,8 @@ void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool 
             {
                 // Reset the cursor to its original position prior to first search for this term
                 QTextCursor newCursor = textCursor();
-                int positionPriorToSearch = findDialog->positionPriorToSearch(queryText);
-                newCursor.setPosition(positionPriorToSearch);
+                int positionPriorToFirstSearch = findDialog->positionPriorToFirstSearch(queryText);
+                newCursor.setPosition(positionPriorToFirstSearch);
                 setTextCursor(newCursor);
 
                 // Clear search history
@@ -175,6 +164,9 @@ void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool 
 
                 // Inform the user of the unsuccessful search
                 QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
+
+                // In case findDialog triggered searching from a replace-all
+                findDialog->concludeReplaceAll();
             }
         }
     }
@@ -188,8 +180,8 @@ void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool 
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
 
-        // If findDialog triggered searching from a replace all
-        findDialog->concludeReplaceAll(); // set some sort of boolean flag to false that FindDialog checks in while loop of replace all!
+        // In case findDialog triggered searching from a replace-all
+        findDialog->concludeReplaceAll();
     }
 }
 
@@ -295,7 +287,6 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
 void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
-    findDialog->clearSearchHistory();
     updateFileMetrics();
     emit(windowNeedsToBeUpdated(metrics));
 }
