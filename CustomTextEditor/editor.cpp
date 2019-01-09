@@ -41,6 +41,7 @@ void Editor::reset()
     currentFilePath.clear();
     setPlainText(QString()); // this will trigger on_textChanged
     fileNeedsToBeSaved = false;
+    findDialog->clearSearchHistory();
 }
 
 
