@@ -56,6 +56,7 @@ private slots:
 
 private:
     QString getFileNameFromPath() const;
+    void updateSearchHistory(int oldCharCount, int newCharCount);
 
     DocumentMetrics metrics;
     QString currentFilePath;

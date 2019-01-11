@@ -102,8 +102,12 @@ void FindDialog::on_replaceButton_clicked()
     on_findNextButton_clicked();
 
     // Then broadcast the replacement
-    QString replacementText = replaceLineEdit->text();
-    emit(replacementTextReady(replacementText));
+    // TODO this works, but change replaceAllCanContinue to something more intuitive, like canReplace
+    if(replaceAllCanContinue)
+    {
+        QString replacementText = replaceLineEdit->text();
+        emit(replacementTextReady(replacementText));
+    }
 }
 
 
@@ -112,6 +116,9 @@ void FindDialog::on_replaceButton_clicked()
 void FindDialog::on_replaceAllButton_clicked()
 {    
     replaceAllCanContinue = true;
+
+    // TODO what if we just hand off this logic to Editor, who has replaceAll routine?
+    // and change editor's find routine to return a boolean, such that replaceAll is able to check if a match was found
 
     // See editor.cpp for when this gets set to false
     while(replaceAllCanContinue)
@@ -125,6 +132,10 @@ void FindDialog::on_replaceAllButton_clicked()
  */
 void FindDialog::addToSearchHistory(QString term, int positionPriorToSearch, int firstMatchPosition)
 {
+    if(!previouslyFound(term))
+    {
+        searchHistory.clear();
+    }
     QPair<int,int> locations;
     locations.first = positionPriorToSearch;
     locations.second = firstMatchPosition;

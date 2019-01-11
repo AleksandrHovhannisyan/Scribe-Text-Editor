@@ -20,11 +20,13 @@ public:
     inline QString getQueryText(){ return queryText; }
     inline void concludeReplaceAll() { replaceAllCanContinue = false; }
 
+    // TODO make a SearchHistory class to encapsulate all of this logic
     inline void clearSearchHistory() { searchHistory.clear(); }
     void addToSearchHistory(QString term, int positionPriorToSearch, int firstMatchPosition);
     inline bool previouslyFound(QString term) { return searchHistory.find(term) != searchHistory.end(); }
     inline int positionPriorToFirstSearch(QString term) { return searchHistory[term].first; }
     inline int firstPositionOf(QString term){ return searchHistory[term].second; }
+    inline QMap<QString, QPair<int, int>> *getSearchHistory() { return &searchHistory; }
 
 signals:
     void queryTextReady(QString queryText, bool caseSensitive, bool wholeWords);
