@@ -18,8 +18,10 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
-    connect(findDialog, SIGNAL(queryTextReady(QString, bool, bool)), this, SLOT(on_findQueryText_ready(QString, bool, bool)));
-    connect(findDialog, SIGNAL(replacementTextReady(QString)), this, SLOT(on_replacementText_ready(QString)));
+    connect(findDialog, SIGNAL(queryReady(QString, bool, bool)),
+            this, SLOT(find(QString, bool, bool)));
+    connect(findDialog, SIGNAL(replacementTextReady(QString, QString, bool, bool)),
+            this, SLOT(replace(QString, QString, bool, bool)));
 
     updateLineNumberAreaWidth();
     highlightCurrentLine();
@@ -96,21 +98,18 @@ void Editor::launchFindDialog()
 }
 
 
-// TODO clean up debugs
-/* Called when the findDialog object emits its queryTextReady signal. Initiates the
+/* Called when the findDialog object emits its queryReady signal. Initiates the
  * actual searching within the editor. If a match is found, it's highlighted in the editor.
  * Otherwise, feedback is given to the user in the search window, which remains open for further
  * searches.
- * @param queryText - the text the user wants to search for
+ * @param query - the text the user wants to search for
  * @param caseSensitive - flag denoting whether the search should heed the case of results
  * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
  */
-void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool wholeWords)
+void Editor::find(QString query, bool caseSensitive, bool wholeWords)
 {
     // Keep track of cursor position prior to search, in case there's no match found at all
     int cursorPositionPriorToSearch = textCursor().position();
-
-    qDebug() << "\nNumber of searches logged: " << findDialog->getSearchHistory()->size() << "\n";
 
     // Specify the options we'll be searching with
     QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();    
@@ -124,48 +123,48 @@ void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool 
     }
 
     // Search until the end of the document
-    bool matchFound = find(queryText, searchOptions);
+    bool matchFound = QPlainTextEdit::find(query, searchOptions);
 
     // If we didn't find a match, search from top of document
     if(!matchFound)
     {
         moveCursor(QTextCursor::Start);
-        matchFound = find(queryText, searchOptions);
+        matchFound = QPlainTextEdit::find(query, searchOptions);
     }
 
     // If we found a match, just make sure it's not a repeat
     if(matchFound)
     {
         int foundPosition = textCursor().position();
-        bool previouslyFound = findDialog->previouslyFound(queryText);
+        bool previouslyFound = findDialog->previouslyFound(query);
 
-        qDebug() << "Match found for " << queryText;
+        /*
+        qDebug() << "Match found for " << query;
         qDebug() << "Found position: " << foundPosition;
         qDebug() << "Previously found: " << previouslyFound;
-
-        // TODO remove
         if(previouslyFound)
         {
-            qDebug() << "First found at: " << findDialog->firstPositionOf(queryText);
-            qDebug() << "Cursor was at " << findDialog->positionPriorToFirstSearch(queryText) << " before first search.";
+            qDebug() << "First found at: " << findDialog->firstPositionOf(query);
+            qDebug() << "Cursor was at " << findDialog->positionPriorToFirstSearch(query) << " before first search.";
         }
+        */
 
-        // Log the first position at which this queryText was found in the current document state
+        // Log the first position at which this query was found in the current document state
         // Note that the search history is always reset whenever we do a full cycle back to the first match
         if(!previouslyFound)
         {
             qDebug() << "Logging first position";
-            findDialog->addToSearchHistory(queryText, cursorPositionPriorToSearch, foundPosition);
+            findDialog->addToSearchHistory(query, cursorPositionPriorToSearch, foundPosition);
         }
         // If term was previously found, check that we didn't cycle back to the first-ever find
         else
         {
             // If we looped back to the very first match we ever found, reset search history and cursor
-            if(foundPosition == findDialog->firstPositionOf(queryText))
+            if(foundPosition == findDialog->firstPositionOf(query))
             {
                 // Reset the cursor to its original position prior to first search for this term
                 QTextCursor newCursor = textCursor();
-                int positionPriorToFirstSearch = findDialog->positionPriorToFirstSearch(queryText);
+                int positionPriorToFirstSearch = findDialog->positionPriorToFirstSearch(query);
                 newCursor.setPosition(positionPriorToFirstSearch);
                 setTextCursor(newCursor);
 
@@ -194,20 +193,22 @@ void Editor::on_findQueryText_ready(QString queryText, bool caseSensitive, bool 
         findDialog->concludeReplaceAll();
     }
 
-    qDebug() << "";
+    //qDebug() << "";
 }
 
 
 /* Called when the user clicks the Replace button in FindDialog, which emits a signal to pass
  * along the replacement text.
- * @param replacementText - the string to be used for replacement
+ * @param what - the string to find and replace
+ * @param with - the string with which to replace
+ * @param caseSensitive - flag denoting whether the search should heed the case of results
+ * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
  */
-void Editor::on_replacementText_ready(QString replacementText)
+void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
-    // TODO this still inserts even if no match was found, fix
     QTextCursor cursor = textCursor();
     cursor.beginEditBlock();
-    cursor.insertText(replacementText);
+    cursor.insertText(with);
     cursor.endEditBlock();
 }
 
@@ -318,7 +319,7 @@ void Editor::updateSearchHistory(int oldCharCount, int newCharCount)
     int currentCursorPosition = textCursor().position();
     int characterCountChange = newCharCount - oldCharCount;
 
-    qDebug() << "\ntCharacter count changed by " << characterCountChange << "\n";
+    // qDebug() << "\ntCharacter count changed by " << characterCountChange << "\n";
 
     // Loop through each term in the search history
     for(auto term : searchHistory->toStdMap())
@@ -339,9 +340,11 @@ void Editor::updateSearchHistory(int oldCharCount, int newCharCount)
             firstMatchPositionForTerm += characterCountChange;
         }
 
+        /*
         qDebug() << "-------------------------------\n" << "Updating " << term.first << " positions: "
         << "\nNew cursorPositionPriorToSearch: " << cursorPositionPriorToSearch <<
            "\nNew firstMatchPositionForTerm: " << firstMatchPositionForTerm << "\n";
+        */
 
         newPositions.first = cursorPositionPriorToSearch;
         newPositions.second = firstMatchPositionForTerm;

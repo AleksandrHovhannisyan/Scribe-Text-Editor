@@ -44,8 +44,8 @@ signals:
     void windowNeedsToBeUpdated(DocumentMetrics metrics);
 
 public slots:
-    void on_findQueryText_ready(QString queryText, bool caseSensitive, bool wholeWords);
-    void on_replacementText_ready(QString replacementText);
+    void find(QString query, bool caseSensitive, bool wholeWords);
+    void replace(QString what, QString with, bool caseSensitive, bool wholeWords);
     void on_textChanged();
 
 private slots:
