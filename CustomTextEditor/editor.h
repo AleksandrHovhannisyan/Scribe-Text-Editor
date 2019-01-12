@@ -66,6 +66,7 @@ private:
     FindDialog *findDialog;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
+    bool metricCalculationDisabled = false;
 };
 
 #endif // EDITOR_H

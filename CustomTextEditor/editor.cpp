@@ -39,6 +39,7 @@ Editor::~Editor()
  */
 void Editor::reset()
 {
+    metricCalculationDisabled = false;
     currentFilePath.clear();
     setPlainText(QString()); // this will trigger on_textChanged
     fileNeedsToBeSaved = false;
@@ -202,10 +203,9 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 }
 
 
-/* Called when the user clicks the Replace button in FindDialog, which emits a signal to pass
- * along the replacement text.
+/* Called when the user clicks the Replace button in FindDialog.
  * @param what - the string to find and replace
- * @param with - the string with which to replace
+ * @param with - the string with which to replace any match
  * @param caseSensitive - flag denoting whether the search should heed the case of results
  * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
  */
@@ -222,11 +222,15 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
     }
 }
 
-/* TODO document
- *
+/* Called when the user clicks the Replace All button in FindDialog.
+ * @param what - the string to find and replace
+ * @param with - the string with which to replace all matches
+ * @param caseSensitive - flag denoting whether the search should heed the case of results
+ * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
  */
 void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
+    metricCalculationDisabled = true; // optimization
     bool found = find(what, caseSensitive, wholeWords);
 
     while(found)
@@ -238,7 +242,8 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
         found = find(what, caseSensitive, wholeWords);
     }
 
-    QMessageBox::information(this, "Find and Replace", "Replace All done.");
+    metricCalculationDisabled = false; // reset it here
+    QMessageBox::information(this, "Find and Replace", "Finished searching the document. All matches replaced.");
 }
 
 
@@ -330,12 +335,19 @@ void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
 
-    int oldCharCount = metrics.charCount;
-    updateFileMetrics();
-    int newCharCount = metrics.charCount;
-    updateSearchHistory(oldCharCount, newCharCount);
+    // There are some cases when updating file metrics is not ideal, such as during replace all
+    if(!metricCalculationDisabled)
+    {
+        updateFileMetrics();
+        emit(windowNeedsToBeUpdated(metrics));
+    }
 
-    emit(windowNeedsToBeUpdated(metrics));
+    QString documentContents = document()->toPlainText();
+    int oldCharCount = metrics.charCount;
+    qDebug() << "Old: " << oldCharCount;
+    int newCharCount = documentContents.length() - documentContents.count('\n');
+    qDebug() << "New: " << newCharCount;
+    updateSearchHistory(oldCharCount, newCharCount);
 }
 
 
@@ -350,6 +362,7 @@ void Editor::updateSearchHistory(int oldCharCount, int newCharCount)
 
     // qDebug() << "\ntCharacter count changed by " << characterCountChange << "\n";
 
+    // TODO there's only ever one item
     // Loop through each term in the search history
     for(auto term : searchHistory->toStdMap())
     {
