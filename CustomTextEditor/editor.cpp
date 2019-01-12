@@ -98,6 +98,22 @@ void Editor::launchFindDialog()
 }
 
 
+QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords)
+{
+    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
+    if(caseSensitive)
+    {
+        searchOptions |= QTextDocument::FindCaseSensitively;
+    }
+    if(wholeWords)
+    {
+        searchOptions |= QTextDocument::FindWholeWords;
+    }
+    return searchOptions;
+}
+
+
+
 /* Called when the findDialog object emits its queryReady signal. Initiates the
  * actual searching within the editor. If a match is found, it's highlighted in the editor.
  * Otherwise, feedback is given to the user in the search window, which remains open for further
@@ -112,15 +128,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
     int cursorPositionPriorToSearch = textCursor().position();
 
     // Specify the options we'll be searching with
-    QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();    
-    if(caseSensitive)
-    {
-        searchOptions |= QTextDocument::FindCaseSensitively;
-    }
-    if(wholeWords)
-    {
-        searchOptions |= QTextDocument::FindWholeWords;
-    }
+    QTextDocument::FindFlags searchOptions = getSearchOptionsFromFlags(caseSensitive, wholeWords);
 
     // Search until the end of the document
     bool matchFound = QPlainTextEdit::find(query, searchOptions);
@@ -176,7 +184,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 findDialog->clearSearchHistory();
 
                 // Inform the user of the unsuccessful search
-                QMessageBox::information(findDialog, tr("Find and Replace"), tr("No results found"));
+                informUser("Find and Replace", "No more results found");
             }
         }
     }
@@ -188,7 +196,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
-        QMessageBox::information(findDialog, tr("Find and Replace"), tr("No results found"));
+        informUser("Find and Replace", "No results found.");
     }
 
     qDebug() << "";
@@ -217,6 +225,7 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
     }
 }
 
+
 /* Called when the user clicks the Replace All button in FindDialog.
  * @param what - the string to find and replace
  * @param with - the string with which to replace all matches
@@ -225,22 +234,44 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
  */
 void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
-    metricCalculationDisabled = true; // optimization
-    bool found = find(what, caseSensitive, wholeWords);
+    // Optimization, don't update screen until the end of all replacements
+    metricCalculationDisabled = true;
+
+    // Search the entire document from the very beginning
+    QTextCursor cursor = textCursor();
+    cursor.setPosition(0);
+    setTextCursor(cursor);
+
+    // Conduct an initial search; don't rely on our custom find
+    QTextDocument::FindFlags searchOptions = getSearchOptionsFromFlags(caseSensitive, wholeWords);
+    bool found = QPlainTextEdit::find(what, searchOptions);
     int replacements = 0;
 
+    // Keep replacing while there are matches left
     while(found)
     {
-        replacements++;
         QTextCursor cursor = textCursor();
         cursor.beginEditBlock();
         cursor.insertText(with);
         cursor.endEditBlock();
-        found = find(what, caseSensitive, wholeWords);
+
+        replacements++;
+        found = QPlainTextEdit::find(what, searchOptions);
     }
 
-    metricCalculationDisabled = false; // reset it here
-    QMessageBox::information(this, "Find and Replace", "Finished searching the document. Replaced " + QString::number(replacements) + " instances.");
+    // End-of-operation feedback
+    if(replacements == 0)
+    {
+        informUser("Replace All", "No results found.");
+    }
+    else
+    {
+        informUser("Replace All", "Document searched. Replaced " + QString::number(replacements) + " instances.");
+    }
+
+    metricCalculationDisabled = false; // reset here
+    updateFileMetrics();
+    emit(windowNeedsToBeUpdated(metrics));
 }
 
 
