@@ -18,7 +18,6 @@ public:
     FindDialog(QWidget *parent = nullptr);
     ~FindDialog();
     inline QString getQueryText(){ return queryText; }
-    inline void concludeReplaceAll() { replaceAllCanContinue = false; }
 
     // TODO make a SearchHistory class to encapsulate all of this logic
     inline void clearSearchHistory() { searchHistory.clear(); }
@@ -43,7 +42,6 @@ private:
     QPushButton *findNextButton;
     QPushButton *replaceButton;
     QPushButton *replaceAllButton;
-    bool replaceAllCanContinue;
     QLineEdit *findLineEdit;
     QLineEdit *replaceLineEdit;
     QCheckBox *caseSensitiveCheckBox;

@@ -138,16 +138,14 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         int foundPosition = textCursor().position();
         bool previouslyFound = findDialog->previouslyFound(query);
 
-        /*
-        qDebug() << "Match found for " << query;
-        qDebug() << "Found position: " << foundPosition;
+        qDebug() << "Match for" << query;
+        qDebug() << "Found at: " << foundPosition;
         qDebug() << "Previously found: " << previouslyFound;
         if(previouslyFound)
         {
             qDebug() << "First found at: " << findDialog->firstPositionOf(query);
-            qDebug() << "Cursor was at " << findDialog->positionPriorToFirstSearch(query) << " before first search.";
+            qDebug() << "Cursor was here before first find: " << findDialog->positionPriorToFirstSearch(query);
         }
-        */
 
         // Log the first position at which this query was found in the current document state
         // Note that the search history is always reset whenever we do a full cycle back to the first match
@@ -163,6 +161,8 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 
             if(loopedBackToFirstHit)
             {
+                qDebug() << "---LOOPED BACK TO FIRST HIT---";
+
                 // It's not really a match that we found; it's a repeat of the very first ever match
                 matchFound = false;
 
@@ -177,9 +177,6 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 
                 // Inform the user of the unsuccessful search
                 QMessageBox::information(findDialog, tr("Find and Replace"), tr("No results found"));
-
-                // In case findDialog triggered searching from a replace-all
-                findDialog->concludeReplaceAll();
             }
         }
     }
@@ -192,12 +189,9 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 
         // Inform the user of the unsuccessful search
         QMessageBox::information(findDialog, tr("Find and Replace"), tr("No results found"));
-
-        // In case findDialog triggered searching from a replace-all
-        findDialog->concludeReplaceAll();
     }
 
-    //qDebug() << "";
+    qDebug() << "";
 
     return matchFound;
 }
@@ -211,6 +205,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
  */
 void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
+    metricCalculationDisabled = false;
     bool found = find(what, caseSensitive, wholeWords);
 
     if(found)
@@ -232,9 +227,11 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
 {
     metricCalculationDisabled = true; // optimization
     bool found = find(what, caseSensitive, wholeWords);
+    int replacements = 0;
 
     while(found)
     {
+        replacements++;
         QTextCursor cursor = textCursor();
         cursor.beginEditBlock();
         cursor.insertText(with);
@@ -243,7 +240,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     }
 
     metricCalculationDisabled = false; // reset it here
-    QMessageBox::information(this, "Find and Replace", "Finished searching the document. All matches replaced.");
+    QMessageBox::information(this, "Find and Replace", "Finished searching the document. Replaced " + QString::number(replacements) + " instances.");
 }
 
 
@@ -334,6 +331,7 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
 void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
+    int oldCharCount = metrics.charCount;
 
     // There are some cases when updating file metrics is not ideal, such as during replace all
     if(!metricCalculationDisabled)
@@ -343,10 +341,9 @@ void Editor::on_textChanged()
     }
 
     QString documentContents = document()->toPlainText();
-    int oldCharCount = metrics.charCount;
-    qDebug() << "Old: " << oldCharCount;
+    qDebug() << "Old char #: " << oldCharCount;
     int newCharCount = documentContents.length() - documentContents.count('\n');
-    qDebug() << "New: " << newCharCount;
+    qDebug() << "New char #: " << newCharCount;
     updateSearchHistory(oldCharCount, newCharCount);
 }
 
@@ -356,11 +353,14 @@ void Editor::on_textChanged()
  */
 void Editor::updateSearchHistory(int oldCharCount, int newCharCount)
 {
+    if(document()->toPlainText().length() == 0 || oldCharCount == newCharCount) return;
+
     QMap<QString, QPair<int, int>> *searchHistory = findDialog->getSearchHistory(); // returns a reference to the map, not a copy
     int currentCursorPosition = textCursor().position();
     int characterCountChange = newCharCount - oldCharCount;
 
-    // qDebug() << "\ntCharacter count changed by " << characterCountChange << "\n";
+    qDebug() << "Delta char: " << characterCountChange << "\n";
+    qDebug() << "Cursor at: " << currentCursorPosition;
 
     // TODO there's only ever one item
     // Loop through each term in the search history
@@ -371,22 +371,22 @@ void Editor::updateSearchHistory(int oldCharCount, int newCharCount)
         int cursorPositionPriorToSearch = oldPositions.first;
         int firstMatchPositionForTerm = oldPositions.second;
 
+        qDebug() << "Cursor position prior to first search [OLD]: " << cursorPositionPriorToSearch;
+        qDebug() << "First match position for term [OLD]: " << firstMatchPositionForTerm;
+
         // And update the positions as needed
         QPair<int, int> newPositions;
-        if(currentCursorPosition < cursorPositionPriorToSearch)
+        if(currentCursorPosition <= cursorPositionPriorToSearch)
         {
             cursorPositionPriorToSearch += characterCountChange;
         }
-        if(currentCursorPosition < firstMatchPositionForTerm)
+        if(currentCursorPosition <= firstMatchPositionForTerm)
         {
             firstMatchPositionForTerm += characterCountChange;
         }
 
-        /*
-        qDebug() << "-------------------------------\n" << "Updating " << term.first << " positions: "
-        << "\nNew cursorPositionPriorToSearch: " << cursorPositionPriorToSearch <<
-           "\nNew firstMatchPositionForTerm: " << firstMatchPositionForTerm << "\n";
-        */
+        qDebug() << "Cursor position prior to first search [NEW]: " << cursorPositionPriorToSearch;
+        qDebug() << "First match position for term [NEW]: " << firstMatchPositionForTerm;
 
         newPositions.first = cursorPositionPriorToSearch;
         newPositions.second = firstMatchPositionForTerm;
