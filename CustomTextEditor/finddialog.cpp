@@ -49,8 +49,8 @@ FindDialog::FindDialog(QWidget *parent)
     setWindowTitle(tr("Find and Replace"));
 
     connect(findNextButton, SIGNAL(clicked()), this, SLOT(on_findNextButton_clicked()));
-    connect(replaceButton, SIGNAL(clicked()), this, SLOT(on_replaceButton_clicked()));
-    connect(replaceAllButton, SIGNAL(clicked()), this, SLOT(on_replaceAllButton_clicked()));
+    connect(replaceButton, SIGNAL(clicked()), this, SLOT(on_replaceOperation_initiated()));
+    connect(replaceAllButton, SIGNAL(clicked()), this, SLOT(on_replaceOperation_initiated()));
 }
 
 
@@ -96,29 +96,30 @@ void FindDialog::on_findNextButton_clicked()
 
 /* TODO document
  */
-void FindDialog::on_replaceButton_clicked()
+void FindDialog::on_replaceOperation_initiated()
 {
-    QString query = findLineEdit->text();
+    QString what = findLineEdit->text();
 
-    if(query.isEmpty())
+    if(what.isEmpty())
     {
         QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
         return;
     }
-    queryText = query;
+    queryText = what;
 
-    QString replacementText = replaceLineEdit->text();
+    QString with = replaceLineEdit->text();
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
     bool wholeWords = wholeWordsCheckBox->isChecked();
+    bool replace = sender() == replaceAllButton;
 
-    emit(startReplacing(query, replacementText, caseSensitive, wholeWords));
-}
-
-
-/* TODO document
- */
-void FindDialog::on_replaceAllButton_clicked()
-{
+    if(replace)
+    {
+        emit(startReplacing(what, with, caseSensitive, wholeWords));
+    }
+    else
+    {
+        emit(startReplacingAll(what, with, caseSensitive, wholeWords));
+    }
 
 }
 

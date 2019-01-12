@@ -31,11 +31,11 @@ public:
 signals:
     void startFinding(QString queryText, bool caseSensitive, bool wholeWords, QString failureMessage);
     void startReplacing(QString what, QString with, bool caseSensitive, bool wholeWords);
+    void startReplacingAll(QString what, QString with, bool caseSensitive, bool wholeWords);
 
 public slots:
     void on_findNextButton_clicked();
-    void on_replaceButton_clicked();
-    void on_replaceAllButton_clicked();
+    void on_replaceOperation_initiated();
 
 private:
     QLabel *findLabel;
