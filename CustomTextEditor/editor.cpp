@@ -18,10 +18,8 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
-    connect(findDialog, SIGNAL(queryReady(QString, bool, bool)),
-            this, SLOT(find(QString, bool, bool)));
-    connect(findDialog, SIGNAL(replacementTextReady(QString, QString, bool, bool)),
-            this, SLOT(replace(QString, QString, bool, bool)));
+    connect(findDialog, SIGNAL(startFinding(QString, bool, bool, QString)), this, SLOT(find(QString, bool, bool, QString)));
+    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), this, SLOT(replace(QString, QString, bool, bool)));
 
     updateLineNumberAreaWidth();
     highlightCurrentLine();
@@ -105,8 +103,9 @@ void Editor::launchFindDialog()
  * @param query - the text the user wants to search for
  * @param caseSensitive - flag denoting whether the search should heed the case of results
  * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
+ * @param failureMessage - message to display in a popup when the search fails
  */
-void Editor::find(QString query, bool caseSensitive, bool wholeWords)
+bool Editor::find(QString query, bool caseSensitive, bool wholeWords, QString failureMessage)
 {
     // Keep track of cursor position prior to search, in case there's no match found at all
     int cursorPositionPriorToSearch = textCursor().position();
@@ -172,7 +171,7 @@ void Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 findDialog->clearSearchHistory();
 
                 // Inform the user of the unsuccessful search
-                QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
+                QMessageBox::information(findDialog, tr("Find and Replace"), failureMessage);
 
                 // In case findDialog triggered searching from a replace-all
                 findDialog->concludeReplaceAll();
@@ -187,13 +186,15 @@ void Editor::find(QString query, bool caseSensitive, bool wholeWords)
         setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
-        QMessageBox::information(findDialog, tr("Find"), tr("No results found."));
+        QMessageBox::information(findDialog, tr("Find and Replace"), failureMessage);
 
         // In case findDialog triggered searching from a replace-all
         findDialog->concludeReplaceAll();
     }
 
     //qDebug() << "";
+
+    return matchFound;
 }
 
 
@@ -206,10 +207,15 @@ void Editor::find(QString query, bool caseSensitive, bool wholeWords)
  */
 void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
-    QTextCursor cursor = textCursor();
-    cursor.beginEditBlock();
-    cursor.insertText(with);
-    cursor.endEditBlock();
+    bool found = find(what, caseSensitive, wholeWords, "No results found");
+
+    if(found)
+    {
+        QTextCursor cursor = textCursor();
+        cursor.beginEditBlock();
+        cursor.insertText(with);
+        cursor.endEditBlock();
+    }
 }
 
 

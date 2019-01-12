@@ -75,13 +75,11 @@ FindDialog::~FindDialog()
 
 
 /* Called when the user clicks the Find Next button. If the query is empty, it informs the user.
- * Otherwise, it emits an appropriate signal for queryTextReady with all relevant search criteria.
+ * Otherwise, it emits an appropriate signal for startFinding with all relevant search criteria.
  */
 void FindDialog::on_findNextButton_clicked()
 {
     QString query = findLineEdit->text();
-    bool caseSensitive = caseSensitiveCheckBox->isChecked();
-    bool wholeWords = wholeWordsCheckBox->isChecked();
 
     if(query.isEmpty())
     {
@@ -90,7 +88,9 @@ void FindDialog::on_findNextButton_clicked()
     }
     queryText = query;
 
-   emit(queryTextReady(queryText, caseSensitive, wholeWords));
+    bool caseSensitive = caseSensitiveCheckBox->isChecked();
+    bool wholeWords = wholeWordsCheckBox->isChecked();
+    emit(startFinding(queryText, caseSensitive, wholeWords, "No results found."));
 }
 
 
@@ -98,33 +98,28 @@ void FindDialog::on_findNextButton_clicked()
  */
 void FindDialog::on_replaceButton_clicked()
 {
-    // First find and highlight a result, if any
-    on_findNextButton_clicked();
+    QString query = findLineEdit->text();
 
-    // Then broadcast the replacement
-    // TODO this works, but change replaceAllCanContinue to something more intuitive, like canReplace
-    if(replaceAllCanContinue)
+    if(query.isEmpty())
     {
-        QString replacementText = replaceLineEdit->text();
-        emit(replacementTextReady(replacementText));
+        QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
+        return;
     }
+    queryText = query;
+
+    QString replacementText = replaceLineEdit->text();
+    bool caseSensitive = caseSensitiveCheckBox->isChecked();
+    bool wholeWords = wholeWordsCheckBox->isChecked();
+
+    emit(startReplacing(query, replacementText, caseSensitive, wholeWords));
 }
 
 
 /* TODO document
  */
 void FindDialog::on_replaceAllButton_clicked()
-{    
-    replaceAllCanContinue = true;
+{
 
-    // TODO what if we just hand off this logic to Editor, who has replaceAll routine?
-    // and change editor's find routine to return a boolean, such that replaceAll is able to check if a match was found
-
-    // See editor.cpp for when this gets set to false
-    while(replaceAllCanContinue)
-    {
-        on_replaceButton_clicked();
-    }
 }
 
 

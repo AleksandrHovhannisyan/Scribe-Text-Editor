@@ -29,8 +29,8 @@ public:
     inline QMap<QString, QPair<int, int>> *getSearchHistory() { return &searchHistory; }
 
 signals:
-    void queryTextReady(QString queryText, bool caseSensitive, bool wholeWords);
-    void replacementTextReady(QString replacementText);
+    void startFinding(QString queryText, bool caseSensitive, bool wholeWords, QString failureMessage);
+    void startReplacing(QString what, QString with, bool caseSensitive, bool wholeWords);
 
 public slots:
     void on_findNextButton_clicked();

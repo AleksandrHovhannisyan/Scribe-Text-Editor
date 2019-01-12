@@ -44,7 +44,7 @@ signals:
     void windowNeedsToBeUpdated(DocumentMetrics metrics);
 
 public slots:
-    void find(QString query, bool caseSensitive, bool wholeWords);
+    bool find(QString query, bool caseSensitive, bool wholeWords, QString failureMessage = "No results found.");
     void replace(QString what, QString with, bool caseSensitive, bool wholeWords);
     void on_textChanged();
 
