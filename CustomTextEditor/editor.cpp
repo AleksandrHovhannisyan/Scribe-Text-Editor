@@ -18,8 +18,9 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
-    connect(findDialog, SIGNAL(startFinding(QString, bool, bool, QString)), this, SLOT(find(QString, bool, bool, QString)));
+    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), this, SLOT(find(QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), this, SLOT(replace(QString, QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), this, SLOT(replaceAll(QString, QString, bool, bool)));
 
     updateLineNumberAreaWidth();
     highlightCurrentLine();
@@ -103,9 +104,8 @@ void Editor::launchFindDialog()
  * @param query - the text the user wants to search for
  * @param caseSensitive - flag denoting whether the search should heed the case of results
  * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
- * @param failureMessage - message to display in a popup when the search fails
  */
-bool Editor::find(QString query, bool caseSensitive, bool wholeWords, QString failureMessage)
+bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 {
     // Keep track of cursor position prior to search, in case there's no match found at all
     int cursorPositionPriorToSearch = textCursor().position();
@@ -158,9 +158,13 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords, QString fa
         // If term was previously found, check that we didn't cycle back to the first-ever find
         else
         {
-            // If we looped back to the very first match we ever found, reset search history and cursor
-            if(foundPosition == findDialog->firstPositionOf(query))
+            bool loopedBackToFirstHit = foundPosition == findDialog->firstPositionOf(query);
+
+            if(loopedBackToFirstHit)
             {
+                // It's not really a match that we found; it's a repeat of the very first ever match
+                matchFound = false;
+
                 // Reset the cursor to its original position prior to first search for this term
                 QTextCursor newCursor = textCursor();
                 int positionPriorToFirstSearch = findDialog->positionPriorToFirstSearch(query);
@@ -171,7 +175,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords, QString fa
                 findDialog->clearSearchHistory();
 
                 // Inform the user of the unsuccessful search
-                QMessageBox::information(findDialog, tr("Find and Replace"), failureMessage);
+                QMessageBox::information(findDialog, tr("Find and Replace"), tr("No results found"));
 
                 // In case findDialog triggered searching from a replace-all
                 findDialog->concludeReplaceAll();
@@ -186,7 +190,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords, QString fa
         setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
-        QMessageBox::information(findDialog, tr("Find and Replace"), failureMessage);
+        QMessageBox::information(findDialog, tr("Find and Replace"), tr("No results found"));
 
         // In case findDialog triggered searching from a replace-all
         findDialog->concludeReplaceAll();

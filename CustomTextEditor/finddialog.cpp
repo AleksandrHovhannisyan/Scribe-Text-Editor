@@ -90,7 +90,7 @@ void FindDialog::on_findNextButton_clicked()
 
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
     bool wholeWords = wholeWordsCheckBox->isChecked();
-    emit(startFinding(queryText, caseSensitive, wholeWords, "No results found."));
+    emit(startFinding(queryText, caseSensitive, wholeWords));
 }
 
 
@@ -110,7 +110,7 @@ void FindDialog::on_replaceOperation_initiated()
     QString with = replaceLineEdit->text();
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
     bool wholeWords = wholeWordsCheckBox->isChecked();
-    bool replace = sender() == replaceAllButton;
+    bool replace = sender() == replaceButton;
 
     if(replace)
     {

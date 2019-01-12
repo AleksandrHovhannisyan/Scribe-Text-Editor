@@ -29,7 +29,7 @@ public:
     inline QMap<QString, QPair<int, int>> *getSearchHistory() { return &searchHistory; }
 
 signals:
-    void startFinding(QString queryText, bool caseSensitive, bool wholeWords, QString failureMessage);
+    void startFinding(QString queryText, bool caseSensitive, bool wholeWords);
     void startReplacing(QString what, QString with, bool caseSensitive, bool wholeWords);
     void startReplacingAll(QString what, QString with, bool caseSensitive, bool wholeWords);
 
