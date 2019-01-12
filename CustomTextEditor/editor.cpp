@@ -344,7 +344,7 @@ void Editor::updateFileMetrics()
         currentWord.clear();
     }
 
-    // Column metric
+    // Column changes whenever we type
     metrics.currentColumn = textCursor().positionInBlock() + 1;
 }
 
@@ -491,6 +491,7 @@ void Editor::resizeEvent(QResizeEvent *event)
 
 
 /* Called when the cursor changes position. Highlights the line the cursor is on.
+ * Also computes the current column within that line.
  */
 void Editor::highlightCurrentLine()
 {
@@ -509,6 +510,13 @@ void Editor::highlightCurrentLine()
     }
 
     setExtraSelections(extraSelections);
+
+    if(!metricCalculationDisabled)
+    {
+        // Column changes whenever we move the cursor, not only when we type
+        metrics.currentColumn = textCursor().positionInBlock() + 1;
+        emit(windowNeedsToBeUpdated(metrics));
+    }
 }
 
 
