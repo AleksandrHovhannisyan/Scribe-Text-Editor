@@ -98,6 +98,10 @@ void Editor::launchFindDialog()
 }
 
 
+/* Returns a QTextDocument::FindFlags representing all the flags a search should be conducted with.
+ * @param caseSensitive - flag denoting whether the search should heed the case of results
+ * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
+ */
 QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords)
 {
     QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
@@ -113,11 +117,11 @@ QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, b
 }
 
 
-
 /* Called when the findDialog object emits its queryReady signal. Initiates the
- * actual searching within the editor. If a match is found, it's highlighted in the editor.
- * Otherwise, feedback is given to the user in the search window, which remains open for further
- * searches.
+ * actual searching within the editor. First searches for a match from the current
+ * position to the end of the document. If nothing is found, the search proceeds
+ * from the beginning of the document, but stops once it encounters the first match
+ * (if any) that was found in prior iterations for the current query.
  * @param query - the text the user wants to search for
  * @param caseSensitive - flag denoting whether the search should heed the case of results
  * @param wholeWords - flag denoting whether the search should look for whole word matches or partials
@@ -248,16 +252,15 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     int replacements = 0;
 
     // Keep replacing while there are matches left
+    cursor.beginEditBlock();
     while(found)
     {
-        QTextCursor cursor = textCursor();
-        cursor.beginEditBlock();
-        cursor.insertText(with);
-        cursor.endEditBlock();
-
+        QTextCursor currentPosition = textCursor();
+        currentPosition.insertText(with);
         replacements++;
         found = QPlainTextEdit::find(what, searchOptions);
     }
+    cursor.endEditBlock();
 
     // End-of-operation feedback
     if(replacements == 0)
@@ -371,11 +374,13 @@ void Editor::on_textChanged()
         emit(windowNeedsToBeUpdated(metrics));
     }
 
+    /*// TODO this seems to do more harm than good honestly
     QString documentContents = document()->toPlainText();
     qDebug() << "Old char #: " << oldCharCount;
     int newCharCount = documentContents.length() - documentContents.count('\n');
     qDebug() << "New char #: " << newCharCount;
     updateSearchHistory(oldCharCount, newCharCount);
+    */
 }
 
 
