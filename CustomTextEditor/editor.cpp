@@ -207,7 +207,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords, QString fa
  */
 void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
-    bool found = find(what, caseSensitive, wholeWords, "No results found");
+    bool found = find(what, caseSensitive, wholeWords);
 
     if(found)
     {
@@ -216,6 +216,25 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
         cursor.insertText(with);
         cursor.endEditBlock();
     }
+}
+
+/* TODO document
+ *
+ */
+void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords)
+{
+    bool found = find(what, caseSensitive, wholeWords);
+
+    while(found)
+    {
+        QTextCursor cursor = textCursor();
+        cursor.beginEditBlock();
+        cursor.insertText(with);
+        cursor.endEditBlock();
+        found = find(what, caseSensitive, wholeWords);
+    }
+
+    QMessageBox::information(this, "Find and Replace", "Replace All done.");
 }
 
 

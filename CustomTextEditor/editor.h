@@ -46,6 +46,7 @@ signals:
 public slots:
     bool find(QString query, bool caseSensitive, bool wholeWords, QString failureMessage = "No results found.");
     void replace(QString what, QString with, bool caseSensitive, bool wholeWords);
+    void replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords);
     void on_textChanged();
 
 private slots:
