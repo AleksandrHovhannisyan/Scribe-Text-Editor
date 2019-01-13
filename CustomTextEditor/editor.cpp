@@ -128,16 +128,16 @@ QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, b
  */
 bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 {
-    // Keep track of cursor position prior to search, in case there's no match found at all
+    // Keep track of the cursor position prior to this search so we can return to it if no match is found
     int cursorPositionPriorToSearch = textCursor().position();
 
     // Specify the options we'll be searching with
     QTextDocument::FindFlags searchOptions = getSearchOptionsFromFlags(caseSensitive, wholeWords);
 
-    // Search until the end of the document
+    // Search from the current position until the end of the document
     bool matchFound = QPlainTextEdit::find(query, searchOptions);
 
-    // If we didn't find a match, search from top of document
+    // If we didn't find a match, search from the top of the document
     if(!matchFound)
     {
         moveCursor(QTextCursor::Start);
@@ -150,28 +150,18 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         int foundPosition = textCursor().position();
         bool previouslyFound = findDialog->previouslyFound(query);
 
-        qDebug() << "Match for" << query;
-        qDebug() << "Found at: " << foundPosition;
-        qDebug() << "Previously found: " << previouslyFound;
-        if(previouslyFound)
-        {
-            qDebug() << "First found at: " << findDialog->firstPositionOf(query);
-            qDebug() << "Cursor was here before first find: " << findDialog->positionPriorToFirstSearch(query);
-        }
-
         // Log the first position at which this query was found in the current document state
-        // Note that the search history is always reset whenever we do a full cycle back to the first match
+        // Search history is always reset whenever we do a full cycle back to the first match or start a new search "chain"
         if(!previouslyFound)
         {
-            qDebug() << "Logging first position";
             findDialog->addToSearchHistory(query, cursorPositionPriorToSearch, foundPosition);
         }
         // If term was previously found, check that we didn't cycle back to the first-ever find
         else
         {
-            bool loopedBackToFirstHit = foundPosition == findDialog->firstPositionOf(query);
+            bool loopedBackToFirstMatch = foundPosition == findDialog->firstPositionOf(query);
 
-            if(loopedBackToFirstHit)
+            if(loopedBackToFirstMatch)
             {
                 qDebug() << "---LOOPED BACK TO FIRST HIT---";
 
@@ -188,13 +178,13 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 findDialog->clearSearchHistory();
 
                 // Inform the user of the unsuccessful search
-                informUser("Find and Replace", "No more results found");
+                informUser("Find and Replace", "No more results found.");
             }
         }
     }
     else
     {
-        // Reset the cursor to its original position prior to searching
+        // Reset the cursor to its position prior to this particular search
         QTextCursor newCursor = textCursor();
         newCursor.setPosition(cursorPositionPriorToSearch);
         setTextCursor(newCursor);
@@ -202,8 +192,6 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         // Inform the user of the unsuccessful search
         informUser("Find and Replace", "No results found.");
     }
-
-    qDebug() << "";
 
     return matchFound;
 }
@@ -365,68 +353,13 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
 void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
-    int oldCharCount = metrics.charCount;
+    findDialog->clearSearchHistory();
 
     // There are some cases when updating file metrics is not ideal, such as during replace all
     if(!metricCalculationDisabled)
     {
         updateFileMetrics();
         emit(windowNeedsToBeUpdated(metrics));
-    }
-
-    /*// TODO this seems to do more harm than good honestly
-    QString documentContents = document()->toPlainText();
-    qDebug() << "Old char #: " << oldCharCount;
-    int newCharCount = documentContents.length() - documentContents.count('\n');
-    qDebug() << "New char #: " << newCharCount;
-    updateSearchHistory(oldCharCount, newCharCount);
-    */
-}
-
-
-/* TODO document
- *
- */
-void Editor::updateSearchHistory(int oldCharCount, int newCharCount)
-{
-    if(document()->toPlainText().length() == 0 || oldCharCount == newCharCount) return;
-
-    QMap<QString, QPair<int, int>> *searchHistory = findDialog->getSearchHistory(); // returns a reference to the map, not a copy
-    int currentCursorPosition = textCursor().position();
-    int characterCountChange = newCharCount - oldCharCount;
-
-    qDebug() << "Delta char: " << characterCountChange << "\n";
-    qDebug() << "Cursor at: " << currentCursorPosition;
-
-    // TODO there's only ever one item
-    // Loop through each term in the search history
-    for(auto term : searchHistory->toStdMap())
-    {
-        // For the current search term, get its old positions
-        QPair<int, int> oldPositions = term.second;
-        int cursorPositionPriorToSearch = oldPositions.first;
-        int firstMatchPositionForTerm = oldPositions.second;
-
-        qDebug() << "Cursor position prior to first search [OLD]: " << cursorPositionPriorToSearch;
-        qDebug() << "First match position for term [OLD]: " << firstMatchPositionForTerm;
-
-        // And update the positions as needed
-        QPair<int, int> newPositions;
-        if(currentCursorPosition <= cursorPositionPriorToSearch)
-        {
-            cursorPositionPriorToSearch += characterCountChange;
-        }
-        if(currentCursorPosition <= firstMatchPositionForTerm)
-        {
-            firstMatchPositionForTerm += characterCountChange;
-        }
-
-        qDebug() << "Cursor position prior to first search [NEW]: " << cursorPositionPriorToSearch;
-        qDebug() << "First match position for term [NEW]: " << firstMatchPositionForTerm;
-
-        newPositions.first = cursorPositionPriorToSearch;
-        newPositions.second = firstMatchPositionForTerm;
-        (*searchHistory)[term.first] = newPositions;
     }
 }
 
@@ -463,8 +396,7 @@ void Editor::updateLineNumberAreaWidth()
 
 /* Called when the editor viewport is scrolled. Redraws the line number area accordingly.
  */
-void Editor::updateLineNumberArea(const QRect &rectToBeRedrawn,
-                                  int numPixelsScrolledVertically)
+void Editor::updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically)
 {
     if(numPixelsScrolledVertically != 0)
     {
@@ -472,8 +404,7 @@ void Editor::updateLineNumberArea(const QRect &rectToBeRedrawn,
     }
     else
     {
-        lineNumberArea->update(0, rectToBeRedrawn.y(),
-                               lineNumberArea->width(), rectToBeRedrawn.height());
+        lineNumberArea->update(0, rectToBeRedrawn.y(), lineNumberArea->width(), rectToBeRedrawn.height());
     }
 
     if(rectToBeRedrawn.contains(viewport()->rect()))
@@ -490,8 +421,7 @@ void Editor::resizeEvent(QResizeEvent *event)
     QPlainTextEdit::resizeEvent(event);
 
     QRect cr = contentsRect();
-    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(),
-                                      getLineNumberAreaWidth(), cr.height()));
+    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), getLineNumberAreaWidth(), cr.height()));
 }
 
 
@@ -516,6 +446,7 @@ void Editor::highlightCurrentLine()
 
     setExtraSelections(extraSelections);
 
+    // highlightCurrentLine is called when the cursor changes, so we need to update this as well
     if(!metricCalculationDisabled)
     {
         // Column changes whenever we move the cursor, not only when we type

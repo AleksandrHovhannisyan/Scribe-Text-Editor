@@ -59,7 +59,6 @@ private:
     QString getFileNameFromPath() const;
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
-    void updateSearchHistory(int oldCharCount, int newCharCount);
 
     DocumentMetrics metrics;
     QString currentFilePath;
