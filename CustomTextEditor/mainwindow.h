@@ -35,6 +35,7 @@ public slots:
     void updateWindow(DocumentMetrics metrics);
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
+    void toggleCopyAndCut(bool copyCutAvailable);
 
 private slots:
     void on_actionNew_triggered();

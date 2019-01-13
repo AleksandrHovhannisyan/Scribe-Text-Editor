@@ -24,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     initializeStatusBarLabels(); // must do this before editor->reset() to ensure labels are initialized
     editor->reset();
+    toggleRedo(false);
+    toggleCopyAndCut(false);
 
     ui->actionUndo->setEnabled(false);
 
@@ -33,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
 }
 
 
@@ -253,14 +256,23 @@ void MainWindow::on_actionUndo_triggered() { if(ui->actionUndo->isEnabled()) edi
 void MainWindow::on_actionRedo_triggered(){ if(ui->actionRedo->isEnabled()) editor->redo(); }
 
 
+/* Called when the Copy and Cut operations are toggled by the editor.
+ */
+void MainWindow::toggleCopyAndCut(bool copyCutAvailable)
+{
+    ui->actionCopy->setEnabled(copyCutAvailable);
+    ui->actionCut->setEnabled(copyCutAvailable);
+}
+
+
 /* Called when the user performs the Cut operation.
  */
-void MainWindow::on_actionCut_triggered() { editor->cut(); }
+void MainWindow::on_actionCut_triggered() { if(ui->actionCut->isEnabled()) editor->cut(); }
 
 
 /* Called when the user performs the Copy operation.
  */
-void MainWindow::on_actionCopy_triggered() { editor->copy(); }
+void MainWindow::on_actionCopy_triggered() { if(ui->actionCopy->isEnabled()) editor->copy(); }
 
 
 /* Called when the user performs the Paste operation.
