@@ -33,6 +33,8 @@ private:
 
 public slots:
     void updateWindow(DocumentMetrics metrics);
+    void toggleUndo(bool undoAvailable);
+    void toggleRedo(bool redoAvailable);
 
 private slots:
     void on_actionNew_triggered();

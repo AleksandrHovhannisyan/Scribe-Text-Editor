@@ -25,9 +25,14 @@ MainWindow::MainWindow(QWidget *parent) :
     initializeStatusBarLabels(); // must do this before editor->reset() to ensure labels are initialized
     editor->reset();
 
+    ui->actionUndo->setEnabled(false);
+
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
+
+    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
 }
 
 
@@ -228,14 +233,24 @@ void MainWindow::on_actionExit_triggered()
 }
 
 
+/* Called when the Undo operation is toggled by the editor.
+ */
+void MainWindow::toggleUndo(bool undoAvailable) { ui->actionUndo->setEnabled(undoAvailable); }
+
+
+/* Called when the Redo operation is toggled by the editor.
+ */
+void MainWindow::toggleRedo(bool redoAvailable) { ui->actionRedo->setEnabled(redoAvailable); }
+
+
 /* Called when the user performs the Undo operation.
  */
-void MainWindow::on_actionUndo_triggered() { editor->undo(); }
+void MainWindow::on_actionUndo_triggered() { if(ui->actionUndo->isEnabled()) editor->undo(); }
 
 
 /* Called when the user performs the Redo operation.
  */
-void MainWindow::on_actionRedo_triggered(){ editor->redo(); }
+void MainWindow::on_actionRedo_triggered(){ if(ui->actionRedo->isEnabled()) editor->redo(); }
 
 
 /* Called when the user performs the Cut operation.
