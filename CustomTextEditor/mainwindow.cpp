@@ -25,10 +25,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     initializeStatusBarLabels(); // must do this before editor->reset() to ensure labels are initialized
     editor->reset();
+    toggleUndo(false);
     toggleRedo(false);
     toggleCopyAndCut(false);
-
-    ui->actionUndo->setEnabled(false);
 
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
