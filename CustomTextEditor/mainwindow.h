@@ -52,6 +52,7 @@ private slots:
     void on_actionRedo_triggered();
     void on_actionPrint_triggered();
     void on_actionStatus_Bar_triggered();
+    void on_actionTime_Date_triggered();
 };
 
 #endif // MAINWINDOW_H

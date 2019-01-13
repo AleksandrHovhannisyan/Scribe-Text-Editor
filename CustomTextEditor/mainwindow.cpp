@@ -7,6 +7,7 @@
 #include <QFileDialog>                  // file open/save dialogs
 #include <QFile>                        // file descriptors, IO
 #include <QTextStream>                  // file IO
+#include <QDateTime>                    // current time
 #include <QApplication>                 // quit
 
 
@@ -295,6 +296,15 @@ void MainWindow::on_actionGo_To_triggered()
 /* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).
  */
 void MainWindow::on_actionSelect_All_triggered() { editor->selectAll(); }
+
+
+/* Called when the user explicitly selects the Time/Date option from the menu (or uses F5).
+ */
+void MainWindow::on_actionTime_Date_triggered()
+{
+    QDateTime currentTime = QDateTime::currentDateTime();
+    editor->insertPlainText(currentTime.toString());
+}
 
 
 /* Toggles the visibility of the status bar labels.
