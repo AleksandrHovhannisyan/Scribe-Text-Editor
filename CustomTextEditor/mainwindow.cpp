@@ -57,9 +57,9 @@ void MainWindow::initializeStatusBarLabels()
     wordCountLabel = new QLabel();
     charCountLabel = new QLabel();
     columnLabel = new QLabel();
-    ui->statusBar->addWidget(wordCountLabel);
-    ui->statusBar->addWidget(charCountLabel);
-    ui->statusBar->addWidget(columnLabel);
+    ui->statusBar->addPermanentWidget(wordCountLabel);
+    ui->statusBar->addPermanentWidget(charCountLabel);
+    ui->statusBar->addPermanentWidget(columnLabel);
 }
 
 
@@ -69,7 +69,7 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
 {
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
-    QString colText = tr("   Column: ") + QString::number(metrics.currentColumn);
+    QString colText = tr("   Column: ") + QString::number(metrics.currentColumn) + tr("   ");
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
     columnLabel->setText(colText);
@@ -150,6 +150,8 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
         return;
     }
 
+    ui->statusBar->showMessage("Document saved", 2000);
+
     // Save the contents of the editor to the disk and close the file descriptor
     QTextStream out(&file);
     QString editorContents = editor->toPlainText();
@@ -193,6 +195,8 @@ void MainWindow::on_actionOpen_triggered()
         return;
     }
 
+    ui->statusBar->showMessage("Loaded file", 2000);
+
     // Read the file contents into the editor and close the file descriptor
     QTextStream in(&file);
     QString documentContents = in.readAll();
@@ -218,6 +222,7 @@ void MainWindow::on_actionPrint_triggered()
     if(printDialog.exec() != QPrintDialog::Rejected)
     {
         editor->print(&printer);
+        ui->statusBar->showMessage("Printing", 2000);
     }
 }
 
@@ -306,14 +311,9 @@ void MainWindow::on_actionTime_Date_triggered()
 }
 
 
-/* Toggles the visibility of the status bar labels.
+/* Toggles the visibility of the status bar.
  */
-void MainWindow::on_actionStatus_Bar_triggered()
-{
-    wordCountLabel->setVisible(!wordCountLabel->isVisible());
-    charCountLabel->setVisible(!charCountLabel->isVisible());
-    columnLabel->setVisible(!columnLabel->isVisible());
-}
+void MainWindow::on_actionStatus_Bar_triggered() { ui->statusBar->setVisible(!ui->statusBar->isVisible()); }
 
 
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries
