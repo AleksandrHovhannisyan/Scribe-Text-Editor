@@ -1,11 +1,12 @@
 #ifndef EDITOR_H
 #define EDITOR_H
-
 #include "finddialog.h"
 #include "documentmetrics.h"
 #include <QPlainTextEdit>
 #include <QFont>
 #include <QMessageBox>
+#include "searchhistory.h"
+
 
 /* Disclaimer: the code for painting the editor line numbers was not written by me.
  * I only changed some of the variable names and code to make things clearer,
@@ -65,6 +66,7 @@ private:
     bool fileNeedsToBeSaved;
     QFont font;
     FindDialog *findDialog;
+    SearchHistory searchHistory;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
     bool metricCalculationDisabled = false;

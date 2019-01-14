@@ -94,7 +94,9 @@ void FindDialog::on_findNextButton_clicked()
 }
 
 
-/* TODO document
+/* Caleld when the user clicks the Replace or Replace All button. Emits the appropriate
+ * signal (startReplacing or startReplacingAll, respectively), passing along all relevant
+ * search and replace information.
  */
 void FindDialog::on_replaceOperation_initiated()
 {
@@ -121,19 +123,4 @@ void FindDialog::on_replaceOperation_initiated()
         emit(startReplacingAll(what, with, caseSensitive, wholeWords));
     }
 
-}
-
-
-/* TODO document
- */
-void FindDialog::addToSearchHistory(QString term, int positionPriorToSearch, int firstMatchPosition)
-{
-    if(!previouslyFound(term))
-    {
-        searchHistory.clear();
-    }
-    QPair<int,int> locations;
-    locations.first = positionPriorToSearch;
-    locations.second = firstMatchPosition;
-    searchHistory.insert(term, locations);
 }

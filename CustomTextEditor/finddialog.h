@@ -19,14 +19,6 @@ public:
     ~FindDialog();
     inline QString getQueryText(){ return queryText; }
 
-    // TODO make a SearchHistory class to encapsulate all of this logic
-    inline void clearSearchHistory() { searchHistory.clear(); }
-    void addToSearchHistory(QString term, int positionPriorToSearch, int firstMatchPosition);
-    inline bool previouslyFound(QString term) { return searchHistory.find(term) != searchHistory.end(); }
-    inline int positionPriorToFirstSearch(QString term) { return searchHistory[term].first; }
-    inline int firstPositionOf(QString term){ return searchHistory[term].second; }
-    inline QMap<QString, QPair<int, int>> *getSearchHistory() { return &searchHistory; }
-
 signals:
     void startFinding(QString queryText, bool caseSensitive, bool wholeWords);
     void startReplacing(QString what, QString with, bool caseSensitive, bool wholeWords);
@@ -51,7 +43,6 @@ private:
     QHBoxLayout *replaceHorizontalLayout;
     QHBoxLayout *optionsLayout;
     QVBoxLayout *verticalLayout;
-    QMap<QString, QPair<int, int>> searchHistory;
 };
 
 #endif // FINDDIALOG_H

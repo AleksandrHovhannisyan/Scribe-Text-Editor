@@ -41,9 +41,9 @@ void Editor::reset()
 {
     metricCalculationDisabled = false;
     currentFilePath.clear();
+    searchHistory.clear();
     setPlainText(QString()); // this will trigger on_textChanged
     fileNeedsToBeSaved = false;
-    findDialog->clearSearchHistory();
 }
 
 
@@ -129,7 +129,7 @@ QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, b
 bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 {
     // Keep track of the cursor position prior to this search so we can return to it if no match is found
-    int cursorPositionPriorToSearch = textCursor().position();
+    int cursorPositionBeforeSearch = textCursor().position();
 
     // Specify the options we'll be searching with
     QTextDocument::FindFlags searchOptions = getSearchOptionsFromFlags(caseSensitive, wholeWords);
@@ -148,34 +148,32 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
     if(matchFound)
     {
         int foundPosition = textCursor().position();
-        bool previouslyFound = findDialog->previouslyFound(query);
+        bool previouslyFound = searchHistory.previouslyFound(query);
 
         // Log the first position at which this query was found in the current document state
         // Search history is always reset whenever we do a full cycle back to the first match or start a new search "chain"
         if(!previouslyFound)
         {
-            findDialog->addToSearchHistory(query, cursorPositionPriorToSearch, foundPosition);
+            searchHistory.add(query, cursorPositionBeforeSearch, foundPosition);
         }
         // If term was previously found, check that we didn't cycle back to the first-ever find
         else
         {
-            bool loopedBackToFirstMatch = foundPosition == findDialog->firstPositionOf(query);
+            bool loopedBackToFirstMatch = foundPosition == searchHistory.firstFoundAt(query);
 
             if(loopedBackToFirstMatch)
             {
-                qDebug() << "---LOOPED BACK TO FIRST HIT---";
-
                 // It's not really a match that we found; it's a repeat of the very first ever match
                 matchFound = false;
 
                 // Reset the cursor to its original position prior to first search for this term
                 QTextCursor newCursor = textCursor();
-                int positionPriorToFirstSearch = findDialog->positionPriorToFirstSearch(query);
-                newCursor.setPosition(positionPriorToFirstSearch);
+                int cursorPositionBeforeFirstSearch = searchHistory.cursorPositionBeforeFirstSearchFor(query);
+                newCursor.setPosition(cursorPositionBeforeFirstSearch);
                 setTextCursor(newCursor);
 
                 // Clear search history
-                findDialog->clearSearchHistory();
+                searchHistory.clear();
 
                 // Inform the user of the unsuccessful search
                 informUser("Find and Replace", "No more results found.");
@@ -186,7 +184,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
     {
         // Reset the cursor to its position prior to this particular search
         QTextCursor newCursor = textCursor();
-        newCursor.setPosition(cursorPositionPriorToSearch);
+        newCursor.setPosition(cursorPositionBeforeSearch);
         setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
@@ -205,7 +203,6 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
  */
 void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
-    metricCalculationDisabled = false;
     bool found = find(what, caseSensitive, wholeWords);
 
     if(found)
@@ -353,7 +350,7 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
 void Editor::on_textChanged()
 {
     fileNeedsToBeSaved = true;
-    findDialog->clearSearchHistory();
+    searchHistory.clear();
 
     // There are some cases when updating file metrics is not ideal, such as during replace all
     if(!metricCalculationDisabled)
@@ -475,8 +472,7 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)
         {
             QString lineNumber = QString::number(blockNumber + 1);
             painter.setPen(Qt::black);
-            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
-                             Qt::AlignRight, lineNumber);
+            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight, lineNumber);
         }
 
         block = block.next();

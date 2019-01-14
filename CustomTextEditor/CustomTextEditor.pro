@@ -29,7 +29,8 @@ SOURCES += \
         mainwindow.cpp \
         finddialog.cpp \
     editor.cpp \
-    utilityfunctions.cpp
+    utilityfunctions.cpp \
+    searchhistory.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -37,7 +38,8 @@ HEADERS += \
         finddialog.h \
     editor.h \
     linenumberarea.h \
-    utilityfunctions.h
+    utilityfunctions.h \
+    searchhistory.h
 
 FORMS += \
         mainwindow.ui
