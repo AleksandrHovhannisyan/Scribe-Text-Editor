@@ -30,7 +30,8 @@ SOURCES += \
         finddialog.cpp \
     editor.cpp \
     utilityfunctions.cpp \
-    searchhistory.cpp
+    searchhistory.cpp \
+    gotodialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -39,7 +40,8 @@ HEADERS += \
     editor.h \
     linenumberarea.h \
     utilityfunctions.h \
-    searchhistory.h
+    searchhistory.h \
+    gotodialog.h
 
 FORMS += \
         mainwindow.ui

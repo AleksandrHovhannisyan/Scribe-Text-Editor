@@ -291,10 +291,9 @@ void MainWindow::on_actionPaste_triggered() { editor->paste(); }
 void MainWindow::on_actionFind_triggered() { editor->launchFindDialog(); }
 
 
-void MainWindow::on_actionGo_To_triggered()
-{
-    // TODO fill in code
-}
+/* TODO document
+ */
+void MainWindow::on_actionGo_To_triggered() { editor->launchGotoDialog(); }
 
 
 /* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).

@@ -10,8 +10,12 @@
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
     lineNumberArea = new LineNumberArea(this);
+
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
+
+    gotoDialog = new GotoDialog();
+    gotoDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -21,6 +25,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), this, SLOT(find(QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), this, SLOT(replace(QString, QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), this, SLOT(replaceAll(QString, QString, bool, bool)));
+    connect(gotoDialog, SIGNAL(gotoLine(int)), this, SLOT(goTo(int)));
 
     updateLineNumberAreaWidth();
     highlightCurrentLine();
@@ -94,6 +99,20 @@ void Editor::launchFindDialog()
         findDialog->activateWindow();
         findDialog->raise();
         findDialog->setFocus();
+    }
+}
+
+
+/* Launches the Go To dialog box if it isn't already visible and sets its focus.
+ */
+void Editor::launchGotoDialog()
+{
+    if(gotoDialog->isHidden())
+    {
+        gotoDialog->show();
+        gotoDialog->activateWindow();
+        gotoDialog->raise();
+        gotoDialog->setFocus();
     }
 }
 
@@ -260,6 +279,22 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     metricCalculationDisabled = false; // reset here
     updateFileMetrics();
     emit(windowNeedsToBeUpdated(metrics));
+}
+
+
+/* Called when the user clicks the Go button in the GotoDialog.
+ */
+void Editor::goTo(int line)
+{
+    if(line > blockCount() || line < 1)
+    {
+        QMessageBox::information(this, tr("Go To"), tr("Invalid line number."));
+        gotoDialog->activateWindow();
+        return;
+    }
+
+    QTextCursor cursor(document()->findBlockByLineNumber(line - 1));
+    setTextCursor(cursor);
 }
 
 

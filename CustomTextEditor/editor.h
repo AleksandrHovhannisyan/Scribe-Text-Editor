@@ -1,11 +1,12 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 #include "finddialog.h"
+#include "gotodialog.h"
+#include "searchhistory.h"
 #include "documentmetrics.h"
 #include <QPlainTextEdit>
 #include <QFont>
 #include <QMessageBox>
-#include "searchhistory.h"
 
 
 /* Disclaimer: the code for painting the editor line numbers was not written by me.
@@ -31,6 +32,7 @@ public:
     inline QString getCurrentFilePath() const { return currentFilePath; }
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void launchFindDialog();
+    void launchGotoDialog();
     void updateFileMetrics();
     inline bool isUnsaved() const { return fileNeedsToBeSaved; }
     void setFileNeedsToBeSaved(bool status);
@@ -48,6 +50,7 @@ public slots:
     bool find(QString query, bool caseSensitive, bool wholeWords);
     void replace(QString what, QString with, bool caseSensitive, bool wholeWords);
     void replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords);
+    void goTo(int line);
     void on_textChanged();
 
 private slots:
@@ -66,6 +69,7 @@ private:
     bool fileNeedsToBeSaved;
     QFont font;
     FindDialog *findDialog;
+    GotoDialog *gotoDialog;
     SearchHistory searchHistory;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
