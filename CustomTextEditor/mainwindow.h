@@ -23,7 +23,7 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
-    void allowUserToSave();
+    QMessageBox::StandardButton allowUserToSave();
     Ui::MainWindow *ui;
     Editor *editor;
     QLabel *wordCountLabel;
@@ -53,6 +53,7 @@ private slots:
     void on_actionPrint_triggered();
     void on_actionStatus_Bar_triggered();
     void on_actionTime_Date_triggered();
+    void on_actionFont_triggered();
 };
 
 #endif // MAINWINDOW_H

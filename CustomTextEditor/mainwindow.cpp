@@ -84,7 +84,7 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
  * If the user selects "No" or closes the dialog window, the file will not be saved.
  * Otherwise, if they select "Yes," the file will be saved.
  */
-void MainWindow::allowUserToSave()
+QMessageBox::StandardButton MainWindow::allowUserToSave()
 {
     QString fileName = editor->getFileName();
     if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
@@ -97,6 +97,8 @@ void MainWindow::allowUserToSave()
     {
         on_actionSave_or_actionSaveAs_triggered();
     }
+
+    return userSelection;
 }
 
 
@@ -291,7 +293,8 @@ void MainWindow::on_actionPaste_triggered() { editor->paste(); }
 void MainWindow::on_actionFind_triggered() { editor->launchFindDialog(); }
 
 
-/* TODO document
+/* Called when the user explicitly selects the Go To option from the menu (or uses Ctrl+G).
+ * Launches a Go To dialog that prompts the user to enter a line number they wish to jump to.
  */
 void MainWindow::on_actionGo_To_triggered() { editor->launchGotoDialog(); }
 
@@ -310,6 +313,11 @@ void MainWindow::on_actionTime_Date_triggered()
 }
 
 
+/* Called when the user selects the Font option from the menu. Launches a font selection dialog.
+ */
+void MainWindow::on_actionFont_triggered() { editor->launchFontDialog(); }
+
+
 /* Toggles the visibility of the status bar.
  */
 void MainWindow::on_actionStatus_Bar_triggered() { ui->statusBar->setVisible(!ui->statusBar->isVisible()); }
@@ -325,7 +333,16 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if(editor->isUnsaved())
     {
         event->ignore();
-        allowUserToSave();
+        QMessageBox::StandardButton userSelection = allowUserToSave();
+
+        // TODO not working as intended...
+
+        // Don't do anything if they closed the save prompt
+        if(userSelection == QMessageBox::StandardButton::Close)
+        {
+            qDebug() << "Close canceled";
+            return;
+        }
     }
 
     // Finally allow the exit to go through

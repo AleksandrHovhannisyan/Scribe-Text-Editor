@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QTextBlock>
 #include <QtDebug>
+#include <QFontDialog>
 
 /* Initializes this Editor.
  */
@@ -68,6 +69,19 @@ QString Editor::getFileNameFromPath() const
     return fileName;
 }
 
+
+/* Launches a QFontDialog to allow the user to select a font.
+ */
+void Editor::launchFontDialog()
+{
+    bool userChoseFont;
+    QFont font = QFontDialog::getFont(&userChoseFont, QFont("Courier", 10), this);
+
+    if(userChoseFont)
+    {
+        setFont(font.family(), QFont::Monospace, true, font.pointSize(), 5);
+    }
+}
 
 /* Sets the editor's font using the specified parameters.
  * @param family - the name of the font family
