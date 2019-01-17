@@ -43,6 +43,7 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 signals:
     void windowNeedsToBeUpdated(DocumentMetrics metrics);
@@ -63,6 +64,8 @@ private slots:
 private:
     QString getFileNameFromPath() const;
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
+    int getIndentationLevel(int indexBeforeBrace);
+    void insertTabs(int numTabs);
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
     DocumentMetrics metrics;

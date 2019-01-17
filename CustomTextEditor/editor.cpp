@@ -28,6 +28,8 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), this, SLOT(replaceAll(QString, QString, bool, bool)));
     connect(gotoDialog, SIGNAL(gotoLine(int)), this, SLOT(goTo(int)));
 
+    installEventFilter(this);
+
     updateLineNumberAreaWidth();
     highlightCurrentLine();
 }
@@ -407,6 +409,115 @@ void Editor::on_textChanged()
         updateFileMetrics();
         emit(windowNeedsToBeUpdated(metrics));
     }
+}
+
+
+/* Returns the indentation level of the brace that's to the right of the specified index.
+ * @param indexBeforeBrace - the index to the left of the brace in question (opening or closing)
+ */
+int Editor::getIndentationLevel(int indexBeforeBrace)
+{
+    QString documentContents = document()->toPlainText();
+    int indentationLevel = 0;
+
+    while(indexBeforeBrace >= 0 && documentContents.at(indexBeforeBrace) != '\n')
+    {
+        // TODO this doesn't consider tabs within lines that aren't indentation, but it's a good temporary solution
+        if(documentContents.at(indexBeforeBrace) == '\t')
+        {
+            indentationLevel++;
+        }
+
+        indexBeforeBrace--;
+        /*
+        else
+        {
+            break;
+        }
+        */
+    }
+
+    return indentationLevel;
+}
+
+
+/* Inserts the specified number of tabs in the document.
+ */
+void Editor::insertTabs(int numTabs)
+{
+    for(int i = 0; i < numTabs; i++)
+    {
+        insertPlainText("\t");
+    }
+}
+
+
+/* Custom handler for events. Used to handle the case of Enter being pressed after an opening brace.
+ */
+bool Editor::eventFilter(QObject* obj, QEvent* event)
+{
+    bool isKeyPress = event->type() == QEvent::KeyPress;
+
+    // TODO handle nested blocks, not just this stuff
+
+    if(isKeyPress)
+    {
+        QKeyEvent *key = static_cast<QKeyEvent*>(event);
+
+        if(key->key() == Qt::Key_Enter || key->key() == Qt::Key_Return)
+        {
+            QString documentContents = document()->toPlainText();
+
+            if(documentContents.length() >= 1)
+            {
+                int indexToLeftOfCursor = textCursor().position() - 1;
+
+                if(indexToLeftOfCursor >= 0 && indexToLeftOfCursor < documentContents.length())
+                {
+                    QChar characterLeftOfCursor = documentContents.at(indexToLeftOfCursor);
+                    bool hitEnterAfterOpeningBrace = characterLeftOfCursor == '{';
+
+                    if(hitEnterAfterOpeningBrace)
+                    {
+                        insertPlainText("\n");
+
+                        // Get the indentation level of the opening brace
+                        int indexBeforeOpeningBrace = indexToLeftOfCursor - 1;
+                        int indentationLevel = getIndentationLevel(indexBeforeOpeningBrace);
+
+                        // Set the indentation of the nested tab and the closing brace
+                        insertTabs(indentationLevel + 1);
+                        insertPlainText("\n");
+                        insertTabs(indentationLevel);
+                        insertPlainText("}");
+
+                        // Set the cursor so it's after the tab
+                        QTextCursor cursor = textCursor();
+                        cursor.setPosition(cursor.position() - 2 - indentationLevel);
+                        setTextCursor(cursor);
+                        return true;
+                    }
+                    else
+                    {
+                        insertPlainText("\n");
+                        int indentationLevel = getIndentationLevel(indexToLeftOfCursor);
+                        insertTabs(indentationLevel);
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            return QObject::eventFilter(obj, event);
+        }
+    }
+    else
+    {
+        return QObject::eventFilter(obj, event);
+    }
+
+    return false;
 }
 
 
