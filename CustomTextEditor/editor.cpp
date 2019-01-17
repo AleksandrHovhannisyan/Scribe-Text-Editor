@@ -412,31 +412,36 @@ void Editor::on_textChanged()
 }
 
 
-/* Returns the indentation level of the brace that's to the right of the specified index.
- * @param indexBeforeBrace - the index to the left of the brace in question (opening or closing)
+/* Returns the indentation level of the current line of text.
  */
-int Editor::getIndentationLevel(int indexBeforeBrace)
+int Editor::indentationLevelOfCurrentLine()
 {
+    QTextCursor originalCursor = textCursor();
+    moveCursorToStartOfCurrentLine();
+
     QString documentContents = document()->toPlainText();
     int indentationLevel = 0;
 
-    while(indexBeforeBrace >= 0 && documentContents.at(indexBeforeBrace) != '\n')
+    int index = textCursor().position();
+    if(index >= documentContents.length())
     {
-        // TODO this doesn't consider tabs within lines that aren't indentation, but it's a good temporary solution
-        if(documentContents.at(indexBeforeBrace) == '\t')
+        index--;
+    }
+
+    while(index < documentContents.length())
+    {
+        if(documentContents.at(index) == '\t')
         {
             indentationLevel++;
+            index++;
         }
-
-        indexBeforeBrace--;
-        /*
         else
         {
             break;
         }
-        */
     }
 
+    setTextCursor(originalCursor);
     return indentationLevel;
 }
 
@@ -452,13 +457,25 @@ void Editor::insertTabs(int numTabs)
 }
 
 
+/* Moves the cursor to the start of the current line.
+ */
+void Editor::moveCursorToStartOfCurrentLine()
+{
+    QTextCursor cursor = textCursor();
+
+    while(metrics.currentColumn != 1)
+    {
+        cursor.movePosition(QTextCursor::Left);
+        setTextCursor(cursor);
+    }
+}
+
+
 /* Custom handler for events. Used to handle the case of Enter being pressed after an opening brace.
  */
 bool Editor::eventFilter(QObject* obj, QEvent* event)
 {
     bool isKeyPress = event->type() == QEvent::KeyPress;
-
-    // TODO handle nested blocks, not just this stuff
 
     if(isKeyPress)
     {
@@ -474,33 +491,29 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 
                 if(indexToLeftOfCursor >= 0 && indexToLeftOfCursor < documentContents.length())
                 {
-                    QChar characterLeftOfCursor = documentContents.at(indexToLeftOfCursor);
-                    bool hitEnterAfterOpeningBrace = characterLeftOfCursor == '{';
+                    bool hitEnterAfterOpeningBrace = documentContents.at(indexToLeftOfCursor) == '{';
 
                     if(hitEnterAfterOpeningBrace)
                     {
+                        int braceLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
-
-                        // Get the indentation level of the opening brace
-                        int indexBeforeOpeningBrace = indexToLeftOfCursor - 1;
-                        int indentationLevel = getIndentationLevel(indexBeforeOpeningBrace);
-
-                        // Set the indentation of the nested tab and the closing brace
-                        insertTabs(indentationLevel + 1);
+                        insertTabs(braceLevel + 1);
                         insertPlainText("\n");
-                        insertTabs(indentationLevel);
+                        insertTabs(braceLevel);
                         insertPlainText("}");
 
-                        // Set the cursor so it's after the tab
+                        // Set the cursor so it's right after the nested tab
                         QTextCursor cursor = textCursor();
-                        cursor.setPosition(cursor.position() - 2 - indentationLevel);
+                        cursor.setPosition(cursor.position() - 2 - braceLevel);
                         setTextCursor(cursor);
                         return true;
                     }
+
+                    // Make sure any other block of text gets aligned properly
                     else
                     {
+                        int indentationLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
-                        int indentationLevel = getIndentationLevel(indexToLeftOfCursor);
                         insertTabs(indentationLevel);
                         return true;
                     }

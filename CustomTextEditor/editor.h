@@ -64,7 +64,8 @@ private slots:
 private:
     QString getFileNameFromPath() const;
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
-    int getIndentationLevel(int indexBeforeBrace);
+    int indentationLevelOfCurrentLine();
+    void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
