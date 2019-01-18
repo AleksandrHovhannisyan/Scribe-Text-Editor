@@ -484,7 +484,7 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
         int key = static_cast<QKeyEvent*>(event)->key();
 
         // Auto-indenting after ENTER
-        if((key == Qt::Key_Enter || key == Qt::Key_Return) && autoIndentEnabled)
+        if(key == Qt::Key_Enter || key == Qt::Key_Return)
         {
             QString documentContents = document()->toPlainText();
 
@@ -513,7 +513,7 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
                     }
 
                     // Make sure any other block of text gets aligned properly
-                    else
+                    else if(autoIndentEnabled)
                     {
                         int indentationLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
