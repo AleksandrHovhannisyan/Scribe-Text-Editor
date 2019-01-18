@@ -5,6 +5,7 @@
 #include <QTextBlock>
 #include <QtDebug>
 #include <QFontDialog>
+#include <QTextDocumentFragment>
 
 /* Initializes this Editor.
  */
@@ -471,7 +472,9 @@ void Editor::moveCursorToStartOfCurrentLine()
 }
 
 
-/* Custom handler for events. Used to handle the case of Enter being pressed after an opening brace.
+// TODO update doc
+/* Custom handler for events. Used to handle the case of Enter being pressed after an opening brace
+ * or the tab key being used on a selection of text.
  */
 bool Editor::eventFilter(QObject* obj, QEvent* event)
 {
@@ -479,9 +482,10 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 
     if(isKeyPress)
     {
-        QKeyEvent *key = static_cast<QKeyEvent*>(event);
+        int key = static_cast<QKeyEvent*>(event)->key();
 
-        if(key->key() == Qt::Key_Enter || key->key() == Qt::Key_Return)
+        // Auto-indenting after ENTER
+        if(key == Qt::Key_Enter || key == Qt::Key_Return)
         {
             QString documentContents = document()->toPlainText();
 
@@ -518,6 +522,29 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
                         return true;
                     }
                 }
+            }
+        }
+
+        // Indenting selections of text
+        else if(key == Qt::Key_Tab)
+        {
+            if(textCursor().hasSelection())
+            {
+                QString text = textCursor().selection().toPlainText();
+
+                text.insert(0, '\t');
+                for(int i = 1; i < text.length(); i++)
+                {
+                    // Insert a tab after each newline
+                    if(text.at(i) == '\n' && i + 1 < text.length())
+                    {
+                        text.insert(i + 1, '\t');
+                    }
+                }
+
+                // Replace the selection with the new tabbed text
+                insertPlainText(text);
+                return true;
             }
         }
         else
