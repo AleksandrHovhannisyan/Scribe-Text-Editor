@@ -53,9 +53,10 @@ public slots:
     void replace(QString what, QString with, bool caseSensitive, bool wholeWords);
     void replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords);
     void goTo(int line);
-    void on_textChanged();
+    void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
 
 private slots:
+    void on_textChanged();
     void updateLineNumberAreaWidth();
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rectToBeRedrawn,
@@ -78,7 +79,8 @@ private:
     SearchHistory searchHistory;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
-    bool metricCalculationDisabled = false;
+    bool metricCalculationEnabled = true;
+    bool autoIndentEnabled = true;
 };
 
 #endif // EDITOR_H

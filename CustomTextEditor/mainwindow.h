@@ -54,6 +54,7 @@ private slots:
     void on_actionStatus_Bar_triggered();
     void on_actionTime_Date_triggered();
     void on_actionFont_triggered();
+    void on_actionAuto_Indent_triggered();
 };
 
 #endif // MAINWINDOW_H

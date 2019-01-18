@@ -318,6 +318,11 @@ void MainWindow::on_actionTime_Date_triggered()
 void MainWindow::on_actionFont_triggered() { editor->launchFontDialog(); }
 
 
+/* Called when the user selects the Auto Indent option from the Format menu.
+ */
+void MainWindow::on_actionAuto_Indent_triggered() { editor->toggleAutoIndent(ui->actionAuto_Indent->isChecked()); }
+
+
 /* Toggles the visibility of the status bar.
  */
 void MainWindow::on_actionStatus_Bar_triggered() { ui->statusBar->setVisible(!ui->statusBar->isVisible()); }

@@ -48,7 +48,7 @@ Editor::~Editor()
  */
 void Editor::reset()
 {
-    metricCalculationDisabled = false;
+    metricCalculationEnabled = true;
     currentFilePath.clear();
     searchHistory.clear();
     setPlainText(QString()); // this will trigger on_textChanged
@@ -260,7 +260,7 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
 void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
     // Optimization, don't update screen until the end of all replacements
-    metricCalculationDisabled = true;
+    metricCalculationEnabled = false;
 
     // Search the entire document from the very beginning
     QTextCursor cursor = textCursor();
@@ -293,7 +293,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
         informUser("Replace All", "Document searched. Replaced " + QString::number(replacements) + " instances.");
     }
 
-    metricCalculationDisabled = false; // reset here
+    metricCalculationEnabled = true; // reset here
     updateFileMetrics();
     emit(windowNeedsToBeUpdated(metrics));
 }
@@ -405,7 +405,7 @@ void Editor::on_textChanged()
     searchHistory.clear();
 
     // There are some cases when updating file metrics is not ideal, such as during replace all
-    if(!metricCalculationDisabled)
+    if(metricCalculationEnabled)
     {
         updateFileMetrics();
         emit(windowNeedsToBeUpdated(metrics));
@@ -472,7 +472,6 @@ void Editor::moveCursorToStartOfCurrentLine()
 }
 
 
-// TODO update doc
 /* Custom handler for events. Used to handle the case of Enter being pressed after an opening brace
  * or the tab key being used on a selection of text.
  */
@@ -485,7 +484,7 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
         int key = static_cast<QKeyEvent*>(event)->key();
 
         // Auto-indenting after ENTER
-        if(key == Qt::Key_Enter || key == Qt::Key_Return)
+        if((key == Qt::Key_Enter || key == Qt::Key_Return) && autoIndentEnabled)
         {
             QString documentContents = document()->toPlainText();
 
@@ -524,7 +523,6 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
                 }
             }
         }
-
         // Indenting selections of text
         else if(key == Qt::Key_Tab)
         {
@@ -644,7 +642,7 @@ void Editor::highlightCurrentLine()
     setExtraSelections(extraSelections);
 
     // highlightCurrentLine is called when the cursor changes, so we need to update this as well
-    if(!metricCalculationDisabled)
+    if(metricCalculationEnabled)
     {
         // Column changes whenever we move the cursor, not only when we type
         metrics.currentColumn = textCursor().positionInBlock() + 1;

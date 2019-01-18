@@ -71,6 +71,7 @@
      <string>Format</string>
     </property>
     <addaction name="actionFont"/>
+    <addaction name="actionAuto_Indent"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -291,14 +292,6 @@
     <string>F5</string>
    </property>
   </action>
-  <action name="actionWord_Wrap">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Word Wrap</string>
-   </property>
-  </action>
   <action name="actionFont">
    <property name="text">
     <string>Font...</string>
@@ -334,6 +327,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionAuto_Indent">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto Indent</string>
    </property>
   </action>
  </widget>
