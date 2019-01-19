@@ -73,7 +73,7 @@ private:
 
     DocumentMetrics metrics;
     QString currentFilePath;
-    bool fileNeedsToBeSaved;
+    bool fileNeedsToBeSaved = false;
     QFont font;
     FindDialog *findDialog;
     GotoDialog *gotoDialog;

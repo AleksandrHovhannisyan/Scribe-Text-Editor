@@ -25,7 +25,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
 
-    editor->reset();
     toggleUndo(false);
     toggleRedo(false);
     toggleCopyAndCut(false);
@@ -51,7 +50,6 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_currentTab_changed(int index)
 {
-    qDebug() << "Current tab changed!";
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -78,9 +76,11 @@ void MainWindow::initializeStatusBarLabels()
  */
 void MainWindow::updateWindow(DocumentMetrics metrics)
 {
+    qDebug() << "Update window called";
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
     QString colText = tr("   Column: ") + QString::number(metrics.currentColumn) + tr("   ");
+
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
     columnLabel->setText(colText);

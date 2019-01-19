@@ -402,15 +402,8 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
  */
 void Editor::on_textChanged()
 {
-    fileNeedsToBeSaved = true;
+    qDebug() << "on_textChanged";
     searchHistory.clear();
-
-    // There are some cases when updating file metrics is not ideal, such as during replace all
-    if(metricCalculationEnabled)
-    {
-        updateFileMetrics();
-        emit(windowNeedsToBeUpdated(metrics));
-    }
 }
 
 
@@ -626,8 +619,8 @@ void Editor::resizeEvent(QResizeEvent *event)
  */
 void Editor::highlightCurrentLine()
 {
+    qDebug() << "Highlight current line called";
     QList<QTextEdit::ExtraSelection> extraSelections;
-
     if (!isReadOnly())
     {
        QTextEdit::ExtraSelection selection;
@@ -639,14 +632,27 @@ void Editor::highlightCurrentLine()
        selection.cursor.clearSelection();
        extraSelections.append(selection);
     }
-
     setExtraSelections(extraSelections);
 
-    // highlightCurrentLine is called when the cursor changes, so we need to update this as well
+
+    // We get here when cursor changes, so we need to update the window
     if(metricCalculationEnabled)
     {
-        // Column changes whenever we move the cursor, not only when we type
+        // Column changes whenever we move the cursor
         metrics.currentColumn = textCursor().positionInBlock() + 1;
+
+        // TODO find cleaner solution, but keep this in the meantime
+        int previousCharCount = metrics.charCount;
+        int currentCharCount = document()->toPlainText().length() - document()->toPlainText().count("\n");
+        bool columnChangedBecauseContentChanged = previousCharCount != currentCharCount;
+
+        if(columnChangedBecauseContentChanged)
+        {
+            qDebug() << "File metrics updated from highlighter";
+            fileNeedsToBeSaved = true;
+            updateFileMetrics();
+        }
+
         emit(windowNeedsToBeUpdated(metrics));
     }
 }
