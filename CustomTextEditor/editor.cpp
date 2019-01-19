@@ -57,12 +57,20 @@ void Editor::reset()
 }
 
 
+void Editor::setCurrentFilePath(QString newPath)
+{
+    currentFilePath = newPath;
+    fileIsUntitled = false;
+}
+
+
 /* Private helper function that extracts a file name from the current file path stored internally.
  */
-QString Editor::getFileNameFromPath() const
+QString Editor::getFileNameFromPath()
 {
     if(currentFilePath.isEmpty())
     {
+        fileIsUntitled = true;
         return "Untitled document ";
     }
 

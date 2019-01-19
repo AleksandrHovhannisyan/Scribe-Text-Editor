@@ -27,9 +27,10 @@ public:
     Editor(QWidget *parent = nullptr);
     ~Editor() override;
     void reset();
-    inline QString getFileName() const { return getFileNameFromPath(); }
-    inline void setCurrentFilePath(QString newPath) { currentFilePath = newPath; }
+    inline QString getFileName() { return getFileNameFromPath(); }
+    void setCurrentFilePath(QString newPath);
     inline QString getCurrentFilePath() const { return currentFilePath; }
+    inline bool isUntitled() const { return fileIsUntitled; }
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     void launchFontDialog();
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
@@ -64,7 +65,7 @@ private slots:
                               int numPixelsScrolledVertically);
 
 private:
-    QString getFileNameFromPath() const;
+    QString getFileNameFromPath();
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
@@ -74,6 +75,7 @@ private:
     DocumentMetrics metrics;
     QString currentFilePath;
     bool fileNeedsToBeSaved = false;
+    bool fileIsUntitled = true;
     QFont font;
     FindDialog *findDialog;
     GotoDialog *gotoDialog;

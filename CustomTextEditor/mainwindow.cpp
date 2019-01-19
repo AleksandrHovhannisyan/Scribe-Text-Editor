@@ -46,7 +46,8 @@ MainWindow::~MainWindow()
 }
 
 
-/* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor.
+/* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
+ * reconnects any relevant signals, and updates the window.
  */
 void MainWindow::on_currentTab_changed(int index)
 {
@@ -77,6 +78,7 @@ void MainWindow::initializeStatusBarLabels()
 void MainWindow::updateWindow(DocumentMetrics metrics)
 {
     qDebug() << "Update window called";
+    // TODO further optimization: split the preceding label from the number label so we don't re-print "Words" for example
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
     QString colText = tr("   Column: ") + QString::number(metrics.currentColumn) + tr("   ");
@@ -115,8 +117,7 @@ QMessageBox::StandardButton MainWindow::allowUserToSave()
 
 
 /* Called when the user selects the New option from the menu or toolbar (or uses Ctrl+N).
- * If the current document has unsaved changes, it prompts the user to save or discard.
- * In either case, it ends up resetting the editor/document.
+ * Adds a new tab to the editor.
  */
 void MainWindow::on_actionNew_triggered()
 {
@@ -167,8 +168,10 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
     out << editorContents;
     file.close();
 
+    QString fileName = editor->getFileName();
     editor->setFileNeedsToBeSaved(false);
-    setWindowTitle(editor->getFileName());
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName);
+    setWindowTitle(fileName);
 }
 
 
@@ -180,21 +183,16 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
  */
 void MainWindow::on_actionOpen_triggered()
 {
-    // Ensure we save any unsaved contents before opening a new file
-    if(editor->isUnsaved())
-    {
-        allowUserToSave();
-    }
+    bool openInCurrentTab = editor->isUntitled() && !editor->isUnsaved();
 
     // Ask the user to specify the name of the file
     QString filePath = QFileDialog::getOpenFileName(this, tr("Open"));
 
-    // Ensure we don't change the current file path if the user hit Cancel
+    // Don't do anything if the user hit Cancel
     if(filePath.isNull())
     {
         return;
     }
-    editor->setCurrentFilePath(filePath);
 
     // Attempt to create a file descriptor for the file at the given path
     QFile file(filePath);
@@ -203,18 +201,24 @@ void MainWindow::on_actionOpen_triggered()
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-
     ui->statusBar->showMessage("Loaded file", 2000);
 
     // Read the file contents into the editor and close the file descriptor
     QTextStream in(&file);
     QString documentContents = in.readAll();
+
+    if(!openInCurrentTab)
+    {
+        tabbedEditor->add(new Editor());
+    }
+    editor->setCurrentFilePath(filePath);
     editor->setPlainText(documentContents);
     file.close();
 
     // Changing the editor's text above will trigger editor->on_textChanged, which will set
     // fileNeedsToBeSaved to true, but we need to reset it here because we don't need to save
     editor->setFileNeedsToBeSaved(false);
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), editor->getFileName());
     setWindowTitle(editor->getFileName());
 }
 
