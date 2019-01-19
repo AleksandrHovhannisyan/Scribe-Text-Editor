@@ -22,7 +22,11 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="Editor" name="textEdit"/>
+     <widget class="TabbedEditor" name="tabWidget">
+      <property name="currentIndex">
+       <number>-1</number>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -344,9 +348,10 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Editor</class>
-   <extends>QTextEdit</extends>
-   <header>editor.h</header>
+   <class>TabbedEditor</class>
+   <extends>QTabWidget</extends>
+   <header>tabbededitor.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

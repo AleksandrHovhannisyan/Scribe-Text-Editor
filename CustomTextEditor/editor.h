@@ -30,6 +30,7 @@ public:
     inline QString getFileName() const { return getFileNameFromPath(); }
     inline void setCurrentFilePath(QString newPath) { currentFilePath = newPath; }
     inline QString getCurrentFilePath() const { return currentFilePath; }
+    inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     void launchFontDialog();
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void launchFindDialog();

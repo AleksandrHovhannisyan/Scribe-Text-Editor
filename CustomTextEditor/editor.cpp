@@ -11,6 +11,7 @@
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
+    metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
 
     findDialog = new FindDialog();
@@ -62,7 +63,7 @@ QString Editor::getFileNameFromPath() const
 {
     if(currentFilePath.isEmpty())
     {
-        return currentFilePath;
+        return "Untitled document ";
     }
 
     int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');

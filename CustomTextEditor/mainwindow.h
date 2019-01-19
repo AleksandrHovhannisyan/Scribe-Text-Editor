@@ -4,6 +4,7 @@
 #include "documentmetrics.h"
 #include "editor.h"
 #include "finddialog.h"
+#include "tabbededitor.h"
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels
@@ -25,11 +26,11 @@ public:
 private:
     QMessageBox::StandardButton allowUserToSave();
     Ui::MainWindow *ui;
+    TabbedEditor *tabbedEditor;
     Editor *editor;
     QLabel *wordCountLabel;
     QLabel *charCountLabel;
     QLabel *columnLabel;
-    const QString defaultWindowTitle = "Untitled document";
 
 public slots:
     void updateWindow(DocumentMetrics metrics);
@@ -38,6 +39,7 @@ public slots:
     void toggleCopyAndCut(bool copyCutAvailable);
 
 private slots:
+    void on_currentTab_changed(int index);
     void on_actionNew_triggered();
     void on_actionSave_or_actionSaveAs_triggered();
     void on_actionOpen_triggered();

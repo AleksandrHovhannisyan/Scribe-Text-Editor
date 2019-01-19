@@ -13,17 +13,18 @@
 
 /* Sets up the main application window and all of its children/widgets.
  */
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    editor = ui->textEdit;
-    editor->setFont("Courier", QFont::Monospace, true, 10, 5);
+    tabbedEditor = ui->tabWidget;
+    tabbedEditor->clear();
+    tabbedEditor->add(new Editor(tabbedEditor));
 
-    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
+    initializeStatusBarLabels();
+    on_currentTab_changed(0);
 
-    initializeStatusBarLabels(); // must do this before editor->reset() to ensure labels are initialized
+    connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
+
     editor->reset();
     toggleUndo(false);
     toggleRedo(false);
@@ -32,10 +33,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
-
-    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
-    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
-    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
 }
 
 
@@ -47,6 +44,20 @@ MainWindow::~MainWindow()
     delete charCountLabel;
     delete columnLabel;
     delete ui;
+}
+
+
+/* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor.
+ */
+void MainWindow::on_currentTab_changed(int index)
+{
+    qDebug() << "Current tab changed!";
+    editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
+    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+    updateWindow(editor->getDocumentMetrics());
 }
 
 
@@ -75,8 +86,10 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
     columnLabel->setText(colText);
 
     QString fileName = editor->getFileName();
-    if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
-    setWindowTitle(fileName.append(editor->isUnsaved() ? tr(" [Unsaved]") : ""));
+    bool editorUnsaved = editor->isUnsaved();
+
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? "*" : ""));
+    setWindowTitle(fileName + (editorUnsaved ? "[Unsaved]" : ""));
 }
 
 
@@ -87,7 +100,6 @@ void MainWindow::updateWindow(DocumentMetrics metrics)
 QMessageBox::StandardButton MainWindow::allowUserToSave()
 {
     QString fileName = editor->getFileName();
-    if(fileName.isEmpty()) { fileName = defaultWindowTitle; }
 
     QMessageBox::StandardButton userSelection;
     userSelection = Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") +
@@ -108,12 +120,7 @@ QMessageBox::StandardButton MainWindow::allowUserToSave()
  */
 void MainWindow::on_actionNew_triggered()
 {
-    // Don't create a new empty doc if there are unsaved changes in the current one
-    if(editor->isUnsaved())
-    {
-        allowUserToSave();
-    }
-    editor->reset();
+    tabbedEditor->add(new Editor());
 }
 
 

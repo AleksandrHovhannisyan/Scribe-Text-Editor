@@ -31,7 +31,8 @@ SOURCES += \
     editor.cpp \
     utilityfunctions.cpp \
     searchhistory.cpp \
-    gotodialog.cpp
+    gotodialog.cpp \
+    tabbededitor.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +42,8 @@ HEADERS += \
     linenumberarea.h \
     utilityfunctions.h \
     searchhistory.h \
-    gotodialog.h
+    gotodialog.h \
+    tabbededitor.h
 
 FORMS += \
         mainwindow.ui
