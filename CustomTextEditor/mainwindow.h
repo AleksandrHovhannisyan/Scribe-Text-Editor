@@ -28,9 +28,12 @@ private:
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
     Editor *editor;
+    QLabel *wordLabel;
     QLabel *wordCountLabel;
+    QLabel *charLabel;
     QLabel *charCountLabel;
     QLabel *columnLabel;
+    QLabel *columnCountLabel;
 
 public slots:
     void updateWindow(DocumentMetrics metrics);

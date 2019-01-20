@@ -23,12 +23,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     initializeStatusBarLabels();
     on_currentTab_changed(0);
 
-    connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
-
     toggleUndo(false);
     toggleRedo(false);
     toggleCopyAndCut(false);
 
+    connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
@@ -39,8 +38,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
  */
 MainWindow::~MainWindow()
 {
+    delete wordLabel;
     delete wordCountLabel;
+    delete charLabel;
     delete charCountLabel;
+    delete columnCountLabel;
     delete columnLabel;
     delete ui;
 }
@@ -64,12 +66,18 @@ void MainWindow::on_currentTab_changed(int index)
  */
 void MainWindow::initializeStatusBarLabels()
 {
+    wordLabel = new QLabel("Words: ");
     wordCountLabel = new QLabel();
+    charLabel = new QLabel("Chars: ");
     charCountLabel = new QLabel();
-    columnLabel = new QLabel();
+    columnLabel = new QLabel("Column: ");
+    columnCountLabel = new QLabel();
+    ui->statusBar->addPermanentWidget(wordLabel);
     ui->statusBar->addPermanentWidget(wordCountLabel);
+    ui->statusBar->addPermanentWidget(charLabel);
     ui->statusBar->addPermanentWidget(charCountLabel);
     ui->statusBar->addPermanentWidget(columnLabel);
+    ui->statusBar->addPermanentWidget(columnCountLabel);
 }
 
 
@@ -77,14 +85,13 @@ void MainWindow::initializeStatusBarLabels()
  */
 void MainWindow::updateWindow(DocumentMetrics metrics)
 {
-    // TODO further optimization: split the preceding label from the number label so we don't re-print "Words" for example
-    QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
-    QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
-    QString colText = tr("   Column: ") + QString::number(metrics.currentColumn) + tr("   ");
+    QString wordText = QString::number(metrics.wordCount) + tr("   ");
+    QString charText = QString::number(metrics.charCount) + tr("   ");
+    QString colText = QString::number(metrics.currentColumn) + tr("   ");
 
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
-    columnLabel->setText(colText);
+    columnCountLabel->setText(colText);
 
     QString fileName = editor->getFileName();
     bool editorUnsaved = editor->isUnsaved();
@@ -118,10 +125,7 @@ QMessageBox::StandardButton MainWindow::allowUserToSave()
 /* Called when the user selects the New option from the menu or toolbar (or uses Ctrl+N).
  * Adds a new tab to the editor.
  */
-void MainWindow::on_actionNew_triggered()
-{
-    tabbedEditor->add(new Editor());
-}
+void MainWindow::on_actionNew_triggered() { tabbedEditor->add(new Editor()); }
 
 
 /* Called when the user selects the Save or Save As option from the menu or toolbar
