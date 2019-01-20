@@ -17,6 +17,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 {
     ui->setupUi(this);
 
+    findDialog = new FindDialog();
+    findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
+
+    gotoDialog = new GotoDialog();
+    gotoDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
+
     tabbedEditor = ui->tabWidget;
     tabbedEditor->setTabsClosable(true);
 
@@ -53,12 +59,27 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_currentTab_changed(int index)
 {
+    // Disconnect for previous active editor
+    disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+    disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+    disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+    disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+
+    // Set the internal editor to the currently tabbed one
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
     editor->setFocus(Qt::FocusReason::TabFocusReason);
+
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
     connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+
+    // Reconnect find/goto signals and slots here
+    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+    connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+
     updateWindow(editor->getDocumentMetrics());
 }
 
@@ -82,10 +103,39 @@ void MainWindow::initializeStatusBarLabels()
 }
 
 
+/* Launches the Find dialog box if it isn't already visible and sets its focus.
+ */
+void MainWindow::launchFindDialog()
+{
+    if(findDialog->isHidden())
+    {
+        findDialog->show();
+        findDialog->activateWindow();
+        findDialog->raise();
+        findDialog->setFocus();
+    }
+}
+
+
+/* Launches the Go To dialog box if it isn't already visible and sets its focus.
+ */
+void MainWindow::launchGotoDialog()
+{
+    if(gotoDialog->isHidden())
+    {
+        gotoDialog->show();
+        gotoDialog->activateWindow();
+        gotoDialog->raise();
+        gotoDialog->setFocus();
+    }
+}
+
+
 /* Updates the window and status bar labels to reflect the most up-to-date document metrics.
  */
 void MainWindow::updateWindow(DocumentMetrics metrics)
 {
+    qDebug() << "Update window!";
     QString wordText = QString::number(metrics.wordCount) + tr("   ");
     QString charText = QString::number(metrics.charCount) + tr("   ");
     QString colText = QString::number(metrics.currentColumn) + tr("   ");
@@ -314,13 +364,13 @@ void MainWindow::on_actionPaste_triggered() { editor->paste(); }
 /* Called when the user explicitly selects the Find option from the menu
  * (or uses Ctrl+F). Launches a dialog that prompts the user to enter a search query.
  */
-void MainWindow::on_actionFind_triggered() { editor->launchFindDialog(); }
+void MainWindow::on_actionFind_triggered() { launchFindDialog(); }
 
 
 /* Called when the user explicitly selects the Go To option from the menu (or uses Ctrl+G).
  * Launches a Go To dialog that prompts the user to enter a line number they wish to jump to.
  */
-void MainWindow::on_actionGo_To_triggered() { editor->launchGotoDialog(); }
+void MainWindow::on_actionGo_To_triggered() { launchGotoDialog(); }
 
 
 /* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).

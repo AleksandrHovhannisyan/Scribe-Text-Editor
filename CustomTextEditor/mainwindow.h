@@ -4,6 +4,7 @@
 #include "documentmetrics.h"
 #include "editor.h"
 #include "finddialog.h"
+#include "gotodialog.h"
 #include "tabbededitor.h"
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
@@ -21,13 +22,18 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void initializeStatusBarLabels();
+    void launchFindDialog();
+    void launchGotoDialog();
     void closeEvent(QCloseEvent *event);
 
 private:
     QMessageBox::StandardButton allowUserToSave();
+
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
     Editor *editor;
+    FindDialog *findDialog;
+    GotoDialog *gotoDialog;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
     QLabel *charLabel;

@@ -6,6 +6,7 @@
 #include <QtDebug>
 #include <QFontDialog>
 #include <QTextDocumentFragment>
+#include <QPalette>
 
 /* Initializes this Editor.
  */
@@ -14,24 +15,12 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
 
-    findDialog = new FindDialog();
-    findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
-
-    gotoDialog = new GotoDialog();
-    gotoDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
-
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
-    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), this, SLOT(find(QString, bool, bool)));
-    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), this, SLOT(replace(QString, QString, bool, bool)));
-    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), this, SLOT(replaceAll(QString, QString, bool, bool)));
-    connect(gotoDialog, SIGNAL(gotoLine(int)), this, SLOT(goTo(int)));
-
     installEventFilter(this);
-
     updateLineNumberAreaWidth();
     highlightCurrentLine();
 }
@@ -57,6 +46,9 @@ void Editor::reset()
 }
 
 
+/* Sets this Editor's current file path.
+ * @newPath - the file path associated with the file this Editor represents
+ */
 void Editor::setCurrentFilePath(QString newPath)
 {
     currentFilePath = newPath;
@@ -112,34 +104,6 @@ void Editor::setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch
 
     QFontMetrics metrics(font);
     setTabStopWidth(tabStopWidth * metrics.width(' '));
-}
-
-
-/* Launches the Find dialog box if it isn't already visible and sets its focus.
- */
-void Editor::launchFindDialog()
-{
-    if(findDialog->isHidden())
-    {
-        findDialog->show();
-        findDialog->activateWindow();
-        findDialog->raise();
-        findDialog->setFocus();
-    }
-}
-
-
-/* Launches the Go To dialog box if it isn't already visible and sets its focus.
- */
-void Editor::launchGotoDialog()
-{
-    if(gotoDialog->isHidden())
-    {
-        gotoDialog->show();
-        gotoDialog->activateWindow();
-        gotoDialog->raise();
-        gotoDialog->setFocus();
-    }
 }
 
 
@@ -221,7 +185,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 searchHistory.clear();
 
                 // Inform the user of the unsuccessful search
-                informUser("Find and Replace", "No more results found.");
+                informUser("Find and Replace", "No more results found."); // TODO this will take focus away from the dialog in main window, maybe send signal to main window?
             }
         }
     }
@@ -315,7 +279,6 @@ void Editor::goTo(int line)
     if(line > blockCount() || line < 1)
     {
         QMessageBox::information(this, tr("Go To"), tr("Invalid line number."));
-        gotoDialog->activateWindow();
         return;
     }
 
@@ -640,21 +603,19 @@ void Editor::highlightCurrentLine()
     }
     setExtraSelections(extraSelections);
 
-
     // We get here when cursor changes, so we need to update the window
     if(metricCalculationEnabled)
     {
         // Column changes whenever we move the cursor
         metrics.currentColumn = textCursor().positionInBlock() + 1;
 
-        // TODO find cleaner solution, but keep this in the meantime
+        // TODO if we select-paste content with a different word count but that gets us back to the same cursor position, this won't work
         int previousCharCount = metrics.charCount;
         int currentCharCount = document()->toPlainText().length() - document()->toPlainText().count("\n");
         bool columnChangedBecauseContentChanged = previousCharCount != currentCharCount;
 
         if(columnChangedBecauseContentChanged)
         {
-            qDebug() << "File metrics updated from highlighter";
             fileNeedsToBeSaved = true;
             updateFileMetrics();
         }

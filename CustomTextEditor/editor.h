@@ -34,8 +34,6 @@ public:
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     void launchFontDialog();
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
-    void launchFindDialog();
-    void launchGotoDialog();
     void updateFileMetrics();
     inline bool isUnsaved() const { return fileNeedsToBeSaved; }
     void setFileNeedsToBeSaved(bool status);
@@ -70,15 +68,13 @@ private:
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
-    inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
+    inline void informUser(QString title, QString message) { QMessageBox::information(this, title, message); }
 
     DocumentMetrics metrics;
     QString currentFilePath;
     bool fileNeedsToBeSaved = false;
     bool fileIsUntitled = true;
     QFont font;
-    FindDialog *findDialog;
-    GotoDialog *gotoDialog;
     SearchHistory searchHistory;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
