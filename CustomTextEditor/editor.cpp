@@ -410,7 +410,6 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
  */
 void Editor::on_textChanged()
 {
-    qDebug() << "on_textChanged";
     searchHistory.clear();
 }
 
@@ -627,7 +626,6 @@ void Editor::resizeEvent(QResizeEvent *event)
  */
 void Editor::highlightCurrentLine()
 {
-    qDebug() << "Highlight current line called";
     QList<QTextEdit::ExtraSelection> extraSelections;
     if (!isReadOnly())
     {

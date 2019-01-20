@@ -16,9 +16,9 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     tabbedEditor = ui->tabWidget;
-    tabbedEditor->clear();
-    tabbedEditor->add(new Editor(tabbedEditor));
+    tabbedEditor->setTabsClosable(true);
 
     initializeStatusBarLabels();
     on_currentTab_changed(0);
@@ -77,7 +77,6 @@ void MainWindow::initializeStatusBarLabels()
  */
 void MainWindow::updateWindow(DocumentMetrics metrics)
 {
-    qDebug() << "Update window called";
     // TODO further optimization: split the preceding label from the number label so we don't re-print "Words" for example
     QString wordText = tr("   Words: ") + QString::number(metrics.wordCount) + tr("   ");
     QString charText = tr("   Chars: ") + QString::number(metrics.charCount) + tr("   ");
@@ -240,14 +239,23 @@ void MainWindow::on_actionPrint_triggered()
 }
 
 
+// TODO connect the shortcut Ctrl+W to tab closing, not application exiting
 /* Called when the user selects the Exit option from the menu (or uses Ctrl+W).
- * Ensures that the user can safely exit without losing unsaved changes. Terminates the program.
+ * Allows the  * user to save any unsaved files before quitting.
  */
 void MainWindow::on_actionExit_triggered()
 {
-    if(editor->isUnsaved())
+    for(int i = 0; i < tabbedEditor->count(); i++)
     {
-        allowUserToSave();
+        Editor * tab = qobject_cast<Editor*>(tabbedEditor->widget(i));
+
+        if(tab->isUnsaved())
+        {
+            Editor *current = editor;
+            editor = tab;
+            allowUserToSave();
+            editor = current;
+        }
     }
 
     QApplication::quit();
@@ -340,27 +348,11 @@ void MainWindow::on_actionStatus_Bar_triggered() { ui->statusBar->setVisible(!ui
 
 
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries
- * to close the main application window. If the current document is unsaved,
- * it allows the user to save before finally exiting.
+ * to close the main application window conventually via the red X. Allows the
+ * user to save any unsaved files before quitting.
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    // If unsaved document in progress, pause termination and allow user to save
-    if(editor->isUnsaved())
-    {
-        event->ignore();
-        QMessageBox::StandardButton userSelection = allowUserToSave();
-
-        // TODO not working as intended...
-
-        // Don't do anything if they closed the save prompt
-        if(userSelection == QMessageBox::StandardButton::Close)
-        {
-            qDebug() << "Close canceled";
-            return;
-        }
-    }
-
-    // Finally allow the exit to go through
-    event->accept();
+    event->ignore();
+    on_actionExit_triggered();
 }

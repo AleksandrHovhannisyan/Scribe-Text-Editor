@@ -5,7 +5,8 @@
  */
 TabbedEditor::TabbedEditor(QWidget *parent) : QTabWidget(parent)
 {
-
+    add(new Editor());
+    setFocusProxy(qobject_cast<Editor*>(currentWidget()));
 }
 
 
