@@ -54,6 +54,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_currentTab_changed(int index)
 {
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
+    editor->setFocus(Qt::FocusReason::TabFocusReason);
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
