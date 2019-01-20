@@ -59,11 +59,15 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_currentTab_changed(int index)
 {
-    // Disconnect for previous active editor
-    disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
-    disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
-    disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
-    disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    // Editor will only ever be nullptr on the first launch
+    if(editor != nullptr)
+    {
+        // Disconnect for previous active editor
+        disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+        disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+        disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+        disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    }
 
     // Set the internal editor to the currently tabbed one
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
