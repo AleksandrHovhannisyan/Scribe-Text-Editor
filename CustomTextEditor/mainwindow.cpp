@@ -82,7 +82,8 @@ void MainWindow::on_currentTab_changed(int index)
     editor->setFocus(Qt::FocusReason::TabFocusReason);
 
     // Reconnect editor signals
-    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
+    connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
     connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
@@ -93,7 +94,10 @@ void MainWindow::on_currentTab_changed(int index)
     connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
 
-    updateWindow(editor->getDocumentMetrics());
+    // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
+    DocumentMetrics metrics = editor->getDocumentMetrics();
+    updateWordAndCharCount(metrics);
+    updateColumnCount(metrics.currentColumn);
 }
 
 
@@ -144,17 +148,16 @@ void MainWindow::launchGotoDialog()
 }
 
 
-/* Updates the window and status bar labels to reflect the most up-to-date document metrics.
+/* Updates the window and status bar labels to reflect the most up-to-date word and char counts.
+ * Note: updating the column count is handled separately. See updateColumnCount in mainwindow.h.
  */
-void MainWindow::updateWindow(DocumentMetrics metrics)
+void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
 {
     QString wordText = QString::number(metrics.wordCount) + tr("   ");
     QString charText = QString::number(metrics.charCount) + tr("   ");
-    QString colText = QString::number(metrics.currentColumn) + tr("   ");
 
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
-    columnCountLabel->setText(colText);
 
     QString fileName = editor->getFileName();
     bool editorUnsaved = editor->isUnsaved();
@@ -175,8 +178,6 @@ QMessageBox::StandardButton MainWindow::allowUserToSave()
     QMessageBox::StandardButton userSelection;
     userSelection = Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") +
                                   fileName + tr("?"));
-
-    qDebug() << "Allow user to save chose close: " << (userSelection);
 
     if(userSelection == QMessageBox::Yes)
     {

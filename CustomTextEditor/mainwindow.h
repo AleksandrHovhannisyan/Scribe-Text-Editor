@@ -42,7 +42,8 @@ private:
     QLabel *columnCountLabel;
 
 public slots:
-    void updateWindow(DocumentMetrics metrics);
+    inline void updateColumnCount(int col) { columnCountLabel->setText(QString::number(col) + tr("   ")); }
+    void updateWordAndCharCount(DocumentMetrics metrics);
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);

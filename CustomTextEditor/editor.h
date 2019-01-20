@@ -46,6 +46,7 @@ protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 signals:
+    void columnCountChanged(int col);
     void windowNeedsToBeUpdated(DocumentMetrics metrics);
 
 public slots:
@@ -58,7 +59,7 @@ public slots:
 private slots:
     void on_textChanged();
     void updateLineNumberAreaWidth();
-    void highlightCurrentLine();
+    void on_cursorPositionChanged();
     void updateLineNumberArea(const QRect &rectToBeRedrawn,
                               int numPixelsScrolledVertically);
 

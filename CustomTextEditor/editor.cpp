@@ -17,12 +17,12 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 
     connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
-    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
     installEventFilter(this);
     updateLineNumberAreaWidth();
-    highlightCurrentLine();
+    on_cursorPositionChanged();
 }
 
 
@@ -291,7 +291,8 @@ void Editor::goTo(int line)
 
 
 /* Scans the entire document character by character and tallies the number of
- * characters, words, and lines and storing the counts internally for reporting.
+ * characters and words and storing the counts internally for reporting.
+ * Note: column counting is handled by highlightCurrentLine.
  */
 void Editor::updateFileMetrics()
 {
@@ -358,9 +359,6 @@ void Editor::updateFileMetrics()
         metrics.wordCount++;
         currentWord.clear();
     }
-
-    // Column changes whenever we type
-    metrics.currentColumn = textCursor().positionInBlock() + 1;
 }
 
 
@@ -376,7 +374,10 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
  */
 void Editor::on_textChanged()
 {
+    fileNeedsToBeSaved = true;
     searchHistory.clear();
+    updateFileMetrics();
+    emit(windowNeedsToBeUpdated(metrics));
 }
 
 
@@ -588,7 +589,7 @@ void Editor::resizeEvent(QResizeEvent *event)
 /* Called when the cursor changes position. Highlights the line the cursor is on.
  * Also computes the current column within that line.
  */
-void Editor::highlightCurrentLine()
+void Editor::on_cursorPositionChanged()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
     if (!isReadOnly())
@@ -604,24 +605,11 @@ void Editor::highlightCurrentLine()
     }
     setExtraSelections(extraSelections);
 
-    // We get here when cursor changes, so we need to update the window
+    // When the cursor position changes, the column changes, so we need to update that
     if(metricCalculationEnabled)
     {
-        // Column changes whenever we move the cursor
         metrics.currentColumn = textCursor().positionInBlock() + 1;
-
-        // TODO if we select-paste content with a different word count but that gets us back to the same cursor position, this won't work
-        int previousCharCount = metrics.charCount;
-        int currentCharCount = document()->toPlainText().length() - document()->toPlainText().count("\n");
-        bool columnChangedBecauseContentChanged = previousCharCount != currentCharCount;
-
-        if(columnChangedBecauseContentChanged)
-        {
-            fileNeedsToBeSaved = true;
-            updateFileMetrics();
-        }
-
-        emit(windowNeedsToBeUpdated(metrics));
+        emit(columnCountChanged(metrics.currentColumn));
     }
 }
 
