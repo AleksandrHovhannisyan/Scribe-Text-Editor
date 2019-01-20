@@ -34,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     toggleCopyAndCut(false);
 
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
+    connect(tabbedEditor, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
@@ -59,6 +61,12 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_currentTab_changed(int index)
 {
+    // Happens when the tabbed editor's last tab is closed
+    if(index == -1)
+    {
+        return;
+    }
+
     // Editor will only ever be nullptr on the first launch
     if(editor != nullptr)
     {
@@ -73,12 +81,13 @@ void MainWindow::on_currentTab_changed(int index)
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
     editor->setFocus(Qt::FocusReason::TabFocusReason);
 
+    // Reconnect editor signals
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWindow(DocumentMetrics)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
     connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
 
-    // Reconnect find/goto signals and slots here
+    // Reconnect find/goto signals and slots to the current editor
     connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
@@ -139,7 +148,6 @@ void MainWindow::launchGotoDialog()
  */
 void MainWindow::updateWindow(DocumentMetrics metrics)
 {
-    qDebug() << "Update window!";
     QString wordText = QString::number(metrics.wordCount) + tr("   ");
     QString charText = QString::number(metrics.charCount) + tr("   ");
     QString colText = QString::number(metrics.currentColumn) + tr("   ");
@@ -167,6 +175,8 @@ QMessageBox::StandardButton MainWindow::allowUserToSave()
     QMessageBox::StandardButton userSelection;
     userSelection = Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") +
                                   fileName + tr("?"));
+
+    qDebug() << "Allow user to save chose close: " << (userSelection);
 
     if(userSelection == QMessageBox::Yes)
     {
@@ -298,22 +308,59 @@ void MainWindow::on_actionPrint_triggered()
 }
 
 
+/* Called when the user tries to close a tab in the editor. Allows the user to save the contents
+ * of the tab if unsaved. Closes the tab.
+ */
+void MainWindow::closeTab(int index)
+{
+    Editor *currentTab = editor;
+    Editor *tabToClose = qobject_cast<Editor*>(tabbedEditor->widget(index));
+    bool closingCurrentTab = (tabToClose == currentTab);
+
+    // Allow the user to see what tab they're closing if it's not the current one
+    if(!closingCurrentTab)
+    {
+        tabbedEditor->setCurrentWidget(tabToClose);
+    }
+
+    if(tabToClose->isUnsaved())
+    {
+        QMessageBox::StandardButton selection = allowUserToSave();
+
+        // TODO no way of knowing if user closes the dialog window with the red X, address this with a workaround
+    }
+
+    tabbedEditor->removeTab(index);
+
+    // If we closed the last tab, make a new one
+    if(tabbedEditor->count() == 0)
+    {
+        on_actionNew_triggered();
+    }
+
+    // And finally, reset the current tab if needed
+    if(!closingCurrentTab)
+    {
+        tabbedEditor->setCurrentWidget(currentTab);
+    }
+}
+
+
 // TODO connect the shortcut Ctrl+W to tab closing, not application exiting
 /* Called when the user selects the Exit option from the menu (or uses Ctrl+W).
  * Allows the  * user to save any unsaved files before quitting.
  */
 void MainWindow::on_actionExit_triggered()
 {
-    for(int i = 0; i < tabbedEditor->count(); i++)
+    while(tabbedEditor->count() != 0)
     {
-        Editor * tab = qobject_cast<Editor*>(tabbedEditor->widget(i));
+        closeTab(0);
 
-        if(tab->isUnsaved())
+        // The only time this will happen after a tab close is
+        // if the last one is closed and a new tab is automatically created
+        if(tabbedEditor->count() == 1)
         {
-            Editor *current = editor;
-            editor = tab;
-            allowUserToSave();
-            editor = current;
+            break;
         }
     }
 

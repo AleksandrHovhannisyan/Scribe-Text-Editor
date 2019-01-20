@@ -46,6 +46,7 @@ public slots:
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);
+    void closeTab(int index);
 
 private slots:
     void on_currentTab_changed(int index);

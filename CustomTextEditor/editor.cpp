@@ -40,7 +40,7 @@ void Editor::reset()
 {
     metricCalculationEnabled = true;
     currentFilePath.clear();
-    searchHistory.clear();
+    searchHistory.clear(); // TODO redundant if it's reset on every text change
     setPlainText(QString()); // this will trigger on_textChanged
     fileNeedsToBeSaved = false;
 }
@@ -86,6 +86,7 @@ void Editor::launchFontDialog()
         setFont(font.family(), QFont::Monospace, true, font.pointSize(), 5);
     }
 }
+
 
 /* Sets the editor's font using the specified parameters.
  * @param family - the name of the font family
@@ -259,10 +260,12 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     // End-of-operation feedback
     if(replacements == 0)
     {
+        // TODO turn into signal
         informUser("Replace All", "No results found.");
     }
     else
     {
+        // TODO turn into signal
         informUser("Replace All", "Document searched. Replaced " + QString::number(replacements) + " instances.");
     }
 
@@ -537,9 +540,7 @@ int Editor::getLineNumberAreaWidth()
 {
     int lastLineNumber = blockCount();
     int numDigitsInLastLine = QString::number(lastLineNumber).length();
-
     int maxWidthOfAnyDigit = fontMetrics().width(QLatin1Char('9')); // 9 chosen here arbitrarily
-
     return numDigitsInLastLine * maxWidthOfAnyDigit + lineNumberAreaPadding;
 }
 
