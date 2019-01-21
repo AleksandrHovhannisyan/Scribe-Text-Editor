@@ -14,12 +14,11 @@ QMessageBox::StandardButton Utility::promptYesOrNo(QWidget *parent, QString titl
 /* Returns true if the curly braces in the given string are balanced
  * and false otherwise.
  */
-bool Utility::curlyBracesMatch(QString context, int startIndex)
+bool Utility::hasBalancedCurlyBraces(QString context)
 {
     QStack<char> expectedClosingBraces;
-    expectedClosingBraces.push('t');
 
-    for(int i = startIndex; i < context.length(); i++)
+    for(int i = 0; i < context.length(); i++)
     {
         char character = context.at(i).toLatin1();
 
@@ -34,10 +33,12 @@ bool Utility::curlyBracesMatch(QString context, int startIndex)
             {
                 expectedClosingBraces.pop();
             }
+            else
+            {
+                return false;
+            }
         }
     }
-
-    qDebug() << "Remaining expected closing braces: " << expectedClosingBraces.size();
 
     return expectedClosingBraces.empty();
 }

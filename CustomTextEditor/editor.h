@@ -62,8 +62,7 @@ private slots:
     void on_textChanged();
     void updateLineNumberAreaWidth();
     void on_cursorPositionChanged();
-    void updateLineNumberArea(const QRect &rectToBeRedrawn,
-                              int numPixelsScrolledVertically);
+    void updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
 
 private:
     QString getFileNameFromPath();

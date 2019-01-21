@@ -6,7 +6,7 @@
 class Utility {
 public:
     static QMessageBox::StandardButton promptYesOrNo(QWidget *parent, QString title, QString prompt);
-    static bool curlyBracesMatch(QString context, int startIndex);
+    static bool hasBalancedCurlyBraces(QString context);
 };
 
 

@@ -8,6 +8,8 @@
 #include <QTextDocumentFragment>
 #include <QPalette>
 #include <QStack>
+#include <QSet>
+#include <QQueue>
 
 /* Initializes this Editor.
  */
@@ -467,22 +469,25 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 
                     if(hitEnterAfterOpeningBrace)
                     {
+                        bool balancedBraces = Utility::hasBalancedCurlyBraces(documentContents);
+
                         int braceLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
                         insertTabs(braceLevel + 1);
 
-                        qDebug() << "Level of opening: " << braceLevel;
+                        // TODO there's no guarantee that the opening brace we just inserted is the unbalanced brace
+                        // solution: if !balancedBraces and indexToLeftOfCursor is in the set of indices for unbalanced open parentheses, then do this
+                        if(!balancedBraces)
+                        {
+                            insertPlainText("\n");
+                            insertTabs(braceLevel);
+                            insertPlainText("}");
 
-                        //bool hasMatchingBrace = Utility::curlyBracesMatch(documentContents, textCursor().position());
-
-                        insertPlainText("\n");
-                        insertTabs(braceLevel);
-                        insertPlainText("}");
-
-                        // Set the cursor so it's right after the nested tab
-                        QTextCursor cursor = textCursor();
-                        cursor.setPosition(cursor.position() - 2 - braceLevel);
-                        setTextCursor(cursor);
+                            // Set the cursor so it's right after the nested tab
+                            QTextCursor cursor = textCursor();
+                            cursor.setPosition(cursor.position() - 2 - braceLevel);
+                            setTextCursor(cursor);
+                        }
 
                         return true;
                     }
@@ -649,3 +654,4 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)
         ++blockNumber;
     }
 }
+
