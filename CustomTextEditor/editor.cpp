@@ -432,15 +432,12 @@ void Editor::moveCursorToStartOfCurrentLine()
 {
     QTextCursor cursor = textCursor();
 
-    qDebug() << "Moving cursor to start of current line!";
-    qDebug() << "Column: " << metrics.currentColumn;
-
-    while(metrics.currentColumn != 1)
+    do
     {
         cursor.movePosition(QTextCursor::Left);
         setTextCursor(cursor);
-        qDebug() << "Column: " << metrics.currentColumn;
     }
+    while(metrics.currentColumn != 1);
 }
 
 
