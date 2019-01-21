@@ -7,8 +7,7 @@
 #include <QCheckBox>
 #include <QLabel>
 #include <QLayout>
-#include <QMap>         // for search history
-#include <QPair>        // for search history
+#include <QMessageBox>
 
 class FindDialog : public QDialog
 {
@@ -27,6 +26,7 @@ signals:
 public slots:
     void on_findNextButton_clicked();
     void on_replaceOperation_initiated();
+    void onFindResultReady(QString message) { QMessageBox::information(this, "Find and Replace", message); }
 
 private:
     QLabel *findLabel;

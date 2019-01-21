@@ -9,6 +9,7 @@
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels
+#include <QtDebug>
 
 namespace Ui {
 class MainWindow;
@@ -48,6 +49,7 @@ public slots:
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);
     void closeTab(int index);
+    inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
 private slots:
     void on_currentTab_changed(int index);

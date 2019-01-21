@@ -7,6 +7,7 @@
 #include <QFontDialog>
 #include <QTextDocumentFragment>
 #include <QPalette>
+#include <QStack>
 
 /* Initializes this Editor.
  */
@@ -40,7 +41,6 @@ void Editor::reset()
 {
     metricCalculationEnabled = true;
     currentFilePath.clear();
-    searchHistory.clear(); // TODO redundant if it's reset on every text change
     setPlainText(QString()); // this will trigger on_textChanged
     fileNeedsToBeSaved = false;
 }
@@ -63,7 +63,7 @@ QString Editor::getFileNameFromPath()
     if(currentFilePath.isEmpty())
     {
         fileIsUntitled = true;
-        return "Untitled document ";
+        return "Untitled document";
     }
 
     int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');
@@ -186,7 +186,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 searchHistory.clear();
 
                 // Inform the user of the unsuccessful search
-                informUser("Find and Replace", "No more results found."); // TODO this will take focus away from the dialog in main window, maybe send signal to main window?
+                emit(findResultReady("No more results found."));
             }
         }
     }
@@ -198,7 +198,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         setTextCursor(newCursor);
 
         // Inform the user of the unsuccessful search
-        informUser("Find and Replace", "No results found.");
+        emit(findResultReady("No results found."));
     }
 
     return matchFound;
@@ -261,12 +261,12 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     if(replacements == 0)
     {
         // TODO turn into signal
-        informUser("Replace All", "No results found.");
+        emit(findResultReady("No results found."));
     }
     else
     {
         // TODO turn into signal
-        informUser("Replace All", "Document searched. Replaced " + QString::number(replacements) + " instances.");
+        emit(findResultReady("Document searched. Replaced " + QString::number(replacements) + " instances."));
     }
 
     metricCalculationEnabled = true; // reset here
@@ -281,7 +281,7 @@ void Editor::goTo(int line)
 {
     if(line > blockCount() || line < 1)
     {
-        QMessageBox::information(this, tr("Go To"), tr("Invalid line number."));
+        emit(gotoResultReady("Invalid line number."));
         return;
     }
 
@@ -432,10 +432,14 @@ void Editor::moveCursorToStartOfCurrentLine()
 {
     QTextCursor cursor = textCursor();
 
+    qDebug() << "Moving cursor to start of current line!";
+    qDebug() << "Column: " << metrics.currentColumn;
+
     while(metrics.currentColumn != 1)
     {
         cursor.movePosition(QTextCursor::Left);
         setTextCursor(cursor);
+        qDebug() << "Column: " << metrics.currentColumn;
     }
 }
 
@@ -469,6 +473,11 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
                         int braceLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
                         insertTabs(braceLevel + 1);
+
+                        qDebug() << "Level of opening: " << braceLevel;
+
+                        //bool hasMatchingBrace = Utility::curlyBracesMatch(documentContents, textCursor().position());
+
                         insertPlainText("\n");
                         insertTabs(braceLevel);
                         insertPlainText("}");
@@ -477,6 +486,7 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
                         QTextCursor cursor = textCursor();
                         cursor.setPosition(cursor.position() - 2 - braceLevel);
                         setTextCursor(cursor);
+
                         return true;
                     }
 

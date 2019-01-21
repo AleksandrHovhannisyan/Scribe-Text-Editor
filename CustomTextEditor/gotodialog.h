@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QMessageBox>
 
 class GotoDialog : public QDialog
 {
@@ -13,6 +14,9 @@ class GotoDialog : public QDialog
 public:
     GotoDialog(QWidget *parent = nullptr);
     ~GotoDialog();
+
+public slots:
+    void onGotoResultReady(QString message) { QMessageBox::information(this, "Go To", message); }
 
 private:
     QHBoxLayout *layout;

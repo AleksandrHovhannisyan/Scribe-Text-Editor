@@ -67,7 +67,7 @@ void MainWindow::on_currentTab_changed(int index)
         return;
     }
 
-    // Editor will only ever be nullptr on the first launch
+    // Note: editor will only be nullptr on the first launch, so this will get skipped in that edge case
     if(editor != nullptr)
     {
         // Disconnect for previous active editor
@@ -75,6 +75,8 @@ void MainWindow::on_currentTab_changed(int index)
         disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
         disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
         disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+        disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+        disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     }
 
     // Set the internal editor to the currently tabbed one
@@ -87,6 +89,8 @@ void MainWindow::on_currentTab_changed(int index)
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
     connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
 
     // Reconnect find/goto signals and slots to the current editor
     connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
@@ -162,8 +166,8 @@ void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
     QString fileName = editor->getFileName();
     bool editorUnsaved = editor->isUnsaved();
 
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? "*" : ""));
-    setWindowTitle(fileName + (editorUnsaved ? "[Unsaved]" : ""));
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? " *" : ""));
+    setWindowTitle(fileName + (editorUnsaved ? " [Unsaved]" : ""));
 }
 
 

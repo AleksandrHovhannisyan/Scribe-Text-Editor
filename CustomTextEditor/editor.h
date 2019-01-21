@@ -46,6 +46,8 @@ protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 signals:
+    void findResultReady(QString message);
+    void gotoResultReady(QString message);
     void columnCountChanged(int col);
     void windowNeedsToBeUpdated(DocumentMetrics metrics);
 
@@ -69,7 +71,6 @@ private:
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
-    inline void informUser(QString title, QString message) { QMessageBox::information(this, title, message); }
 
     DocumentMetrics metrics;
     QString currentFilePath;
