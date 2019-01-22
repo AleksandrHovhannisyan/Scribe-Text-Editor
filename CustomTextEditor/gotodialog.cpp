@@ -1,6 +1,7 @@
 #include "gotodialog.h"
 #include <QMessageBox>
 
+
 /* Initializes this GotoDialog object.
  */
 GotoDialog::GotoDialog(QWidget *parent) : QDialog(parent)

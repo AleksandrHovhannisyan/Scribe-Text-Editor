@@ -3,7 +3,6 @@
 #include "utilityfunctions.h"
 #include <QPainter>
 #include <QTextBlock>
-#include <QtDebug>
 #include <QFontDialog>
 #include <QTextDocumentFragment>
 #include <QPalette>
@@ -18,7 +17,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
 
-    connect(this, SIGNAL(blockCountChanged()), this, SLOT(updateLineNumberAreaWidth()));
+    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));

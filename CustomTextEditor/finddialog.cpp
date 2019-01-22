@@ -69,8 +69,8 @@ FindDialog::~FindDialog()
     delete wholeWordsCheckBox;
     delete findHorizontalLayout;
     delete replaceHorizontalLayout;
-    delete verticalLayout;
     delete optionsLayout;
+    delete verticalLayout;
 }
 
 

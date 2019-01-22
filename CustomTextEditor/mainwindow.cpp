@@ -175,7 +175,7 @@ void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
  * If the user selects "No" or closes the dialog window, the file will not be saved.
  * Otherwise, if they select "Yes," the file will be saved.
  */
-QMessageBox::StandardButton MainWindow::allowUserToSave()
+void MainWindow::allowUserToSave()
 {
     QString fileName = editor->getFileName();
 
@@ -187,8 +187,6 @@ QMessageBox::StandardButton MainWindow::allowUserToSave()
     {
         on_actionSave_or_actionSaveAs_triggered();
     }
-
-    return userSelection;
 }
 
 
@@ -330,9 +328,7 @@ void MainWindow::closeTab(int index)
 
     if(tabToClose->isUnsaved())
     {
-        QMessageBox::StandardButton selection = allowUserToSave();
-
-        // TODO no way of knowing if user closes the dialog window with the red X, address this with a workaround
+        allowUserToSave();
     }
 
     tabbedEditor->removeTab(index);

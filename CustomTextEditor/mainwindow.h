@@ -28,7 +28,7 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
-    QMessageBox::StandardButton allowUserToSave();
+    void allowUserToSave();
 
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
@@ -41,6 +41,7 @@ private:
     QLabel *charCountLabel;
     QLabel *columnLabel;
     QLabel *columnCountLabel;
+    const int MESSAGE_BOX_CLOSE_VALUE = 65536;
 
 public slots:
     inline void updateColumnCount(int col) { columnCountLabel->setText(QString::number(col) + tr("   ")); }
