@@ -10,7 +10,6 @@
         <file>res/icons/copy.bmp</file>
         <file>res/icons/paste.bmp</file>
         <file>res/icons/save-as.bmp</file>
-        <file>res/icons/exit.bmp</file>
         <file>res/icons/redo.bmp</file>
     </qresource>
 </RCC>

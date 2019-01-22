@@ -179,11 +179,6 @@
    </property>
   </action>
   <action name="actionExit">
-   <property name="icon">
-    <iconset>
-     <normalon>:/icons/res/icons/exit.bmp</normalon>
-    </iconset>
-   </property>
    <property name="text">
     <string>Exit</string>
    </property>
