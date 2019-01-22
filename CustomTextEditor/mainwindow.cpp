@@ -9,6 +9,8 @@
 #include <QTextStream>                  // file IO
 #include <QDateTime>                    // current time
 #include <QApplication>                 // quit
+#include <QThread>
+#include <QShortcut>
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -39,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
+
+    QShortcut *shortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
+    QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
 }
 
 
@@ -175,18 +180,11 @@ void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
  * If the user selects "No" or closes the dialog window, the file will not be saved.
  * Otherwise, if they select "Yes," the file will be saved.
  */
-void MainWindow::allowUserToSave()
+QMessageBox::StandardButton MainWindow::askUserToSave()
 {
     QString fileName = editor->getFileName();
 
-    QMessageBox::StandardButton userSelection;
-    userSelection = Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") +
-                                  fileName + tr("?"));
-
-    if(userSelection == QMessageBox::Yes)
-    {
-        on_actionSave_or_actionSaveAs_triggered();
-    }
+    return Utility::promptYesOrNo(this, "Unsaved changes", tr("Do you want to save the changes to ") + fileName + tr("?"));
 }
 
 
@@ -200,8 +198,9 @@ void MainWindow::on_actionNew_triggered() { tabbedEditor->add(new Editor()); }
  * (or uses Ctrl+S). On success, saves the contents of the text editor to the disk using
  * the file name provided by the user. If the current document was never saved, or if the
  * user chose Save As, the program prompts the user to specify a name and directory for the file.
+ * Returns true if the file was saved and false otherwise.
  */
-void MainWindow::on_actionSave_or_actionSaveAs_triggered()
+bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
 {
     bool saveAs = sender() == ui->actionSave_As;
     QString currentFilePath = editor->getCurrentFilePath();
@@ -218,7 +217,7 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
         // Don't do anything if the user changes their mind and hits Cancel
         if(filePath.isNull())
         {
-            return;
+            return false;
         }
         editor->setCurrentFilePath(filePath);
     }
@@ -228,7 +227,7 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
     if (!file.open(QIODevice::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
-        return;
+        return false;
     }
 
     ui->statusBar->showMessage("Document saved", 2000);
@@ -243,6 +242,8 @@ void MainWindow::on_actionSave_or_actionSaveAs_triggered()
     editor->setFileNeedsToBeSaved(false);
     tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName);
     setWindowTitle(fileName);
+
+    return true;
 }
 
 
@@ -311,10 +312,11 @@ void MainWindow::on_actionPrint_triggered()
 }
 
 
-/* Called when the user tries to close a tab in the editor. Allows the user to save the contents
- * of the tab if unsaved. Closes the tab.
+/* Called when the user tries to close a tab in the editor (or uses Ctrl+W). Allows the user
+ * to save the contents of the tab if unsaved. Closes the tab, unless the file is unsaved
+ * and the user declines saving. Returns true if the tab was closed and false otherwise.
  */
-void MainWindow::closeTab(int index)
+bool MainWindow::closeTab(int index)
 {
     Editor *currentTab = editor;
     Editor *tabToClose = qobject_cast<Editor*>(tabbedEditor->widget(index));
@@ -328,7 +330,22 @@ void MainWindow::closeTab(int index)
 
     if(tabToClose->isUnsaved())
     {
-        allowUserToSave();
+        QMessageBox::StandardButton selection = askUserToSave();
+
+        if(selection == QMessageBox::StandardButton::Yes)
+        {
+            bool fileSaved = on_actionSave_or_actionSaveAs_triggered();
+
+            if(!fileSaved)
+            {
+                return false;
+            }
+        }
+
+        else if(selection == QMessageBox::Cancel)
+        {
+            return false;
+        }
     }
 
     tabbedEditor->removeTab(index);
@@ -344,18 +361,24 @@ void MainWindow::closeTab(int index)
     {
         tabbedEditor->setCurrentWidget(currentTab);
     }
+
+    return true;
 }
 
 
-// TODO connect the shortcut Ctrl+W to tab closing, not application exiting
-/* Called when the user selects the Exit option from the menu (or uses Ctrl+W).
- * Allows the  * user to save any unsaved files before quitting.
+/* Called when the user selects the Exit option from the menu. Allows the user
+ * to save any unsaved files before quitting.
  */
 void MainWindow::on_actionExit_triggered()
 {
     while(tabbedEditor->count() != 0)
     {
-        closeTab(0);
+        bool closed = closeTab(0);
+
+        if(!closed)
+        {
+            return;
+        }
 
         // The only time this will happen after a tab close is
         // if the last one is closed and a new tab is automatically created
@@ -364,6 +387,9 @@ void MainWindow::on_actionExit_triggered()
             break;
         }
     }
+
+    ui->statusBar->showMessage("Quitting...", 1000);
+    QThread::sleep(1);
 
     QApplication::quit();
 }

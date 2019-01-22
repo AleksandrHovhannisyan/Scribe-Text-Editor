@@ -28,7 +28,7 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private:
-    void allowUserToSave();
+    QMessageBox::StandardButton askUserToSave();
 
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
@@ -49,13 +49,14 @@ public slots:
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);
-    void closeTab(int index);
+    bool closeTab(int index);
+    void closeTabShortcut() { closeTab(tabbedEditor->currentIndex()); }
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
 private slots:
     void on_currentTab_changed(int index);
     void on_actionNew_triggered();
-    void on_actionSave_or_actionSaveAs_triggered();
+    bool on_actionSave_or_actionSaveAs_triggered();
     void on_actionOpen_triggered();
     void on_actionExit_triggered();
     void on_actionUndo_triggered();

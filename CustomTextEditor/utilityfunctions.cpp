@@ -7,7 +7,9 @@
  */
 QMessageBox::StandardButton Utility::promptYesOrNo(QWidget *parent, QString title, QString prompt)
 {
-    return QMessageBox::question(parent, title, prompt, QMessageBox::Yes | QMessageBox::No);
+    QMessageBox asker;
+    asker.setEscapeButton(QMessageBox::StandardButton::Cancel);
+    return asker.question(parent, title, prompt, QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
 }
 
 
