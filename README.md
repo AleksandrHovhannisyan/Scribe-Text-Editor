@@ -2,9 +2,9 @@
 
 Scribe is a simple, user-friendly text editor for Windows power users.
 
-[](CustomTextEditor/screenshots/Screenshot1.PNG)
+![](CustomTextEditor/screenshots/Screenshot1.PNG)
 
-# Development
+## Development
 
 ### Getting started
 
@@ -18,7 +18,7 @@ To contribute your own code to the project:
 2. On the command-line, navigate to your desired project directory and input the following command: `git clone https://github.com/YourUsername/Scribe-Text-Editor`.
 3. Push changes to your forked repo, and then submit a pull request.
 
-# Credits
+## Credits
 
 All application icons are open source. Credits go to [Feather Icons](https://feathericons.com/), created by Cole Bemis.
 
