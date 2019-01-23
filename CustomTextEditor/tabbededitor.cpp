@@ -26,24 +26,33 @@ void TabbedEditor::add(Editor *tab)
  */
 bool TabbedEditor::eventFilter(QObject* obj, QEvent* event)
 {
-    QKeyEvent *keyInfo = static_cast<QKeyEvent*>(event);
-    int key = keyInfo->key();
+    bool isKeyPress = event->type() == QEvent::KeyPress;
 
-    if(keyInfo->modifiers() == Qt::ControlModifier)
+    if(isKeyPress)
     {
-        // Ctrl + num = jump to that tab number
-        if(key >= Qt::Key_1 && key <= Qt::Key_9)
-        {
-            setCurrentWidget(widget(key - Qt::Key_1));
-            return true;
-        }
+        QKeyEvent *keyInfo = static_cast<QKeyEvent*>(event);
+        int key = keyInfo->key();
 
-        // Ctrl + tab = advance tab by one
-        else if(key == Qt::Key_T)
+        if(keyInfo->modifiers() == Qt::ControlModifier)
         {
-            int newTabIndex = (currentIndex() + 1) % count();
-            setCurrentWidget(widget(newTabIndex));
-            return true;
+            // Ctrl + num = jump to that tab number
+            if(key >= Qt::Key_1 && key <= Qt::Key_9)
+            {
+                setCurrentWidget(widget(key - Qt::Key_1));
+                return true;
+            }
+
+            // Ctrl + tab = advance tab by one
+            else if(key == Qt::Key_T)
+            {
+                int newTabIndex = (currentIndex() + 1) % count();
+                setCurrentWidget(widget(newTabIndex));
+                return true;
+            }
+        }
+        else
+        {
+            return QObject::eventFilter(obj, event);
         }
     }
 
