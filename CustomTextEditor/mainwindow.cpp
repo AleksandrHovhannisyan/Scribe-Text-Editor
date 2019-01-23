@@ -18,6 +18,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    installEventFilter(this);
 
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
@@ -42,8 +43,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
 
-    QShortcut *shortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
-    QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
+    QShortcut *tabCloseShortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
+    QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
+
 }
 
 

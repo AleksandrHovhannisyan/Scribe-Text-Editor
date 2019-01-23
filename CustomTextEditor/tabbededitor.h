@@ -10,6 +10,9 @@ class TabbedEditor : public QTabWidget
 public:
     TabbedEditor(QWidget *parent = nullptr);
     void add(Editor* tab);
+
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override;
 };
 
 #endif // TABBEDEDITOR_H

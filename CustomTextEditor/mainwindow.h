@@ -21,11 +21,11 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
     void initializeStatusBarLabels();
     void launchFindDialog();
     void launchGotoDialog();
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     QMessageBox::StandardButton askUserToSave();

@@ -9,6 +9,7 @@
 #include <QStack>
 #include <QSet>
 #include <QQueue>
+#include <QtDebug>
 
 /* Initializes this Editor.
  */
