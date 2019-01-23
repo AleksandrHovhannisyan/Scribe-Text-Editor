@@ -386,7 +386,7 @@ void MainWindow::on_actionExit_triggered()
 
         // The only time this will happen after a tab close is
         // if the last one is closed and a new tab is automatically created
-        if(tabbedEditor->count() == 1)
+        if(tabbedEditor->count() == 1 && !qobject_cast<Editor*>(tabbedEditor->currentWidget())->isUnsaved())
         {
             break;
         }
