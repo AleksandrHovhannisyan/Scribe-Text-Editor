@@ -298,7 +298,7 @@ void Editor::goTo(int line)
  */
 void Editor::updateFileMetrics()
 {
-    QString documentContents = toPlainText();
+    QString documentContents = toPlainText().toUtf8();
     int documentLength = documentContents.length();
     metrics = DocumentMetrics();
     QString currentWord = "";
@@ -306,12 +306,13 @@ void Editor::updateFileMetrics()
     // Loop through each character in the document
     for(int i = 0; i < documentLength; i++)
     {
-        char currentCharacter = documentContents[i].toLatin1();
+        QChar currentCharacter = documentContents[i];
 
         // Debug assertion error caused for invalid file formats like PDF
         if(currentCharacter < -1 || currentCharacter > 255)
         {
-            return;
+            // Just set it to any random alpha character
+            currentCharacter = 'x';
         }
 
         // Newline
@@ -330,12 +331,12 @@ void Editor::updateFileMetrics()
             metrics.charCount++;
 
             // Alphanumeric character
-            if(isalnum(currentCharacter))
+            if(isalnum(currentCharacter.toLatin1()))
             {
                 currentWord += currentCharacter;
             }
             // Whitespace (excluding newline, handled separately above)
-            else if(isspace(currentCharacter))
+            else if(isspace(currentCharacter.toLatin1()))
             {
                 // Whitespace following a word means we completed a word
                 if(!currentWord.isEmpty())

@@ -9,7 +9,6 @@
 #include <QTextStream>                  // file IO
 #include <QDateTime>                    // current time
 #include <QApplication>                 // quit
-#include <QThread>
 #include <QShortcut>
 
 
@@ -391,9 +390,6 @@ void MainWindow::on_actionExit_triggered()
             break;
         }
     }
-
-    ui->statusBar->showMessage("Quitting...", 1000);
-    QThread::sleep(1);
 
     QApplication::quit();
 }
