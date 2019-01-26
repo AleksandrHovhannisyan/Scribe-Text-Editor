@@ -24,7 +24,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
-    connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(on_modificationChanged(bool)));
+    connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
     installEventFilter(this);
     updateLineNumberAreaWidth();
@@ -338,10 +338,11 @@ void Editor::updateFileMetrics()
     // Loop through each character in the document
     for(int i = 0; i < documentLength; i++)
     {
-        QChar currentCharacter = documentContents[i];
+        // Keep it as a QChar in case the user tries to open an illegal doc format
+        QChar currentCharacter = documentContents[i].toLatin1();
 
         // Debug assertion error caused for invalid file formats like PDF
-        if(currentCharacter < -1 || currentCharacter > 255)
+        if(currentCharacter.toLatin1() <= -1 || currentCharacter.toLatin1() > 255)
         {
             // Just set it to any random alpha character
             currentCharacter = 'x';
@@ -402,7 +403,7 @@ void Editor::updateFileMetrics()
  * and updates the file metrics. Emits the windowNeedsToBeUpdated signal when it's done
  * to direct its parent window to update any information it displays to the user.
  */
-void Editor::on_modificationChanged(bool changed)
+void Editor::on_textChanged()
 {
     searchHistory.clear();
     updateFileMetrics();

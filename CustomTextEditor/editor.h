@@ -60,7 +60,7 @@ public slots:
     void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
 
 private slots:
-    void on_modificationChanged(bool changed);
+    void on_textChanged();
     void updateLineNumberAreaWidth();
     void on_cursorPositionChanged();
     void updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
