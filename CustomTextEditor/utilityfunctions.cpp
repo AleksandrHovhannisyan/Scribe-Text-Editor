@@ -1,6 +1,8 @@
 #include "utilityfunctions.h"
 #include <QStack>
 #include <QtDebug>
+#include <QQueue>
+
 
 /* Launches a Yes or No message box within the context of the given
  * parent widget. Prompts the user to make a selection.
@@ -13,10 +15,50 @@ QMessageBox::StandardButton Utility::promptYesOrNo(QWidget *parent, QString titl
 }
 
 
-/* Returns true if the curly braces in the given string are balanced
- * and false otherwise.
+/* Returns true if the opening brace at the given index is balanced and false otherwise.
  */
-bool Utility::hasBalancedCurlyBraces(QString context)
+bool Utility::braceIsBalanced(QString context, int openBraceIndex)
+{
+    QQueue<int> openBraceIndices;
+    QStack<char> expectedClosingBraces;
+
+    for(int i = 0; i < context.length(); i++)
+    {
+        char character = context.at(i).toLatin1();
+
+        if(character == '{')
+        {
+            openBraceIndices.enqueue(i);
+            expectedClosingBraces.push('}');
+        }
+        else if(character == '}')
+        {
+            if(!expectedClosingBraces.empty() && !openBraceIndices.empty())
+            {
+                expectedClosingBraces.pop();
+                openBraceIndices.dequeue();
+            }
+        }
+    }
+
+    while(!openBraceIndices.empty())
+    {
+        int index = openBraceIndices.dequeue();
+
+        if(index == openBraceIndex)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+
+/* Returns the index of the first unbalanced closing brace within the given context.
+ */
+int Utility::indexOfFirstUnbalancedClosingBrace(QString context)
 {
     QStack<char> expectedClosingBraces;
 
@@ -37,10 +79,10 @@ bool Utility::hasBalancedCurlyBraces(QString context)
             }
             else
             {
-                return false;
+                return i;
             }
         }
     }
 
-    return expectedClosingBraces.empty();
+    return -1;
 }
