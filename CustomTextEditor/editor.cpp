@@ -15,13 +15,16 @@
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
+    document()->setModified(false);
+
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
+    defaultCharFormat.setUnderlineStyle(QTextCharFormat::NoUnderline);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
-    connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
+    connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(on_modificationChanged(bool)));
 
     installEventFilter(this);
     updateLineNumberAreaWidth();
@@ -262,12 +265,10 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     // End-of-operation feedback
     if(replacements == 0)
     {
-        // TODO turn into signal
         emit(findResultReady("No results found."));
     }
     else
     {
-        // TODO turn into signal
         emit(findResultReady("Document searched. Replaced " + QString::number(replacements) + " instances."));
     }
 
@@ -289,6 +290,37 @@ void Editor::goTo(int line)
 
     QTextCursor cursor(document()->findBlockByLineNumber(line - 1));
     setTextCursor(cursor);
+}
+
+
+/* Applies the given formatting to the selection of text between the two given indices (inclusive).
+ * Unformats all text before applying the given formatting if the flag is specified as true.
+ * @param startIndex - the index from which the formatting should proceed
+ * @param endIndex - the index at which the formatting should stop
+ * @param format - the format to apply to the text between startIndex and endIndex, inclusive
+ * @param unformatAllFirst - flag denoting whether all text should be unformatted before formatting (false by default)
+ */
+void Editor::formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst)
+{
+    QTextCursor cursorBeforeFormatting = textCursor();
+    QTextCursor formatter = textCursor();
+
+    if(unformatAllFirst)
+    {
+        QTextCursor unformatter = textCursor();
+        unformatter.setPosition(0, QTextCursor::MoveAnchor);
+        unformatter.setPosition(document()->toPlainText().length(), QTextCursor::KeepAnchor);
+        unformatter.setCharFormat(defaultCharFormat);
+        qDebug() << "Unformatting!";
+        setTextCursor(unformatter);
+    }
+
+    formatter.setPosition(startIndex, QTextCursor::MoveAnchor);
+    formatter.setPosition(endIndex, QTextCursor::KeepAnchor);
+    formatter.setCharFormat(format);
+
+    setTextCursor(formatter);
+    setTextCursor(cursorBeforeFormatting);
 }
 
 
@@ -375,9 +407,9 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
  * and updates the file metrics. Emits the windowNeedsToBeUpdated signal when it's done
  * to direct its parent window to update any information it displays to the user.
  */
-void Editor::on_textChanged()
+void Editor::on_modificationChanged(bool changed)
 {
-    fileNeedsToBeSaved = true;
+    fileNeedsToBeSaved = changed;
     searchHistory.clear();
     updateFileMetrics();
     emit(windowNeedsToBeUpdated(metrics));
@@ -470,15 +502,13 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 
                     if(hitEnterAfterOpeningBrace)
                     {
-                        bool balancedBraces = Utility::hasBalancedCurlyBraces(documentContents);
+                        bool alreadyPaired = Utility::braceIsBalanced(documentContents, indexToLeftOfCursor);
 
                         int braceLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
                         insertTabs(braceLevel + 1);
 
-                        // TODO there's no guarantee that the opening brace we just inserted is the unbalanced brace
-                        // solution: if !balancedBraces and indexToLeftOfCursor is in the set of indices for unbalanced open parentheses, then do this
-                        if(!balancedBraces)
+                        if(!alreadyPaired)
                         {
                             insertPlainText("\n");
                             insertTabs(braceLevel);

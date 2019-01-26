@@ -37,6 +37,7 @@ public:
     void updateFileMetrics();
     inline bool isUnsaved() const { return fileNeedsToBeSaved; }
     void setFileNeedsToBeSaved(bool status);
+    void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
@@ -59,7 +60,7 @@ public slots:
     void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
 
 private slots:
-    void on_textChanged();
+    void on_modificationChanged(bool changed);
     void updateLineNumberAreaWidth();
     void on_cursorPositionChanged();
     void updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
@@ -76,6 +77,7 @@ private:
     bool fileNeedsToBeSaved = false;
     bool fileIsUntitled = true;
     QFont font;
+    QTextCharFormat defaultCharFormat;
     SearchHistory searchHistory;
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
