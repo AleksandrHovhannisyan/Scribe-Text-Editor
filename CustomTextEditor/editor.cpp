@@ -11,11 +11,13 @@
 #include <QQueue>
 #include <QtDebug>
 
+
 /* Initializes this Editor.
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
     document()->setModified(false);
+    setLineWrapMode(QPlainTextEdit::LineWrapMode::NoWrap);
 
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
@@ -338,15 +340,8 @@ void Editor::updateFileMetrics()
     // Loop through each character in the document
     for(int i = 0; i < documentLength; i++)
     {
-        // Keep it as a QChar in case the user tries to open an illegal doc format
-        QChar currentCharacter = documentContents[i].toLatin1();
-
-        // Debug assertion error caused for invalid file formats like PDF
-        if(currentCharacter.toLatin1() <= -1 || currentCharacter.toLatin1() > 255)
-        {
-            // Just set it to any random alpha character
-            currentCharacter = 'x';
-        }
+        // Convert to unsigned char to avoid running into debug assertion problems
+        unsigned char currentCharacter = (unsigned char)documentContents[i].toLatin1();
 
         // Newline
         if(currentCharacter == '\n')
@@ -364,12 +359,12 @@ void Editor::updateFileMetrics()
             metrics.charCount++;
 
             // Alphanumeric character
-            if(isalnum(currentCharacter.toLatin1()))
+            if(isalnum(currentCharacter))
             {
-                currentWord += currentCharacter;
+                currentWord += (char)currentCharacter;
             }
             // Whitespace (excluding newline, handled separately above)
-            else if(isspace(currentCharacter.toLatin1()))
+            else if(isspace(currentCharacter))
             {
                 // Whitespace following a word means we completed a word
                 if(!currentWord.isEmpty())
@@ -380,7 +375,7 @@ void Editor::updateFileMetrics()
                 // Consume all other instances of whitespace
                 else
                 {
-                    while(i + 1 < documentLength && isspace(documentContents[i + 1].toLatin1()))
+                    while(i + 1 < documentLength && isspace((unsigned char)documentContents[i + 1].toLatin1()))
                     {
                         i++;
                     }

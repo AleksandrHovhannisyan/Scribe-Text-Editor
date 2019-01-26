@@ -11,5 +11,4 @@ public:
     static int indexOfFirstUnbalancedClosingBrace(QString context);
 };
 
-
 #endif // UTILITYFUNCTIONS_H
