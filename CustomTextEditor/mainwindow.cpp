@@ -31,10 +31,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     initializeStatusBarLabels();
     on_currentTab_changed(0);
 
-    toggleUndo(false);
-    toggleRedo(false);
-    toggleCopyAndCut(false);
-
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
     connect(tabbedEditor, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
@@ -97,9 +93,9 @@ void MainWindow::on_currentTab_changed(int index)
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
 
     // Update main window actions to reflect the current tab's available actions
-    //toggleRedo(editor->canRedo());
-    //toggleUndo(editor->canUndo());
-    toggleCopyAndCut(false);
+    toggleRedo(editor->redoAvailable());
+    toggleUndo(editor->undoAvailable());
+    toggleCopyAndCut(editor->textCursor().hasSelection());
 
     // Reconnect editor signals and slots
     connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));

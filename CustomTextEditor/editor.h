@@ -40,6 +40,8 @@ public:
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
     void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
     void toggleWrapMode(bool wrap) { wrap ? setLineWrapMode(LineWrapMode::WidgetWidth) : setLineWrapMode(LineWrapMode::NoWrap); }
+    inline bool redoAvailable() const { return canRedo; }
+    inline bool undoAvailable() const { return canUndo; }
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
@@ -65,6 +67,8 @@ private slots:
     void updateLineNumberAreaWidth();
     void on_cursorPositionChanged();
     void updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
+    void setUndoAvailable(bool available) { canUndo = available; }
+    void setRedoAvailable(bool available) { canRedo = available; }
 
 private:
     QString getFileNameFromPath();
@@ -83,6 +87,8 @@ private:
     const int lineNumberAreaPadding = 30;
     bool metricCalculationEnabled = true;
     bool autoIndentEnabled = true;
+    bool canRedo = false;
+    bool canUndo = false;
 };
 
 #endif // EDITOR_H
