@@ -46,8 +46,8 @@ void Editor::reset()
 {
     metricCalculationEnabled = true;
     currentFilePath.clear();
-    setPlainText(QString()); // this will trigger on_textChanged
-    fileNeedsToBeSaved = false;
+    document()->setModified(false);
+    setPlainText(QString());
 }
 
 
@@ -397,11 +397,6 @@ void Editor::updateFileMetrics()
 }
 
 
-/* Sets a flag denoting whether the current file has to be saved.
- */
-void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
-
-
 /* Called whenever the contents of the text editor change, even if they are deleted
  * and restored to their original state. Marks the document as needing to be saved
  * and updates the file metrics. Emits the windowNeedsToBeUpdated signal when it's done
@@ -409,7 +404,6 @@ void Editor::setFileNeedsToBeSaved(bool status) { fileNeedsToBeSaved = status; }
  */
 void Editor::on_modificationChanged(bool changed)
 {
-    fileNeedsToBeSaved = changed;
     searchHistory.clear();
     updateFileMetrics();
     emit(windowNeedsToBeUpdated(metrics));

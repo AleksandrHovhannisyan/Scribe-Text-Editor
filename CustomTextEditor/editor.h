@@ -35,8 +35,8 @@ public:
     void launchFontDialog();
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void updateFileMetrics();
-    inline bool isUnsaved() const { return fileNeedsToBeSaved; }
-    void setFileNeedsToBeSaved(bool status);
+    inline bool isUnsaved() const { return document()->isModified(); }
+    void setModifiedState(bool modified) { document()->setModified(modified); }
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
@@ -74,7 +74,6 @@ private:
 
     DocumentMetrics metrics;
     QString currentFilePath;
-    bool fileNeedsToBeSaved = false;
     bool fileIsUntitled = true;
     QFont font;
     QTextCharFormat defaultCharFormat;

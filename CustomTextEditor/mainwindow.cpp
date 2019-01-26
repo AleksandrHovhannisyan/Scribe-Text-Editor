@@ -242,7 +242,7 @@ bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
     file.close();
 
     QString fileName = editor->getFileName();
-    editor->setFileNeedsToBeSaved(false);
+    editor->setModifiedState(false);
     tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName);
     setWindowTitle(fileName);
 
@@ -290,9 +290,7 @@ void MainWindow::on_actionOpen_triggered()
     editor->setPlainText(documentContents);
     file.close();
 
-    // Changing the editor's text above will trigger editor->on_textChanged, which will set
-    // fileNeedsToBeSaved to true, but we need to reset it here because we don't need to save
-    editor->setFileNeedsToBeSaved(false);
+    editor->setModifiedState(false);
     tabbedEditor->setTabText(tabbedEditor->currentIndex(), editor->getFileName());
     setWindowTitle(editor->getFileName());
 }
