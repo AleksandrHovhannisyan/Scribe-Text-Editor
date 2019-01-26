@@ -83,6 +83,9 @@ void MainWindow::on_currentTab_changed(int index)
         disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
         disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
         disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
+        disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+        disconnect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+        disconnect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
     }
 
     // Set the internal editor to the currently tabbed one
@@ -93,12 +96,17 @@ void MainWindow::on_currentTab_changed(int index)
     connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
 
-    // TODO this doesn't update automatically when we switch tabs
+    // Update main window actions to reflect the current tab's available actions
+    //toggleRedo(editor->canRedo());
+    //toggleUndo(editor->canUndo());
+    toggleCopyAndCut(false);
+
+    // Reconnect editor signals and slots
+    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
     connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
-    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
-    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
 
     // Reconnect find/goto signals and slots to the current editor
     connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
@@ -194,7 +202,12 @@ QMessageBox::StandardButton MainWindow::askUserToSave()
 /* Called when the user selects the New option from the menu or toolbar (or uses Ctrl+N).
  * Adds a new tab to the editor.
  */
-void MainWindow::on_actionNew_triggered() { tabbedEditor->add(new Editor()); }
+void MainWindow::on_actionNew_triggered()
+{
+    tabbedEditor->add(new Editor());
+    editor->toggleWrapMode(ui->actionWord_Wrap->isChecked());
+    editor->toggleAutoIndent(ui->actionAuto_Indent->isChecked());
+}
 
 
 /* Called when the user selects the Save or Save As option from the menu or toolbar
@@ -372,6 +385,7 @@ bool MainWindow::closeTab(int index)
  */
 void MainWindow::on_actionExit_triggered()
 {
+    // TODO change condition to while true
     while(tabbedEditor->count() != 0)
     {
         bool closed = closeTab(0);
@@ -469,8 +483,29 @@ void MainWindow::on_actionFont_triggered() { editor->launchFontDialog(); }
 
 
 /* Called when the user selects the Auto Indent option from the Format menu.
+ * Toggles auto indenting in all open tabs.
  */
-void MainWindow::on_actionAuto_Indent_triggered() { editor->toggleAutoIndent(ui->actionAuto_Indent->isChecked()); }
+void MainWindow::on_actionAuto_Indent_triggered()
+{
+    for(int i = 0; i < tabbedEditor->count(); i++)
+    {
+        Editor *tab = qobject_cast<Editor*>(tabbedEditor->widget(i));
+        tab->toggleAutoIndent(ui->actionAuto_Indent->isChecked());
+    }
+}
+
+
+/* Called when the user selects the Word Wrap option from the Format menu. Toggles
+ * word wrapping in all open tabs.
+ */
+void MainWindow::on_actionWord_Wrap_triggered()
+{
+    for(int i = 0; i < tabbedEditor->count(); i++)
+    {
+        Editor *tab = qobject_cast<Editor*>(tabbedEditor->widget(i));
+        tab->toggleWrapMode(ui->actionWord_Wrap->isChecked());
+    }
+}
 
 
 /* Toggles the visibility of the status bar.
@@ -487,3 +522,4 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
     on_actionExit_triggered();
 }
+

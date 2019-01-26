@@ -38,6 +38,8 @@ public:
     inline bool isUnsaved() const { return document()->isModified(); }
     void setModifiedState(bool modified) { document()->setModified(modified); }
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
+    void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
+    void toggleWrapMode(bool wrap) { wrap ? setLineWrapMode(LineWrapMode::WidgetWidth) : setLineWrapMode(LineWrapMode::NoWrap); }
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
@@ -57,7 +59,6 @@ public slots:
     void replace(QString what, QString with, bool caseSensitive, bool wholeWords);
     void replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords);
     void goTo(int line);
-    void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
 
 private slots:
     void on_textChanged();

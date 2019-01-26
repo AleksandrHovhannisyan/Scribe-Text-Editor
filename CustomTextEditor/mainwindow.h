@@ -72,6 +72,7 @@ private slots:
     void on_actionTime_Date_triggered();
     void on_actionFont_triggered();
     void on_actionAuto_Indent_triggered();
+    void on_actionWord_Wrap_triggered();
 };
 
 #endif // MAINWINDOW_H

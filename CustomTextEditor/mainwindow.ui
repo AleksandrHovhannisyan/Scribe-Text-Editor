@@ -76,6 +76,7 @@
     </property>
     <addaction name="actionFont"/>
     <addaction name="actionAuto_Indent"/>
+    <addaction name="actionWord_Wrap"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -334,6 +335,14 @@
    </property>
    <property name="text">
     <string>Auto Indent</string>
+   </property>
+  </action>
+  <action name="actionWord_Wrap">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Word Wrap</string>
    </property>
   </action>
  </widget>
