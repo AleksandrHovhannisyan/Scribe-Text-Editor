@@ -56,7 +56,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     QShortcut *tabCloseShortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
     QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
-
 }
 
 
@@ -82,6 +81,10 @@ void MainWindow::on_languageSelected(QAction* language)
 {
     editor->setProgrammingLanguage(menuActionToLanguageMap[language]);
     QStringList keywordPatterns = languageToKeywordMap[editor->getProgrammingLanguage()];
+    if(syntaxHighlighter)
+    {
+        delete syntaxHighlighter;
+    }
     syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
 }
 
