@@ -19,16 +19,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
     installEventFilter(this);
 
-    keywordPatterns << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b"
-                        << "\\bdouble\\b" << "\\benum\\b" << "\\bexplicit\\b"
-                        << "\\bfriend\\b" << "\\binline\\b" << "\\bint\\b"
-                        << "\\blong\\b" << "\\bnamespace\\b" << "\\boperator\\b"
-                        << "\\bprivate\\b" << "\\bprotected\\b" << "\\bpublic\\b"
-                        << "\\bshort\\b" << "\\bsignals\\b" << "\\bsigned\\b"
-                        << "\\bslots\\b" << "\\bstatic\\b" << "\\bstruct\\b"
-                        << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
-                        << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvirtual\\b"
-                        << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bbool\\b";
+    initializeLanguageMapping();
 
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
@@ -77,6 +68,49 @@ MainWindow::~MainWindow()
  */
 void MainWindow::initializeLanguageMapping()
 {
+    QStringList keywords;
+
+    keywords << "\\bauto\\b" << "\\bbreak\\b" << "\\bcase\\b" << "\\bchar\\b" << "\\bconst\\b"
+             << "\\bcontinue\\b" << "\\bdefault\\b" << "\\bdo\\b" << "\\bdouble\\b" << "\\belse\\b"
+             << "\\benum\\b" << "\\bextern\\b" << "\\bfloat\\b" << "\\bfor\\b" << "\\bgoto\\b"
+             << "\\bif\\b" << "\\bint\\b" << "\\blong\\b" << "\\bregister\\b" << "\\breturn\\b"
+             << "\\bshort\\b" << "\\bsigned\\b" << "\\bsizeof\\b" << "\\bstatic\\b" << "\\bstruct\\b"
+             << "\\bswitch\\b" << "\\btypedef\\b" << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvoid\\b"
+             << "\\bvolatile\\b" << "\\bwhile\\b";
+
+    languageKeywordMap[Language::C] = keywords;
+
+    keywords << "\\basm\\b" << "\\bnew\\b" << "\\bthis\\b" << "\\boperator\\b" << "\\bthrow\\b"
+             << "\\bbool\\b" << "\\bexplicit\\b" << "\\bprivate\\b" << "\\btrue\\b" << "\\bexport\\b"
+             << "\\bprotected\\b" << "\\btry\\b" << "\\bextern\\b" << "\\bpublic\\b" << "\\bcatch\\b"
+             << "\\bfalse\\b" << "\\bregister\\b" << "\\btypeid\\b" << "\\breinterpret_cast\\b"
+             << "\\btypename\\b" << "\\bclass\\b" << "\\bfriend\\b" << "\\bconst_cast\\b" << "\\bvirtual\\b"
+             << "\\binline\\b" << "\\bdelete\\b" << "\\bstatic_cast\\b" << "\\bvolatile\\b"
+             << "\\bwchar_t\\b" << "\\bmutable\\b" << "\\bdynamic_cast\\b" << "\\bnamespace\\b" << "\\btemplate\\b";
+
+    languageKeywordMap[Language::CPP] = keywords;
+    keywords.clear();
+
+    keywords << "\\babstract\\b" << "\\bassert\\b" << "\\bboolean\\b" << "\\bbreak\\b" << "\\bbyte\\b"
+             << "\\bcase\\b" << "\\bcatch\\b" << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b" << "\\bcontinue\\b"
+             << "\\bdefault\\b" << "\\bdo\\b" << "\\bdouble\\b" << "\\belse\\b" << "\\benum\\b" << "\\bextends\\b"
+             << "\\bfinal\\b" << "\\bfinally\\b" << "\\bfloat\\b" << "\\bfor\\b" << "\\bgoto\\b" << "\\bif\\b"
+             << "\\bimplements\\b" << "\\bimport\\b" << "\\binstanceof\\b" << "\\bint\\b" << "\\binterface\\b"
+             << "\\blong\\b" << "\\bnative\\b" << "\\bnew\\b" << "\\bpackage\\b" << "\\bprivate\\b" << "\\bprotected\\b"
+             << "\\bpublic\\b" << "\\breturn\\b" << "\\bshort\\b" << "\\bstatic\\b" << "\\bstrictfp\\b" << "\\bsuper\\b"
+             << "\\bswitch\\b" << "\\bsynchronized\\b" << "\\bthis\\b" << "\\bthrow\\b" << "\\bthrows\\b" << "\\btransient\\b"
+             << "\\btry\\b" << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bwhile\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bnull\\b";
+
+    languageKeywordMap[Language::Java] = keywords;
+    keywords.clear();
+
+    keywords << "\\band\\b" << "\\bas\\b" << "\\bassert\\b" << "\\bbreak\\b" << "\\bclass\\b" << "\\bcontinue\\b"
+             << "\\bdef\\b" << "\\bdel\\b" << "\\belif\\b" << "\\belse\\b" << "\\bexcept\\b" << "\\bFalse\\b"
+             << "\\bfinally\\b" << "\\bfor\\b" << "\\bfrom\\b" << "\\bglobal\\b" << "\\bif\\b" << "\\bimport\\b"
+             << "\\bin\\b" << "\\bis\\b" << "\\blambda\\b" << "\\bNone\\b" << "\\bnonlocal\\b" << "\\bnot\\b"
+             << "\\bor\\b" << "\\bpass\\b" << "\\braise\\b" << "\\breturn\\b" << "\\bTrue\\b" << "\\btry\\b"
+             << "\\bwhile\\b" << "\\bwith\\b" << "\\byield\\b";
+    languageKeywordMap[Language::Python] = keywords;
 }
 
 
@@ -117,7 +151,8 @@ void MainWindow::on_currentTab_changed(int index)
     }
 
     // TODO if a file has never been saved, don't apply any syntax highlighting to it
-    syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
+    // Otherwise, pass in the keyword patterns for the corresponding language
+    //syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
 
     // Reconnect editor signals
     connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
