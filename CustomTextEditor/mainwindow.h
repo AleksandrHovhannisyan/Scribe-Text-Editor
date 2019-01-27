@@ -33,8 +33,8 @@ public:
 
 private:
     QMessageBox::StandardButton askUserToSave();
-    void initializeLanguageMapping();
     void triggerCorrespondingMenuLanguageOption(Language lang);
+    Highlighter *generateHighlighterFor(Language language);
 
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
@@ -44,7 +44,6 @@ private:
     Highlighter *syntaxHighlighter = nullptr;
     QActionGroup *languageGroup;
     QMap<QAction*, Language> menuActionToLanguageMap;
-    QMap<Language, QStringList> languageToKeywordMap;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
     QLabel *charLabel;
@@ -64,7 +63,7 @@ public slots:
 
 private slots:
     void on_currentTab_changed(int index);
-    void on_languageSelected(QAction* language);
+    void on_languageSelected(QAction* languageAction);
     void on_actionNew_triggered();
     bool on_actionSave_or_actionSaveAs_triggered();
     void on_actionOpen_triggered();

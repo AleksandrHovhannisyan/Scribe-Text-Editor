@@ -8,7 +8,10 @@ class Highlighter : public QSyntaxHighlighter
     Q_OBJECT
 
 public:
-    Highlighter(QStringList keywordPatterns, QTextDocument *parent = nullptr);
+    Highlighter(QStringList keywordPatterns, QRegularExpression classPattern,
+                QRegularExpression quotePattern, QRegularExpression functionPattern,
+                QRegularExpression inlineCommentPattern, QRegularExpression blockCommentStart,
+                QRegularExpression blockCommentEnd, QTextDocument *parent = nullptr);
 
 protected:
     void highlightBlock(const QString &text) override;
@@ -22,15 +25,22 @@ private:
 
     QVector<HighlightingRule> rules;
 
-    QRegularExpression commentStartExpression;
-    QRegularExpression commentEndExpression;
+    QRegularExpression blockCommentStart;
+    QRegularExpression blockCommentEnd;
 
     QTextCharFormat keywordFormat;
     QTextCharFormat classFormat;
-    QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat multilineCommentFormat;
+    QTextCharFormat inlineCommentFormat;
+    QTextCharFormat blockCommentFormat;
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
 };
+
+
+Highlighter *cHighlighter(QTextDocument *doc);
+Highlighter *cppHighlighter(QTextDocument *doc);
+Highlighter *javaHighlighter(QTextDocument *doc);
+Highlighter *pythonHighlighter(QTextDocument *doc);
+
 
 #endif // HIGHLIGHTER_H
