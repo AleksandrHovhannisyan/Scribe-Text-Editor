@@ -19,6 +19,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
     installEventFilter(this);
 
+    keywordPatterns << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b"
+                        << "\\bdouble\\b" << "\\benum\\b" << "\\bexplicit\\b"
+                        << "\\bfriend\\b" << "\\binline\\b" << "\\bint\\b"
+                        << "\\blong\\b" << "\\bnamespace\\b" << "\\boperator\\b"
+                        << "\\bprivate\\b" << "\\bprotected\\b" << "\\bpublic\\b"
+                        << "\\bshort\\b" << "\\bsignals\\b" << "\\bsigned\\b"
+                        << "\\bslots\\b" << "\\bstatic\\b" << "\\bstruct\\b"
+                        << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
+                        << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvirtual\\b"
+                        << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bbool\\b";
+
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
@@ -54,8 +65,20 @@ MainWindow::~MainWindow()
     delete charCountLabel;
     delete columnCountLabel;
     delete columnLabel;
+    delete syntaxHighlighter;
     delete ui;
 }
+
+
+// TODO auto-identify languages using the file's extension once it's been saved
+/* Fills its internal dictionary mapping languages to their corresponding keyword patterns.
+ * Used by the main window to match different languages in the current document, depending
+ * on the language the user has specified (or that the program has automatically identified).
+ */
+void MainWindow::initializeLanguageMapping()
+{
+}
+
 
 
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
@@ -87,6 +110,14 @@ void MainWindow::on_currentTab_changed(int index)
     // Set the internal editor to the currently tabbed one
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
     editor->setFocus(Qt::FocusReason::TabFocusReason);
+
+    if(syntaxHighlighter != nullptr)
+    {
+        delete syntaxHighlighter;
+    }
+
+    // TODO if a file has never been saved, don't apply any syntax highlighting to it
+    syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
 
     // Reconnect editor signals
     connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));

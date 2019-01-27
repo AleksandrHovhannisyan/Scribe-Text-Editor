@@ -6,10 +6,12 @@
 #include "finddialog.h"
 #include "gotodialog.h"
 #include "tabbededitor.h"
+#include <highlighter.h>
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels
 #include <QtDebug>
+
 
 namespace Ui {
 class MainWindow;
@@ -29,19 +31,31 @@ public:
 
 private:
     QMessageBox::StandardButton askUserToSave();
+    void initializeLanguageMapping();
+
+    // Four common programming languages
+    enum Language
+    {
+        CPP,
+        C,
+        Python,
+        Java
+    };
 
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
-    Editor *editor;
+    Editor *editor = nullptr;
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
+    Highlighter *syntaxHighlighter;
+    QStringList keywordPatterns;
+    QMap<Language, QStringList> languageKeywordMap;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
     QLabel *charLabel;
     QLabel *charCountLabel;
     QLabel *columnLabel;
     QLabel *columnCountLabel;
-    const int MESSAGE_BOX_CLOSE_VALUE = 65536;
 
 public slots:
     inline void updateColumnCount(int col) { columnCountLabel->setText(QString::number(col) + tr("   ")); }

@@ -32,7 +32,8 @@ SOURCES += \
     utilityfunctions.cpp \
     searchhistory.cpp \
     gotodialog.cpp \
-    tabbededitor.cpp
+    tabbededitor.cpp \
+    highlighter.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,7 +44,8 @@ HEADERS += \
     utilityfunctions.h \
     searchhistory.h \
     gotodialog.h \
-    tabbededitor.h
+    tabbededitor.h \
+    highlighter.h
 
 FORMS += \
         mainwindow.ui
