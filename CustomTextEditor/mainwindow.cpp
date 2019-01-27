@@ -70,7 +70,6 @@ MainWindow::~MainWindow()
     delete charCountLabel;
     delete columnCountLabel;
     delete columnLabel;
-    delete syntaxHighlighter;
     delete languageGroup;
     delete ui;
 }
