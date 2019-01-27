@@ -74,9 +74,19 @@
     <property name="title">
      <string>Format</string>
     </property>
+    <widget class="QMenu" name="menuLanguage">
+     <property name="title">
+      <string>Language</string>
+     </property>
+     <addaction name="actionC_Lang"/>
+     <addaction name="actionCPP"/>
+     <addaction name="actionJava_Lang"/>
+     <addaction name="actionPython_Lang"/>
+    </widget>
     <addaction name="actionFont"/>
     <addaction name="actionAuto_Indent"/>
     <addaction name="actionWord_Wrap"/>
+    <addaction name="menuLanguage"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -343,6 +353,95 @@
    </property>
    <property name="text">
     <string>Word Wrap</string>
+   </property>
+  </action>
+  <action name="actionC">
+   <property name="text">
+    <string>C</string>
+   </property>
+  </action>
+  <action name="actionC_2">
+   <property name="text">
+    <string>C++</string>
+   </property>
+  </action>
+  <action name="actionJava">
+   <property name="text">
+    <string>Java</string>
+   </property>
+  </action>
+  <action name="actionPython">
+   <property name="text">
+    <string>Python</string>
+   </property>
+  </action>
+  <action name="action_C">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C</string>
+   </property>
+  </action>
+  <action name="action_CPP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C++</string>
+   </property>
+  </action>
+  <action name="action_Java">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Java</string>
+   </property>
+  </action>
+  <action name="action_Python">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Python</string>
+   </property>
+  </action>
+  <action name="actionC_3">
+   <property name="text">
+    <string>C</string>
+   </property>
+  </action>
+  <action name="actionC_Lang">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C</string>
+   </property>
+  </action>
+  <action name="actionCPP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C++</string>
+   </property>
+  </action>
+  <action name="actionJava_Lang">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Java</string>
+   </property>
+  </action>
+  <action name="actionPython_Lang">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Python</string>
    </property>
   </action>
  </widget>

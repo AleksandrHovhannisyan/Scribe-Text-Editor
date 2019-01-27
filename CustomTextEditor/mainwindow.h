@@ -6,10 +6,12 @@
 #include "finddialog.h"
 #include "gotodialog.h"
 #include "tabbededitor.h"
+#include "language.h"
 #include <highlighter.h>
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels
+#include <QActionGroup>
 #include <QtDebug>
 
 
@@ -32,24 +34,17 @@ public:
 private:
     QMessageBox::StandardButton askUserToSave();
     void initializeLanguageMapping();
-
-    // Four common programming languages
-    enum Language
-    {
-        CPP,
-        C,
-        Python,
-        Java
-    };
+    void triggerCorrespondingMenuLanguageOption(Language lang);
 
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
     Editor *editor = nullptr;
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
-    Highlighter *syntaxHighlighter;
-    QStringList keywordPatterns;
-    QMap<Language, QStringList> languageKeywordMap;
+    Highlighter *syntaxHighlighter = nullptr;
+    QActionGroup *languageGroup;
+    QMap<QAction*, Language> menuActionToLanguageMap;
+    QMap<Language, QStringList> languageToKeywordMap;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
     QLabel *charLabel;
@@ -69,6 +64,7 @@ public slots:
 
 private slots:
     void on_currentTab_changed(int index);
+    void on_languageSelected(QAction* language);
     void on_actionNew_triggered();
     bool on_actionSave_or_actionSaveAs_triggered();
     void on_actionOpen_triggered();

@@ -19,7 +19,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
     installEventFilter(this);
 
+    // Maps each menu language option to its corresponding Language type (for convenience)
+    menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
+    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
+    menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
+    menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
     initializeLanguageMapping();
+
+    // Used to ensure that only one language can ever be checked at a time
+    languageGroup = new QActionGroup(this);
+    languageGroup->setExclusive(true);
+    languageGroup->addAction(ui->actionC_Lang);
+    languageGroup->addAction(ui->actionCPP);
+    languageGroup->addAction(ui->actionJava_Lang);
+    languageGroup->addAction(ui->actionPython_Lang);
+    connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
 
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
@@ -57,7 +71,19 @@ MainWindow::~MainWindow()
     delete columnCountLabel;
     delete columnLabel;
     delete syntaxHighlighter;
+    delete languageGroup;
     delete ui;
+}
+
+
+/* Called when the user selects a language from the main menu. Sets the current language to
+ * that language internally for the currently tabbed Editor.
+ */
+void MainWindow::on_languageSelected(QAction* language)
+{
+    editor->setProgrammingLanguage(menuActionToLanguageMap[language]);
+    QStringList keywordPatterns = languageToKeywordMap[editor->getProgrammingLanguage()];
+    syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
 }
 
 
@@ -78,7 +104,7 @@ void MainWindow::initializeLanguageMapping()
              << "\\bswitch\\b" << "\\btypedef\\b" << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvoid\\b"
              << "\\bvolatile\\b" << "\\bwhile\\b";
 
-    languageKeywordMap[Language::C] = keywords;
+    languageToKeywordMap[Language::C] = keywords;
 
     keywords << "\\basm\\b" << "\\bnew\\b" << "\\bthis\\b" << "\\boperator\\b" << "\\bthrow\\b"
              << "\\bbool\\b" << "\\bexplicit\\b" << "\\bprivate\\b" << "\\btrue\\b" << "\\bexport\\b"
@@ -88,7 +114,7 @@ void MainWindow::initializeLanguageMapping()
              << "\\binline\\b" << "\\bdelete\\b" << "\\bstatic_cast\\b" << "\\bvolatile\\b"
              << "\\bwchar_t\\b" << "\\bmutable\\b" << "\\bdynamic_cast\\b" << "\\bnamespace\\b" << "\\btemplate\\b";
 
-    languageKeywordMap[Language::CPP] = keywords;
+    languageToKeywordMap[Language::CPP] = keywords;
     keywords.clear();
 
     keywords << "\\babstract\\b" << "\\bassert\\b" << "\\bboolean\\b" << "\\bbreak\\b" << "\\bbyte\\b"
@@ -101,7 +127,7 @@ void MainWindow::initializeLanguageMapping()
              << "\\bswitch\\b" << "\\bsynchronized\\b" << "\\bthis\\b" << "\\bthrow\\b" << "\\bthrows\\b" << "\\btransient\\b"
              << "\\btry\\b" << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bwhile\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bnull\\b";
 
-    languageKeywordMap[Language::Java] = keywords;
+    languageToKeywordMap[Language::Java] = keywords;
     keywords.clear();
 
     keywords << "\\band\\b" << "\\bas\\b" << "\\bassert\\b" << "\\bbreak\\b" << "\\bclass\\b" << "\\bcontinue\\b"
@@ -110,9 +136,32 @@ void MainWindow::initializeLanguageMapping()
              << "\\bin\\b" << "\\bis\\b" << "\\blambda\\b" << "\\bNone\\b" << "\\bnonlocal\\b" << "\\bnot\\b"
              << "\\bor\\b" << "\\bpass\\b" << "\\braise\\b" << "\\breturn\\b" << "\\bTrue\\b" << "\\btry\\b"
              << "\\bwhile\\b" << "\\bwith\\b" << "\\byield\\b";
-    languageKeywordMap[Language::Python] = keywords;
+    languageToKeywordMap[Language::Python] = keywords;
 }
 
+
+/* Given a Language enum, this function checks the corresponding radio option from the Format > Language
+ * menu. Used by on_currentTab_changed to reflect the current tab's selected language.
+ */
+void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
+{
+    if(lang == Language::C)
+    {
+        ui->actionC_Lang->trigger();
+    }
+    else if(lang == Language::CPP)
+    {
+        ui->actionCPP->trigger();
+    }
+    else if(lang == Language::Java)
+    {
+        ui->actionJava_Lang->trigger();
+    }
+    else
+    {
+        ui->actionPython_Lang->trigger();
+    }
+}
 
 
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
@@ -145,14 +194,24 @@ void MainWindow::on_currentTab_changed(int index)
     editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
     editor->setFocus(Qt::FocusReason::TabFocusReason);
 
-    if(syntaxHighlighter != nullptr)
-    {
-        delete syntaxHighlighter;
-    }
+    Language tabLanguage = editor->getProgrammingLanguage();
 
-    // TODO if a file has never been saved, don't apply any syntax highlighting to it
-    // Otherwise, pass in the keyword patterns for the corresponding language
-    //syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
+    // If this tab had a programming language set, give it a syntax highlighter
+    if(tabLanguage != Language::None)
+    {
+        triggerCorrespondingMenuLanguageOption(tabLanguage);
+        QStringList keywordPatterns = languageToKeywordMap[tabLanguage];
+        delete syntaxHighlighter;
+        syntaxHighlighter = new Highlighter(keywordPatterns, editor->document());
+    }
+    else
+    {
+        // If a menu language is checked but the current tab has no language set, uncheck the menu option
+        if(languageGroup->checkedAction())
+        {
+            languageGroup->checkedAction()->setChecked(false);
+        }
+    }
 
     // Reconnect editor signals
     connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));

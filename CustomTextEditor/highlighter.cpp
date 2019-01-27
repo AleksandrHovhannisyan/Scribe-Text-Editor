@@ -28,7 +28,9 @@ Highlighter::Highlighter(QStringList keywordPatterns, QTextDocument *parent) : Q
 
     // Quotation (e.g., chars and strings) highlighting rule
     quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = QRegularExpression("(\".*\")|('.{0,1}')");
+
+    // TODO fix escape char regex, e.g. for '\n'
+    rule.pattern = QRegularExpression("(\".*\")|('\\.{1}')|('.{0,1}')");       // TODO python uses single quotes for strings too, so pass as param
     rule.format = quotationFormat;
     rules.append(rule);
 
@@ -39,14 +41,16 @@ Highlighter::Highlighter(QStringList keywordPatterns, QTextDocument *parent) : Q
     rule.format = functionFormat;
     rules.append(rule);
 
+    // TODO Python uses # for single-line and '''...''' / """...""" for multi-line, so we need to pass these in as params
+
     // Single-line comments
-    singleLineCommentFormat.setForeground(Qt::red);
+    singleLineCommentFormat.setForeground(Qt::darkGreen);
     rule.pattern = QRegularExpression("//[^\n]*");
     rule.format = singleLineCommentFormat;
     rules.append(rule);
 
     // Multi-line comments
-    multilineCommentFormat.setForeground(Qt::red);
+    multilineCommentFormat.setForeground(Qt::darkGreen);
     commentStartExpression = QRegularExpression("/\\*");
     commentEndExpression = QRegularExpression("\\*/");
 }

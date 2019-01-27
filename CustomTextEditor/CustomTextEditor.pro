@@ -45,7 +45,8 @@ HEADERS += \
     searchhistory.h \
     gotodialog.h \
     tabbededitor.h \
-    highlighter.h
+    highlighter.h \
+    language.h
 
 FORMS += \
         mainwindow.ui

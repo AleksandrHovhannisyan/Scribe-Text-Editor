@@ -19,6 +19,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     document()->setModified(false);
     setLineWrapMode(QPlainTextEdit::LineWrapMode::NoWrap);
 
+    programmingLanguage = Language::None;
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
     defaultCharFormat.setUnderlineStyle(QTextCharFormat::NoUnderline);

@@ -4,6 +4,7 @@
 #include "gotodialog.h"
 #include "searchhistory.h"
 #include "documentmetrics.h"
+#include "language.h"
 #include <QPlainTextEdit>
 #include <QFont>
 #include <QMessageBox>
@@ -30,6 +31,8 @@ public:
     inline QString getFileName() { return getFileNameFromPath(); }
     void setCurrentFilePath(QString newPath);
     inline QString getCurrentFilePath() const { return currentFilePath; }
+    inline void setProgrammingLanguage(Language language) { programmingLanguage = language; }
+    inline Language getProgrammingLanguage() const { return programmingLanguage; }
     inline bool isUntitled() const { return fileIsUntitled; }
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     void launchFontDialog();
@@ -77,6 +80,7 @@ private:
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
 
+    Language programmingLanguage;
     DocumentMetrics metrics;
     QString currentFilePath;
     bool fileIsUntitled = true;
