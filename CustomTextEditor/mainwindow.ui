@@ -84,9 +84,9 @@
      <addaction name="actionPython_Lang"/>
     </widget>
     <addaction name="actionFont"/>
+    <addaction name="menuLanguage"/>
     <addaction name="actionAuto_Indent"/>
     <addaction name="actionWord_Wrap"/>
-    <addaction name="menuLanguage"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
