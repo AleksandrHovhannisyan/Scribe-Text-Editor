@@ -484,49 +484,58 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
         if(key == Qt::Key_Enter || key == Qt::Key_Return)
         {
             QString documentContents = document()->toPlainText();
+            int indexToLeftOfCursor = textCursor().position() - 1;
 
-            if(documentContents.length() >= 1)
+            if(autoIndentEnabled &&
+               documentContents.length() >= 1 &&
+               indexToLeftOfCursor >= 0 &&
+               indexToLeftOfCursor < documentContents.length())
             {
-                int indexToLeftOfCursor = textCursor().position() - 1;
+                QChar character = documentContents.at(indexToLeftOfCursor);
 
-                if(indexToLeftOfCursor >= 0 && indexToLeftOfCursor < documentContents.length())
+                // Hit ENTER after opening brace
+                if(character == '{')
                 {
-                    bool hitEnterAfterOpeningBrace = documentContents.at(indexToLeftOfCursor) == '{';
+                    bool alreadyPaired = Utility::braceIsBalanced(documentContents, indexToLeftOfCursor);
 
-                    if(hitEnterAfterOpeningBrace)
+                    int braceLevel = indentationLevelOfCurrentLine();
+                    insertPlainText("\n");
+                    insertTabs(braceLevel + 1);
+
+                    // TODO not working for edge case of trying to insert new pair above an existing one
+                    if(!alreadyPaired)
                     {
-                        bool alreadyPaired = Utility::braceIsBalanced(documentContents, indexToLeftOfCursor);
-
-                        int braceLevel = indentationLevelOfCurrentLine();
                         insertPlainText("\n");
-                        insertTabs(braceLevel + 1);
+                        insertTabs(braceLevel);
+                        insertPlainText("}");
 
-                        if(!alreadyPaired)
-                        {
-                            insertPlainText("\n");
-                            insertTabs(braceLevel);
-                            insertPlainText("}");
-
-                            // Set the cursor so it's right after the nested tab
-                            QTextCursor cursor = textCursor();
-                            cursor.setPosition(cursor.position() - 2 - braceLevel);
-                            setTextCursor(cursor);
-                        }
-
-                        return true;
+                        // Set the cursor so it's right after the nested tab
+                        QTextCursor cursor = textCursor();
+                        cursor.setPosition(cursor.position() - 2 - braceLevel);
+                        setTextCursor(cursor);
                     }
 
-                    // Make sure any other block of text gets aligned properly
-                    else if(autoIndentEnabled)
-                    {
-                        int indentationLevel = indentationLevelOfCurrentLine();
-                        insertPlainText("\n");
-                        insertTabs(indentationLevel);
-                        return true;
-                    }
+                    return true;
+                }
+                // Hit ENTER after colon (for Python only)
+                else if(character == ':' && programmingLanguage == Language::Python)
+                {
+                    int level = indentationLevelOfCurrentLine();
+                    insertPlainText("\n");
+                    insertTabs(level + 1);
+                    return true;
+                }
+                // Hit ENTER after anything else
+                else
+                {
+                    int indentationLevel = indentationLevelOfCurrentLine();
+                    insertPlainText("\n");
+                    insertTabs(indentationLevel);
+                    return true;
                 }
             }
         }
+
         // Indenting selections of text
         else if(key == Qt::Key_Tab)
         {
@@ -549,11 +558,13 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
                 return true;
             }
         }
+        // Process anything else normally
         else
         {
             return QObject::eventFilter(obj, event);
         }
     }
+    // Process anything else normally
     else
     {
         return QObject::eventFilter(obj, event);
