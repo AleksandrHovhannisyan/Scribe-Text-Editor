@@ -11,6 +11,13 @@ Highlighter::Highlighter(QStringList keywordPatterns, QRegularExpression classPa
 {
     HighlightingRule rule;
 
+    // Class highlighting rule
+    classFormat.setFontWeight(QFont::Bold);
+    classFormat.setForeground(Qt::darkMagenta);
+    rule.pattern = classPattern;
+    rule.format = classFormat;
+    rules.append(rule);
+
     keywordFormat.setForeground(Qt::darkBlue);
     keywordFormat.setFontWeight(QFont::Bold);
 
@@ -21,13 +28,6 @@ Highlighter::Highlighter(QStringList keywordPatterns, QRegularExpression classPa
         rule.format = keywordFormat;
         rules.append(rule);
     }
-
-    // Class highlighting rule
-    classFormat.setFontWeight(QFont::Bold);
-    classFormat.setForeground(Qt::darkMagenta);
-    rule.pattern = classPattern;
-    rule.format = classFormat;
-    rules.append(rule);
 
     // Quotation (e.g., chars and strings) highlighting rule
     quotationFormat.setForeground(Qt::darkGreen);
@@ -119,9 +119,9 @@ Highlighter *cHighlighter(QTextDocument *doc)
              << "\\bswitch\\b" << "\\btypedef\\b" << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvoid\\b"
              << "\\bvolatile\\b" << "\\bwhile\\b";
 
-    QRegularExpression classPattern("\\bQ[A-Za-z]+\\b");
-    QRegularExpression quotePattern("(\".*\")|('\\.{1}')|('.{0,1}')");
-    QRegularExpression functionPattern("\\b[A-Za-z0-9_]+(?=\\()");
+    QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
+    QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
+    QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
     QRegularExpression inlineCommentPattern("//[^\n]*");
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
@@ -149,11 +149,11 @@ Highlighter *cppHighlighter(QTextDocument *doc)
              << "\\bfor\\b" << "\\bgoto\\b" << "\\bif\\b" << "\\bint\\b" << "\\blong\\b" << "\\bregister\\b"
              << "\\breturn\\b" << "\\bshort\\b" << "\\bsigned\\b" << "\\bsizeof\\b" << "\\bstatic\\b"
              << "\\bstruct\\b" << "\\bswitch\\b" << "\\btypedef\\b" << "\\bunion\\b" << "\\bunsigned\\b"
-             << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bwhile\\b";
+             << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bwhile\\b" << "\\bnew\\b";
 
-    QRegularExpression classPattern("\\bQ[A-Za-z]+\\b");
-    QRegularExpression quotePattern("(\".*\")|('\\.{1}')|('.{0,1}')"); // TODO fix for C, CPP, Java
-    QRegularExpression functionPattern("\\b[A-Za-z0-9_]+(?=\\()");
+    QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
+    QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
+    QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()"); // TODO account for special operator overload cases
     QRegularExpression inlineCommentPattern("//[^\n]*");
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
@@ -179,9 +179,9 @@ Highlighter *javaHighlighter(QTextDocument *doc)
              << "\\bswitch\\b" << "\\bsynchronized\\b" << "\\bthis\\b" << "\\bthrow\\b" << "\\bthrows\\b" << "\\btransient\\b"
              << "\\btry\\b" << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bwhile\\b" << "\\btrue\\b" << "\\bfalse\\b" << "\\bnull\\b";
 
-    QRegularExpression classPattern("\\bQ[A-Za-z]+\\b");
-    QRegularExpression quotePattern("(\".*\")|('\\.{1}')|('.{0,1}')"); // TODO fix for C, CPP, Java
-    QRegularExpression functionPattern("\\b[A-Za-z0-9_]+(?=\\()");
+    QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
+    QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
+    QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
     QRegularExpression inlineCommentPattern("//[^\n]*");
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
@@ -204,9 +204,9 @@ Highlighter *pythonHighlighter(QTextDocument *doc)
              << "\\bor\\b" << "\\bpass\\b" << "\\braise\\b" << "\\breturn\\b" << "\\bTrue\\b" << "\\btry\\b"
              << "\\bwhile\\b" << "\\bwith\\b" << "\\byield\\b";
 
-    QRegularExpression classPattern("\\bQ[A-Za-z]+\\b");
-    QRegularExpression quotePattern("(\".*\")|('.*')"); // TODO fix for C, CPP, Java
-    QRegularExpression functionPattern("\\b[A-Za-z0-9_]+(?=\\()");
+    QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
+    QRegularExpression quotePattern("(\".*\")|('.*')");
+    QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
     QRegularExpression inlineCommentPattern("#[^\n]*");
 
     // TODO change for Python
