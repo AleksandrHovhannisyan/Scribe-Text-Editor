@@ -4,6 +4,10 @@ Scribe is a simple, user-friendly text editor for Windows power users.
 
 ![](CustomTextEditor/screenshots/Screenshot1.PNG)
 
+Basic syntax highlighting for four languages: C, C++, Java, and Python.
+
+![](CustomTextEditor/screenshots/Screenshot2.PNG)
+
 ## Development
 
 ### Getting started
