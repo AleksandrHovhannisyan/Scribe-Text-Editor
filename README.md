@@ -1,6 +1,6 @@
 # Scribe
 
-Scribe is a simple, user-friendly text editor.
+Scribe is a simple, user-friendly text editor for Windows users.
 
 ![](CustomTextEditor/screenshots/Screenshot1.PNG)
 
