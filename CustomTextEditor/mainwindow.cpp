@@ -456,6 +456,7 @@ bool MainWindow::closeTab(int index)
         tabbedEditor->setCurrentWidget(tabToClose);
     }
 
+    // Don't close a tab immediately if it has unsaved contents
     if(tabToClose->isUnsaved())
     {
         QMessageBox::StandardButton selection = askUserToSave();
@@ -484,7 +485,7 @@ bool MainWindow::closeTab(int index)
         on_actionNew_triggered();
     }
 
-    // And finally, reset the current tab if needed
+    // And finally, go back to original tab if the user was closing a different one
     if(!closingCurrentTab)
     {
         tabbedEditor->setCurrentWidget(currentTab);
@@ -499,8 +500,7 @@ bool MainWindow::closeTab(int index)
  */
 void MainWindow::on_actionExit_triggered()
 {
-    // TODO change condition to while true
-    while(tabbedEditor->count() != 0)
+    while(true)
     {
         bool closed = closeTab(0);
 
