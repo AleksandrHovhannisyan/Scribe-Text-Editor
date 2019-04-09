@@ -17,7 +17,6 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    installEventFilter(this);
 
     // Maps each menu language option to its corresponding Language type (for convenience)
     menuActionToLanguageMap[ui->actionC_Lang] = Language::C;

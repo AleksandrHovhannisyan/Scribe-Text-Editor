@@ -22,7 +22,6 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     programmingLanguage = Language::None;
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
-    defaultCharFormat.setUnderlineStyle(QTextCharFormat::NoUnderline);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -76,6 +75,7 @@ QString Editor::getFileNameFromPath()
         return "Untitled document";
     }
 
+    // Forward slash dependent on the OS, obviously
     int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');
     int lengthOfFileName = currentFilePath.length() - indexOfLastForwardSlash;
 
@@ -164,13 +164,13 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         matchFound = QPlainTextEdit::find(query, searchOptions);
     }
 
-    // If we found a match, just make sure it's not a repeat
+    // If we found a match...
     if(matchFound)
     {
         int foundPosition = textCursor().position();
         bool previouslyFound = searchHistory.previouslyFound(query);
 
-        // Log the first position at which this query was found in the current document state
+        // If it's the first time finding this, log the first position at which this query was found in the current document state
         // Search history is always reset whenever we do a full cycle back to the first match or start a new search "chain"
         if(!previouslyFound)
         {
@@ -183,7 +183,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 
             if(loopedBackToFirstMatch)
             {
-                // It's not really a match that we found; it's a repeat of the very first ever match
+                // It's not really a match that we found; it's a repeat of the very first-ever match
                 matchFound = false;
 
                 // Reset the cursor to its original position prior to first search for this term
@@ -195,7 +195,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 // Clear search history
                 searchHistory.clear();
 
-                // Inform the user of the unsuccessful search
+                // Inform the user of the unsuccessful search (note the "no MORE results found")
                 emit(findResultReady("No more results found."));
             }
         }
@@ -298,6 +298,7 @@ void Editor::goTo(int line)
 }
 
 
+// TODO obsolete unless we introduce error highlighting
 /* Applies the given formatting to the selection of text between the two given indices (inclusive).
  * Unformats all text before applying the given formatting if the flag is specified as true.
  * @param startIndex - the index from which the formatting should proceed
