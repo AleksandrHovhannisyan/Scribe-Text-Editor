@@ -152,7 +152,9 @@ void MainWindow::disconnectEditorDependentSignals()
  */
 void MainWindow::reconnectEditorDependentSignals()
 {
-    // Reconnect editor signals and slots
+    // Reconnect editor signals
+    connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
     connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -209,10 +211,6 @@ void MainWindow::on_currentTab_changed(int index)
         }
     }
 
-    // Reconnect editor signals
-    connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
-    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
-
     // Update main window actions to reflect the current tab's available actions
     toggleRedo(editor->redoAvailable());
     toggleUndo(editor->undoAvailable());
@@ -227,7 +225,8 @@ void MainWindow::on_currentTab_changed(int index)
 }
 
 
-/* Initializes and updates the status bar labels.
+/* Initializes the status bar labels and adds them as permanent
+ * widgets to the status bar of the main application window.
  */
 void MainWindow::initializeStatusBarLabels()
 {
@@ -515,22 +514,40 @@ void MainWindow::on_actionExit_triggered()
 
 /* Called when the Undo operation is toggled by the editor.
  */
-void MainWindow::toggleUndo(bool undoAvailable) { ui->actionUndo->setEnabled(undoAvailable); }
+void MainWindow::toggleUndo(bool undoAvailable)
+{
+    ui->actionUndo->setEnabled(undoAvailable);
+}
 
 
 /* Called when the Redo operation is toggled by the editor.
  */
-void MainWindow::toggleRedo(bool redoAvailable) { ui->actionRedo->setEnabled(redoAvailable); }
+void MainWindow::toggleRedo(bool redoAvailable)
+{
+    ui->actionRedo->setEnabled(redoAvailable);
+}
 
 
 /* Called when the user performs the Undo operation.
  */
-void MainWindow::on_actionUndo_triggered() { if(ui->actionUndo->isEnabled()) editor->undo(); }
+void MainWindow::on_actionUndo_triggered()
+{
+    if(ui->actionUndo->isEnabled())
+    {
+        editor->undo();
+    }
+}
 
 
 /* Called when the user performs the Redo operation.
  */
-void MainWindow::on_actionRedo_triggered(){ if(ui->actionRedo->isEnabled()) editor->redo(); }
+void MainWindow::on_actionRedo_triggered()
+{
+    if(ui->actionRedo->isEnabled())
+    {
+        editor->redo();
+    }
+}
 
 
 /* Called when the Copy and Cut operations are toggled by the editor.
@@ -544,34 +561,58 @@ void MainWindow::toggleCopyAndCut(bool copyCutAvailable)
 
 /* Called when the user performs the Cut operation.
  */
-void MainWindow::on_actionCut_triggered() { if(ui->actionCut->isEnabled()) editor->cut(); }
+void MainWindow::on_actionCut_triggered()
+{
+    if(ui->actionCut->isEnabled())
+    {
+        editor->cut();
+    }
+}
 
 
 /* Called when the user performs the Copy operation.
  */
-void MainWindow::on_actionCopy_triggered() { if(ui->actionCopy->isEnabled()) editor->copy(); }
+void MainWindow::on_actionCopy_triggered()
+{
+    if(ui->actionCopy->isEnabled())
+    {
+        editor->copy();
+    }
+}
 
 
 /* Called when the user performs the Paste operation.
  */
-void MainWindow::on_actionPaste_triggered() { editor->paste(); }
+void MainWindow::on_actionPaste_triggered()
+{
+    editor->paste();
+}
 
 
 /* Called when the user explicitly selects the Find option from the menu
  * (or uses Ctrl+F). Launches a dialog that prompts the user to enter a search query.
  */
-void MainWindow::on_actionFind_triggered() { launchFindDialog(); }
+void MainWindow::on_actionFind_triggered()
+{
+    launchFindDialog();
+}
 
 
 /* Called when the user explicitly selects the Go To option from the menu (or uses Ctrl+G).
  * Launches a Go To dialog that prompts the user to enter a line number they wish to jump to.
  */
-void MainWindow::on_actionGo_To_triggered() { launchGotoDialog(); }
+void MainWindow::on_actionGo_To_triggered()
+{
+    launchGotoDialog();
+}
 
 
 /* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).
  */
-void MainWindow::on_actionSelect_All_triggered() { editor->selectAll(); }
+void MainWindow::on_actionSelect_All_triggered()
+{
+    editor->selectAll();
+}
 
 
 /* Called when the user explicitly selects the Time/Date option from the menu (or uses F5).
@@ -585,7 +626,10 @@ void MainWindow::on_actionTime_Date_triggered()
 
 /* Called when the user selects the Font option from the menu. Launches a font selection dialog.
  */
-void MainWindow::on_actionFont_triggered() { editor->launchFontDialog(); }
+void MainWindow::on_actionFont_triggered()
+{
+    editor->launchFontDialog();
+}
 
 
 /* Called when the user selects the Auto Indent option from the Format menu.
@@ -616,7 +660,11 @@ void MainWindow::on_actionWord_Wrap_triggered()
 
 /* Toggles the visibility of the status bar.
  */
-void MainWindow::on_actionStatus_Bar_triggered() { ui->statusBar->setVisible(!ui->statusBar->isVisible()); }
+void MainWindow::on_actionStatus_Bar_triggered()
+{
+    bool oppositeOfCurrentVisibility = !ui->statusBar->isVisible();
+    ui->statusBar->setVisible(oppositeOfCurrentVisibility);
+}
 
 
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries
