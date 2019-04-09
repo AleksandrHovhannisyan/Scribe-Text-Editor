@@ -34,21 +34,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     languageGroup->addAction(ui->actionPython_Lang);
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
 
+    // Set up the find dialog
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
+    // Set up the goto dialog
     gotoDialog = new GotoDialog();
     gotoDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
+    // Set up the tabbed editor
     tabbedEditor = ui->tabWidget;
     tabbedEditor->setTabsClosable(true);
 
     initializeStatusBarLabels();
     on_currentTab_changed(0);
 
+    // Connect tabbedEditor's signals to their handlers
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
     connect(tabbedEditor, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
+    // Connect action signals to their handlers
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
@@ -125,6 +130,45 @@ Highlighter *MainWindow::generateHighlighterFor(Language language)
 }
 
 
+/* Disconnects all signals that depend on the cached editor/tab. Used mainly
+ * when the current editor is changed (when a new tab is opened, for example).
+ */
+void MainWindow::disconnectEditorDependentSignals()
+{
+    disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+    disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+    disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+    disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
+    disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    disconnect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    disconnect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+}
+
+
+/* Connects all signals and slots that depend on the cached editor/tab. Used mainly
+ * when the current editor is changed (when a new tab is opened, for example).
+ */
+void MainWindow::reconnectEditorDependentSignals()
+{
+    // Reconnect editor signals and slots
+    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
+    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+
+    // Reconnect find/goto signals and slots to the current editor
+    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+    connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+
+}
+
+
+
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
  * reconnects any relevant signals, and updates the window.
  */
@@ -140,15 +184,7 @@ void MainWindow::on_currentTab_changed(int index)
     if(editor != nullptr)
     {
         // Disconnect for previous active editor
-        disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
-        disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
-        disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
-        disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
-        disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
-        disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
-        disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
-        disconnect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
-        disconnect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+        disconnectEditorDependentSignals();
     }
 
     // Set the internal editor to the currently tabbed one
@@ -182,18 +218,7 @@ void MainWindow::on_currentTab_changed(int index)
     toggleUndo(editor->undoAvailable());
     toggleCopyAndCut(editor->textCursor().hasSelection());
 
-    // Reconnect editor signals and slots
-    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
-    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
-    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
-    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
-    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
-
-    // Reconnect find/goto signals and slots to the current editor
-    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
-    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
-    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
-    connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    reconnectEditorDependentSignals();
 
     // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
     DocumentMetrics metrics = editor->getDocumentMetrics();

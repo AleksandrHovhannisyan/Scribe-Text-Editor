@@ -32,6 +32,8 @@ public:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    void reconnectEditorDependentSignals();
+    void disconnectEditorDependentSignals();
     QMessageBox::StandardButton askUserToSave();
     void triggerCorrespondingMenuLanguageOption(Language lang);
     Highlighter *generateHighlighterFor(Language language);
