@@ -470,6 +470,96 @@ void Editor::moveCursorToStartOfCurrentLine()
 }
 
 
+/* Called when a user presses a key. Used to handle special formatting.
+ */
+bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
+{
+    // Auto-indenting after ENTER
+    if(key == Qt::Key_Enter || key == Qt::Key_Return)
+    {
+        QString documentContents = document()->toPlainText();
+        int indexToLeftOfCursor = textCursor().position() - 1;
+
+        if(autoIndentEnabled &&
+           documentContents.length() >= 1 &&
+           indexToLeftOfCursor >= 0 &&
+           indexToLeftOfCursor < documentContents.length())
+        {
+            QChar character = documentContents.at(indexToLeftOfCursor);
+
+            // Hit ENTER after opening brace
+            if(character == '{')
+            {
+                bool alreadyPaired = Utility::braceIsBalanced(documentContents, indexToLeftOfCursor);
+
+                int braceLevel = indentationLevelOfCurrentLine();
+                insertPlainText("\n");
+                insertTabs(braceLevel + 1);
+
+                // TODO not working for edge case of trying to insert new pair above an existing one
+                if(!alreadyPaired)
+                {
+                    insertPlainText("\n");
+                    insertTabs(braceLevel);
+                    insertPlainText("}");
+
+                    // Set the cursor so it's right after the nested tab
+                    QTextCursor cursor = textCursor();
+                    cursor.setPosition(cursor.position() - 2 - braceLevel);
+                    setTextCursor(cursor);
+                }
+
+                return true;
+            }
+            // Hit ENTER after colon (for Python only)
+            else if(character == ':' && programmingLanguage == Language::Python)
+            {
+                int level = indentationLevelOfCurrentLine();
+                insertPlainText("\n");
+                insertTabs(level + 1);
+                return true;
+            }
+            // Hit ENTER after anything else
+            else
+            {
+                int indentationLevel = indentationLevelOfCurrentLine();
+                insertPlainText("\n");
+                insertTabs(indentationLevel);
+                return true;
+            }
+        }
+    }
+
+    // Indenting selections of text
+    else if(key == Qt::Key_Tab)
+    {
+        if(textCursor().hasSelection())
+        {
+            QString text = textCursor().selection().toPlainText();
+
+            text.insert(0, '\t');
+            for(int i = 1; i < text.length(); i++)
+            {
+                // Insert a tab after each newline
+                if(text.at(i) == '\n' && i + 1 < text.length())
+                {
+                    text.insert(i + 1, '\t');
+                }
+            }
+
+            // Replace the selection with the new tabbed text
+            insertPlainText(text);
+            return true;
+        }
+    }
+    // Process anything else normally
+    else
+    {
+        return QObject::eventFilter(obj, event);
+    }
+}
+
+
 /* Custom handler for events. Used to handle the case of Enter being pressed after an opening brace
  * or the tab key being used on a selection of text.
  */
@@ -481,91 +571,8 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
     {
         int key = static_cast<QKeyEvent*>(event)->key();
 
-        // Auto-indenting after ENTER
-        if(key == Qt::Key_Enter || key == Qt::Key_Return)
-        {
-            QString documentContents = document()->toPlainText();
-            int indexToLeftOfCursor = textCursor().position() - 1;
-
-            if(autoIndentEnabled &&
-               documentContents.length() >= 1 &&
-               indexToLeftOfCursor >= 0 &&
-               indexToLeftOfCursor < documentContents.length())
-            {
-                QChar character = documentContents.at(indexToLeftOfCursor);
-
-                // Hit ENTER after opening brace
-                if(character == '{')
-                {
-                    bool alreadyPaired = Utility::braceIsBalanced(documentContents, indexToLeftOfCursor);
-
-                    int braceLevel = indentationLevelOfCurrentLine();
-                    insertPlainText("\n");
-                    insertTabs(braceLevel + 1);
-
-                    // TODO not working for edge case of trying to insert new pair above an existing one
-                    if(!alreadyPaired)
-                    {
-                        insertPlainText("\n");
-                        insertTabs(braceLevel);
-                        insertPlainText("}");
-
-                        // Set the cursor so it's right after the nested tab
-                        QTextCursor cursor = textCursor();
-                        cursor.setPosition(cursor.position() - 2 - braceLevel);
-                        setTextCursor(cursor);
-                    }
-
-                    return true;
-                }
-                // Hit ENTER after colon (for Python only)
-                else if(character == ':' && programmingLanguage == Language::Python)
-                {
-                    int level = indentationLevelOfCurrentLine();
-                    insertPlainText("\n");
-                    insertTabs(level + 1);
-                    return true;
-                }
-                // Hit ENTER after anything else
-                else
-                {
-                    int indentationLevel = indentationLevelOfCurrentLine();
-                    insertPlainText("\n");
-                    insertTabs(indentationLevel);
-                    return true;
-                }
-            }
-        }
-
-        // Indenting selections of text
-        else if(key == Qt::Key_Tab)
-        {
-            if(textCursor().hasSelection())
-            {
-                QString text = textCursor().selection().toPlainText();
-
-                text.insert(0, '\t');
-                for(int i = 1; i < text.length(); i++)
-                {
-                    // Insert a tab after each newline
-                    if(text.at(i) == '\n' && i + 1 < text.length())
-                    {
-                        text.insert(i + 1, '\t');
-                    }
-                }
-
-                // Replace the selection with the new tabbed text
-                insertPlainText(text);
-                return true;
-            }
-        }
-        // Process anything else normally
-        else
-        {
-            return QObject::eventFilter(obj, event);
-        }
+        return handleKeyPress(obj, event, key);
     }
-    // Process anything else normally
     else
     {
         return QObject::eventFilter(obj, event);
