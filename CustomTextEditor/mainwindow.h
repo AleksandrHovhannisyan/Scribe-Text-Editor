@@ -55,6 +55,7 @@ private:
 
 public slots:
     inline void updateColumnCount(int col) { columnCountLabel->setText(QString::number(col) + tr("   ")); }
+    void updateTabAndWindowTitle();
     void updateWordAndCharCount(DocumentMetrics metrics);
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);

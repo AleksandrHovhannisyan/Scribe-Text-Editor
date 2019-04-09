@@ -155,6 +155,7 @@ void MainWindow::reconnectEditorDependentSignals()
     // Reconnect editor signals
     connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
     connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateTabAndWindowTitle()));
     connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -221,6 +222,7 @@ void MainWindow::on_currentTab_changed(int index)
     // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
     DocumentMetrics metrics = editor->getDocumentMetrics();
     updateWordAndCharCount(metrics);
+    updateTabAndWindowTitle();
     updateColumnCount(metrics.currentColumn);
 }
 
@@ -273,6 +275,19 @@ void MainWindow::launchGotoDialog()
 }
 
 
+/* Updates the tab name and the main application window title to reflect the
+ * currently open document.
+ */
+void MainWindow::updateTabAndWindowTitle()
+{
+    QString fileName = editor->getFileName();
+    bool editorUnsaved = editor->isUnsaved();
+
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? " *" : ""));
+    setWindowTitle(fileName + (editorUnsaved ? " [Unsaved]" : ""));
+}
+
+
 /* Updates the window and status bar labels to reflect the most up-to-date word and char counts.
  * Note: updating the column count is handled separately. See updateColumnCount in mainwindow.h.
  */
@@ -283,12 +298,6 @@ void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
 
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
-
-    QString fileName = editor->getFileName();
-    bool editorUnsaved = editor->isUnsaved();
-
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? " *" : ""));
-    setWindowTitle(fileName + (editorUnsaved ? " [Unsaved]" : ""));
 }
 
 
