@@ -38,6 +38,7 @@ private:
     void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);
     Highlighter *generateHighlighterFor(Language language);
+    void mapMenuLanguageOptionToLanguageType();
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
 

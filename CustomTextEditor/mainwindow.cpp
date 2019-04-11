@@ -18,11 +18,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 {
     ui->setupUi(this);
 
-    // Maps each menu language option to its corresponding Language type (for convenience)
-    menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
-    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
-    menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
-    menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
+    mapMenuLanguageOptionToLanguageType();
 
     // Used to ensure that only one language can ever be checked at a time
     languageGroup = new QActionGroup(this);
@@ -65,6 +61,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 
+/* Maps each menu language option (from the Format dropdown) to its corresponding
+ * Language type, for convenience.
+ */
+void MainWindow::mapMenuLanguageOptionToLanguageType()
+{
+    menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
+    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
+    menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
+    menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
+}
+
+
 /* Maps known file extensions to the languages the editor supports.
  */
 void MainWindow::mapFileExtensionsToLanguages()
@@ -97,16 +105,8 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_languageSelected(QAction* languageAction)
 {
-    Language lang = menuActionToLanguageMap[languageAction];
-
-    editor->setProgrammingLanguage(menuActionToLanguageMap[languageAction]);
-
-    if(syntaxHighlighter)
-    {
-        delete syntaxHighlighter;
-    }
-
-    syntaxHighlighter = generateHighlighterFor(lang);
+    Language language = menuActionToLanguageMap[languageAction];
+    selectProgrammingLanguage(language);
 }
 
 
@@ -117,10 +117,34 @@ void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
 {
     switch(lang)
     {
-        case(Language::C): ui->actionC_Lang->trigger(); break;
-        case(Language::CPP): ui->actionCPP->trigger(); break;
-        case(Language::Java): ui->actionJava_Lang->trigger(); break;
-        case(Language::Python): ui->actionPython_Lang->trigger(); break;
+        case(Language::C):
+            if(!ui->actionC_Lang->isChecked())
+            {
+                ui->actionC_Lang->trigger();
+            }
+            break;
+
+        case(Language::CPP):
+            if(!ui->action_CPP->isChecked())
+            {
+                ui->actionCPP->trigger();
+            }
+            break;
+
+        case(Language::Java):
+            if(!ui->actionJava_Lang->isChecked())
+            {
+                ui->actionJava_Lang->trigger();
+            }
+            break;
+
+        case(Language::Python):
+            if(!ui->actionPython_Lang->isChecked())
+            {
+                ui->actionPython_Lang->trigger();
+            }
+            break;
+
         default: return;
     }
 }
@@ -155,7 +179,7 @@ void MainWindow::setLanguageFromExtension()
 
     if(indexOfDot == -1)
     {
-        editor->setProgrammingLanguage(Language::None);
+        selectProgrammingLanguage(Language::None);
         return;
     }
 
@@ -165,7 +189,7 @@ void MainWindow::setLanguageFromExtension()
 
     if(!extensionSupported)
     {
-        editor->setProgrammingLanguage(Language::None);
+        selectProgrammingLanguage(Language::None);
         return;
     }
 
@@ -179,7 +203,18 @@ void MainWindow::setLanguageFromExtension()
  */
 void MainWindow::selectProgrammingLanguage(Language language)
 {
+    if(language == editor->getProgrammingLanguage())
+    {
+        return;
+    }
+
     editor->setProgrammingLanguage(language);
+
+    if(syntaxHighlighter)
+    {
+        delete syntaxHighlighter;
+    }
+
     syntaxHighlighter = generateHighlighterFor(language);
     triggerCorrespondingMenuLanguageOption(language);
 }
