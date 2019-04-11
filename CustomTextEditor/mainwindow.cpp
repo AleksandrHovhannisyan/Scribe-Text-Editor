@@ -60,6 +60,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Have to add this shortcut manually because we can't define it via the GUI editor
     QShortcut *tabCloseShortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
     QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
+
+    mapFileExtensionsToLanguages();
+}
+
+
+/* Maps known file extensions to the languages the editor supports.
+ */
+void MainWindow::mapFileExtensionsToLanguages()
+{
+    extensionToLanguageMap.insert("cpp", Language::CPP);
+    extensionToLanguageMap.insert("h", Language::CPP);
+    extensionToLanguageMap.insert("c", Language::C);
+    extensionToLanguageMap.insert("java", Language::Java);
+    extensionToLanguageMap.insert("py", Language::Python);
 }
 
 
@@ -127,6 +141,47 @@ Highlighter *MainWindow::generateHighlighterFor(Language language)
         case(Language::Python): return pythonHighlighter(doc);
         default: return nullptr;
     }
+}
+
+
+/* Uses the extension of a file to determine what language, if any, it should be
+ * mapped to. If the extension does not match one of the supported languages, or if
+ * the file does not have an extension, then the language is set to Language::None.
+ */
+void MainWindow::setLanguageFromExtension()
+{
+    QString fileName = editor->getFileName();
+    int indexOfDot = fileName.indexOf('.');
+
+    if(indexOfDot == -1)
+    {
+        editor->setProgrammingLanguage(Language::None);
+        return;
+    }
+
+    QString fileExtension = fileName.mid(indexOfDot + 1);
+
+    bool extensionSupported = extensionToLanguageMap.find(fileExtension) != extensionToLanguageMap.end();
+
+    if(!extensionSupported)
+    {
+        editor->setProgrammingLanguage(Language::None);
+        return;
+    }
+
+    selectProgrammingLanguage(extensionToLanguageMap[fileExtension]);
+}
+
+
+/* Wrapper for all common logic that needs to run whenever a given language
+ * is selected for use on a particular tab. Generates an appropriate syntax
+ * highlighter and triggers the corresponding menu option.
+ */
+void MainWindow::selectProgrammingLanguage(Language language)
+{
+    editor->setProgrammingLanguage(language);
+    syntaxHighlighter = generateHighlighterFor(language);
+    triggerCorrespondingMenuLanguageOption(language);
 }
 
 
@@ -370,6 +425,7 @@ bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
 
     editor->setModifiedState(false);
     updateTabAndWindowTitle();
+    setLanguageFromExtension();
 
     return true;
 }
@@ -417,6 +473,7 @@ void MainWindow::on_actionOpen_triggered()
 
     editor->setModifiedState(false);
     updateTabAndWindowTitle();
+    setLanguageFromExtension();
 }
 
 
