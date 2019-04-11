@@ -24,7 +24,7 @@ FindDialog::FindDialog(QWidget *parent)
     // Ensures that the line edit gets the focus whenever the dialog is the active window
     setFocusProxy(findLineEdit);
 
-    // Set up all the  widgets and layouts
+    // Set up all the widgets and layouts
     findHorizontalLayout = new QHBoxLayout();
     replaceHorizontalLayout = new QHBoxLayout();
     optionsLayout = new QHBoxLayout();

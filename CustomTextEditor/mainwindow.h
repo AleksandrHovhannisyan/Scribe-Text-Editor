@@ -32,9 +32,15 @@ public:
     void closeEvent(QCloseEvent *event) override;
 
 private:
+    void reconnectEditorDependentSignals();
+    void disconnectEditorDependentSignals();
     QMessageBox::StandardButton askUserToSave();
+    void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);
     Highlighter *generateHighlighterFor(Language language);
+    void mapMenuLanguageOptionToLanguageType();
+    void mapFileExtensionsToLanguages();
+    void setLanguageFromExtension();
 
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
@@ -44,6 +50,7 @@ private:
     Highlighter *syntaxHighlighter = nullptr;
     QActionGroup *languageGroup;
     QMap<QAction*, Language> menuActionToLanguageMap;
+    QMap<QString, Language> extensionToLanguageMap;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
     QLabel *charLabel;
@@ -53,6 +60,7 @@ private:
 
 public slots:
     inline void updateColumnCount(int col) { columnCountLabel->setText(QString::number(col) + tr("   ")); }
+    void updateTabAndWindowTitle();
     void updateWordAndCharCount(DocumentMetrics metrics);
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);

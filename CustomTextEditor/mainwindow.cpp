@@ -17,13 +17,8 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    installEventFilter(this);
 
-    // Maps each menu language option to its corresponding Language type (for convenience)
-    menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
-    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
-    menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
-    menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
+    mapMenuLanguageOptionToLanguageType();
 
     // Used to ensure that only one language can ever be checked at a time
     languageGroup = new QActionGroup(this);
@@ -34,27 +29,59 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     languageGroup->addAction(ui->actionPython_Lang);
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
 
+    // Set up the find dialog
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
+    // Set up the goto dialog
     gotoDialog = new GotoDialog();
     gotoDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
 
+    // Set up the tabbed editor
     tabbedEditor = ui->tabWidget;
     tabbedEditor->setTabsClosable(true);
 
     initializeStatusBarLabels();
     on_currentTab_changed(0);
 
+    // Connect tabbedEditor's signals to their handlers
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
     connect(tabbedEditor, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
+    // Connect action signals to their handlers
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
 
+    // Have to add this shortcut manually because we can't define it via the GUI editor
     QShortcut *tabCloseShortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
     QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
+
+    mapFileExtensionsToLanguages();
+}
+
+
+/* Maps each menu language option (from the Format dropdown) to its corresponding
+ * Language type, for convenience.
+ */
+void MainWindow::mapMenuLanguageOptionToLanguageType()
+{
+    menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
+    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
+    menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
+    menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
+}
+
+
+/* Maps known file extensions to the languages the editor supports.
+ */
+void MainWindow::mapFileExtensionsToLanguages()
+{
+    extensionToLanguageMap.insert("cpp", Language::CPP);
+    extensionToLanguageMap.insert("h", Language::CPP);
+    extensionToLanguageMap.insert("c", Language::C);
+    extensionToLanguageMap.insert("java", Language::Java);
+    extensionToLanguageMap.insert("py", Language::Python);
 }
 
 
@@ -78,16 +105,8 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_languageSelected(QAction* languageAction)
 {
-    Language lang = menuActionToLanguageMap[languageAction];
-
-    editor->setProgrammingLanguage(menuActionToLanguageMap[languageAction]);
-
-    if(syntaxHighlighter)
-    {
-        delete syntaxHighlighter;
-    }
-
-    syntaxHighlighter = generateHighlighterFor(lang);
+    Language language = menuActionToLanguageMap[languageAction];
+    selectProgrammingLanguage(language);
 }
 
 
@@ -98,10 +117,34 @@ void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
 {
     switch(lang)
     {
-        case(Language::C): ui->actionC_Lang->trigger(); break;
-        case(Language::CPP): ui->actionCPP->trigger(); break;
-        case(Language::Java): ui->actionJava_Lang->trigger(); break;
-        case(Language::Python): ui->actionPython_Lang->trigger(); break;
+        case(Language::C):
+            if(!ui->actionC_Lang->isChecked())
+            {
+                ui->actionC_Lang->trigger();
+            }
+            break;
+
+        case(Language::CPP):
+            if(!ui->action_CPP->isChecked())
+            {
+                ui->actionCPP->trigger();
+            }
+            break;
+
+        case(Language::Java):
+            if(!ui->actionJava_Lang->isChecked())
+            {
+                ui->actionJava_Lang->trigger();
+            }
+            break;
+
+        case(Language::Python):
+            if(!ui->actionPython_Lang->isChecked())
+            {
+                ui->actionPython_Lang->trigger();
+            }
+            break;
+
         default: return;
     }
 }
@@ -125,6 +168,100 @@ Highlighter *MainWindow::generateHighlighterFor(Language language)
 }
 
 
+/* Uses the extension of a file to determine what language, if any, it should be
+ * mapped to. If the extension does not match one of the supported languages, or if
+ * the file does not have an extension, then the language is set to Language::None.
+ */
+void MainWindow::setLanguageFromExtension()
+{
+    QString fileName = editor->getFileName();
+    int indexOfDot = fileName.indexOf('.');
+
+    if(indexOfDot == -1)
+    {
+        selectProgrammingLanguage(Language::None);
+        return;
+    }
+
+    QString fileExtension = fileName.mid(indexOfDot + 1);
+
+    bool extensionSupported = extensionToLanguageMap.find(fileExtension) != extensionToLanguageMap.end();
+
+    if(!extensionSupported)
+    {
+        selectProgrammingLanguage(Language::None);
+        return;
+    }
+
+    selectProgrammingLanguage(extensionToLanguageMap[fileExtension]);
+}
+
+
+/* Wrapper for all common logic that needs to run whenever a given language
+ * is selected for use on a particular tab. Generates an appropriate syntax
+ * highlighter and triggers the corresponding menu option.
+ */
+void MainWindow::selectProgrammingLanguage(Language language)
+{
+    if(language == editor->getProgrammingLanguage())
+    {
+        return;
+    }
+
+    editor->setProgrammingLanguage(language);
+
+    if(syntaxHighlighter)
+    {
+        delete syntaxHighlighter;
+    }
+
+    syntaxHighlighter = generateHighlighterFor(language);
+    triggerCorrespondingMenuLanguageOption(language);
+}
+
+
+/* Disconnects all signals that depend on the cached editor/tab. Used mainly
+ * when the current editor is changed (when a new tab is opened, for example).
+ */
+void MainWindow::disconnectEditorDependentSignals()
+{
+    disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+    disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+    disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+    disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
+    disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    disconnect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    disconnect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+}
+
+
+/* Connects all signals and slots that depend on the cached editor/tab. Used mainly
+ * when the current editor is changed (when a new tab is opened, for example).
+ */
+void MainWindow::reconnectEditorDependentSignals()
+{
+    // Reconnect editor signals
+    connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
+    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateTabAndWindowTitle()));
+    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
+    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+
+    // Reconnect find/goto signals and slots to the current editor
+    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
+    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
+    connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+
+}
+
+
+
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
  * reconnects any relevant signals, and updates the window.
  */
@@ -140,15 +277,7 @@ void MainWindow::on_currentTab_changed(int index)
     if(editor != nullptr)
     {
         // Disconnect for previous active editor
-        disconnect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
-        disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
-        disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
-        disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
-        disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
-        disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
-        disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
-        disconnect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
-        disconnect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
+        disconnectEditorDependentSignals();
     }
 
     // Set the internal editor to the currently tabbed one
@@ -173,36 +302,23 @@ void MainWindow::on_currentTab_changed(int index)
         }
     }
 
-    // Reconnect editor signals
-    connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
-    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
-
     // Update main window actions to reflect the current tab's available actions
     toggleRedo(editor->redoAvailable());
     toggleUndo(editor->undoAvailable());
     toggleCopyAndCut(editor->textCursor().hasSelection());
 
-    // Reconnect editor signals and slots
-    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
-    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
-    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
-    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
-    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
-
-    // Reconnect find/goto signals and slots to the current editor
-    connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
-    connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
-    connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
-    connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    reconnectEditorDependentSignals();
 
     // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
     DocumentMetrics metrics = editor->getDocumentMetrics();
     updateWordAndCharCount(metrics);
+    updateTabAndWindowTitle();
     updateColumnCount(metrics.currentColumn);
 }
 
 
-/* Initializes and updates the status bar labels.
+/* Initializes the status bar labels and adds them as permanent
+ * widgets to the status bar of the main application window.
  */
 void MainWindow::initializeStatusBarLabels()
 {
@@ -249,6 +365,19 @@ void MainWindow::launchGotoDialog()
 }
 
 
+/* Updates the tab name and the main application window title to reflect the
+ * currently open document.
+ */
+void MainWindow::updateTabAndWindowTitle()
+{
+    QString fileName = editor->getFileName();
+    bool editorUnsaved = editor->isUnsaved();
+
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? " *" : ""));
+    setWindowTitle(fileName + (editorUnsaved ? " [Unsaved]" : ""));
+}
+
+
 /* Updates the window and status bar labels to reflect the most up-to-date word and char counts.
  * Note: updating the column count is handled separately. See updateColumnCount in mainwindow.h.
  */
@@ -259,12 +388,6 @@ void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
 
     wordCountLabel->setText(wordText);
     charCountLabel->setText(charText);
-
-    QString fileName = editor->getFileName();
-    bool editorUnsaved = editor->isUnsaved();
-
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? " *" : ""));
-    setWindowTitle(fileName + (editorUnsaved ? " [Unsaved]" : ""));
 }
 
 
@@ -335,10 +458,9 @@ bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
     out << editorContents;
     file.close();
 
-    QString fileName = editor->getFileName();
     editor->setModifiedState(false);
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName);
-    setWindowTitle(fileName);
+    updateTabAndWindowTitle();
+    setLanguageFromExtension();
 
     return true;
 }
@@ -385,8 +507,8 @@ void MainWindow::on_actionOpen_triggered()
     file.close();
 
     editor->setModifiedState(false);
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), editor->getFileName());
-    setWindowTitle(editor->getFileName());
+    updateTabAndWindowTitle();
+    setLanguageFromExtension();
 }
 
 
@@ -423,6 +545,7 @@ bool MainWindow::closeTab(int index)
         tabbedEditor->setCurrentWidget(tabToClose);
     }
 
+    // Don't close a tab immediately if it has unsaved contents
     if(tabToClose->isUnsaved())
     {
         QMessageBox::StandardButton selection = askUserToSave();
@@ -451,7 +574,7 @@ bool MainWindow::closeTab(int index)
         on_actionNew_triggered();
     }
 
-    // And finally, reset the current tab if needed
+    // And finally, go back to original tab if the user was closing a different one
     if(!closingCurrentTab)
     {
         tabbedEditor->setCurrentWidget(currentTab);
@@ -466,8 +589,7 @@ bool MainWindow::closeTab(int index)
  */
 void MainWindow::on_actionExit_triggered()
 {
-    // TODO change condition to while true
-    while(tabbedEditor->count() != 0)
+    while(true)
     {
         bool closed = closeTab(0);
 
@@ -490,22 +612,40 @@ void MainWindow::on_actionExit_triggered()
 
 /* Called when the Undo operation is toggled by the editor.
  */
-void MainWindow::toggleUndo(bool undoAvailable) { ui->actionUndo->setEnabled(undoAvailable); }
+void MainWindow::toggleUndo(bool undoAvailable)
+{
+    ui->actionUndo->setEnabled(undoAvailable);
+}
 
 
 /* Called when the Redo operation is toggled by the editor.
  */
-void MainWindow::toggleRedo(bool redoAvailable) { ui->actionRedo->setEnabled(redoAvailable); }
+void MainWindow::toggleRedo(bool redoAvailable)
+{
+    ui->actionRedo->setEnabled(redoAvailable);
+}
 
 
 /* Called when the user performs the Undo operation.
  */
-void MainWindow::on_actionUndo_triggered() { if(ui->actionUndo->isEnabled()) editor->undo(); }
+void MainWindow::on_actionUndo_triggered()
+{
+    if(ui->actionUndo->isEnabled())
+    {
+        editor->undo();
+    }
+}
 
 
 /* Called when the user performs the Redo operation.
  */
-void MainWindow::on_actionRedo_triggered(){ if(ui->actionRedo->isEnabled()) editor->redo(); }
+void MainWindow::on_actionRedo_triggered()
+{
+    if(ui->actionRedo->isEnabled())
+    {
+        editor->redo();
+    }
+}
 
 
 /* Called when the Copy and Cut operations are toggled by the editor.
@@ -519,34 +659,58 @@ void MainWindow::toggleCopyAndCut(bool copyCutAvailable)
 
 /* Called when the user performs the Cut operation.
  */
-void MainWindow::on_actionCut_triggered() { if(ui->actionCut->isEnabled()) editor->cut(); }
+void MainWindow::on_actionCut_triggered()
+{
+    if(ui->actionCut->isEnabled())
+    {
+        editor->cut();
+    }
+}
 
 
 /* Called when the user performs the Copy operation.
  */
-void MainWindow::on_actionCopy_triggered() { if(ui->actionCopy->isEnabled()) editor->copy(); }
+void MainWindow::on_actionCopy_triggered()
+{
+    if(ui->actionCopy->isEnabled())
+    {
+        editor->copy();
+    }
+}
 
 
 /* Called when the user performs the Paste operation.
  */
-void MainWindow::on_actionPaste_triggered() { editor->paste(); }
+void MainWindow::on_actionPaste_triggered()
+{
+    editor->paste();
+}
 
 
 /* Called when the user explicitly selects the Find option from the menu
  * (or uses Ctrl+F). Launches a dialog that prompts the user to enter a search query.
  */
-void MainWindow::on_actionFind_triggered() { launchFindDialog(); }
+void MainWindow::on_actionFind_triggered()
+{
+    launchFindDialog();
+}
 
 
 /* Called when the user explicitly selects the Go To option from the menu (or uses Ctrl+G).
  * Launches a Go To dialog that prompts the user to enter a line number they wish to jump to.
  */
-void MainWindow::on_actionGo_To_triggered() { launchGotoDialog(); }
+void MainWindow::on_actionGo_To_triggered()
+{
+    launchGotoDialog();
+}
 
 
 /* Called when the user explicitly selects the Select All option from the menu (or uses Ctrl+A).
  */
-void MainWindow::on_actionSelect_All_triggered() { editor->selectAll(); }
+void MainWindow::on_actionSelect_All_triggered()
+{
+    editor->selectAll();
+}
 
 
 /* Called when the user explicitly selects the Time/Date option from the menu (or uses F5).
@@ -560,7 +724,10 @@ void MainWindow::on_actionTime_Date_triggered()
 
 /* Called when the user selects the Font option from the menu. Launches a font selection dialog.
  */
-void MainWindow::on_actionFont_triggered() { editor->launchFontDialog(); }
+void MainWindow::on_actionFont_triggered()
+{
+    editor->launchFontDialog();
+}
 
 
 /* Called when the user selects the Auto Indent option from the Format menu.
@@ -591,7 +758,11 @@ void MainWindow::on_actionWord_Wrap_triggered()
 
 /* Toggles the visibility of the status bar.
  */
-void MainWindow::on_actionStatus_Bar_triggered() { ui->statusBar->setVisible(!ui->statusBar->isVisible()); }
+void MainWindow::on_actionStatus_Bar_triggered()
+{
+    bool oppositeOfCurrentVisibility = !ui->statusBar->isVisible();
+    ui->statusBar->setVisible(oppositeOfCurrentVisibility);
+}
 
 
 /* Overrides the QWidget closeEvent virtual method. Called when the user tries

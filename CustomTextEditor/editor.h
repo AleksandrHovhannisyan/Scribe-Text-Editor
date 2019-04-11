@@ -76,6 +76,7 @@ private slots:
 private:
     QString getFileNameFromPath();
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
+    bool handleKeyPress(QObject* obj, QEvent* event, int key);
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
