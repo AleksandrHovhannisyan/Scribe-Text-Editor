@@ -368,10 +368,8 @@ bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
     out << editorContents;
     file.close();
 
-    QString fileName = editor->getFileName();
     editor->setModifiedState(false);
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName);
-    setWindowTitle(fileName);
+    updateTabAndWindowTitle();
 
     return true;
 }
@@ -418,8 +416,7 @@ void MainWindow::on_actionOpen_triggered()
     file.close();
 
     editor->setModifiedState(false);
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), editor->getFileName());
-    setWindowTitle(editor->getFileName());
+    updateTabAndWindowTitle();
 }
 
 
