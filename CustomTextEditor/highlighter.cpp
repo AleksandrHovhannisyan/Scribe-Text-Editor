@@ -137,19 +137,22 @@ Highlighter *cppHighlighter(QTextDocument *doc)
 {
     QStringList keywords;
 
-    keywords << "\\bauto\\b" << "\\bbreak\\b" << "\\bcase\\b" << "\\bchar\\b" << "\\bconst\\b"
-             << "\\bcontinue\\b" << "\\bdefault\\b" << "\\bdo\\b" << "\\bdouble\\b" << "\\belse\\b"
-             << "\\benum\\b" << "\\bextern\\b" << "\\bfloat\\b" << "\\bfor\\b" << "\\bgoto\\b"
-             << "\\bif\\b" << "\\bint\\b" << "\\blong\\b" << "\\bregister\\b" << "\\breturn\\b"
-             << "\\bshort\\b" << "\\bsigned\\b" << "\\bsizeof\\b" << "\\bstatic\\b" << "\\bstruct\\b"
-             << "\\bswitch\\b" << "\\btypedef\\b" << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvoid\\b"
-             << "\\bvolatile\\b" << "\\bwhile\\b" << "\\bauto\\b" << "\\bbreak\\b" << "\\bcase\\b"
-             << "\\bchar\\b" << "\\bconst\\b" << "\\bcontinue\\b" << "\\bdefault\\b" << "\\bdo\\b"
-             << "\\bdouble\\b" << "\\belse\\b" << "\\benum\\b" << "\\bextern\\b" << "\\bfloat\\b"
-             << "\\bfor\\b" << "\\bgoto\\b" << "\\bif\\b" << "\\bint\\b" << "\\blong\\b" << "\\bregister\\b"
-             << "\\breturn\\b" << "\\bshort\\b" << "\\bsigned\\b" << "\\bsizeof\\b" << "\\bstatic\\b"
-             << "\\bstruct\\b" << "\\bswitch\\b" << "\\btypedef\\b" << "\\bunion\\b" << "\\bunsigned\\b"
-             << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bwhile\\b" << "\\bnew\\b";
+    keywords << "\\basm\\b" << "\\belse\\b" << "\\bnew\\b" << "\\bthis\\b" <<
+                "\\bauto\\b" << "\\benum\\b" << "\\boperator\\b" << "\\bthrow\\b" <<
+                "\\bbool\\b" << "\\bexplicit\\b" << "\\bprivate\\b" << "\\btrue\\b" <<
+                "\\bbreak\\b" << "\\bexport\\b" << "\\bprotected\\b" << "\\btry\\b" <<
+                "\\bcase\\b" << "\\bextern\\b" << "\\bpublic\\b" << "\\btypedef\\b" <<
+                "\\bcatch\\b" << "\\bfalse\\b" << "\\bregister\\b" << "\\btypeid\\b" <<
+                "\\bchar\\b" << "\\bfloat\\b" << "\\breinterpret_cast\\b" << "\\btypename\\b" <<
+                "\\bclass\\b" << "\\bfor\\b" << "\\breturn\\b" << "\\bunion\\b" <<
+                "\\bconst\\b" << "\\bfriend\\b" << "\\bshort\\b" << "\\bunsigned\\b" <<
+                "\\bconst_cast\\b" << "\\bgoto\\b" << "\\bsigned\\b" << "\\busing\\b" <<
+                "\\bcontinue\\b" << "\\bif\\b" << "\\bsizeof\\b" << "\\bvirtual\\b" <<
+                "\\bdefault\\b" << "\\binline\\b" << "\\bstatic\\b" << "\\bvoid\\b" <<
+                "\\bdelete\\b" << "\\bint\\b" << "\\bstatic_cast\\b" << "\\bvolatile\\b" <<
+                "\\bdo\\b" << "\\blong\\b" << "\\bstruct\\b" << "\\bwchar_t\\b" <<
+                "\\bdouble\\b" << "\\bmutable\\b" << "\\bswitch\\b" << "\\bwhile\\b" <<
+                "\\bdynamic_cast\\b" << "\\bnamespace\\b" << "\\btemplate\\b";
 
     QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
     QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
