@@ -340,7 +340,7 @@ void Editor::updateFileMetrics()
     for(int i = 0; i < documentLength; i++)
     {
         // Convert to unsigned char to avoid running into debug assertion problems
-        unsigned char currentCharacter = (unsigned char)documentContents[i].toLatin1();
+        unsigned char currentCharacter = qvariant_cast<unsigned char>(documentContents[i].toLatin1());
 
         // Newline
         if(currentCharacter == '\n')
@@ -360,7 +360,7 @@ void Editor::updateFileMetrics()
             // Alphanumeric character
             if(isalnum(currentCharacter))
             {
-                currentWord += (char)currentCharacter;
+                currentWord += qvariant_cast<char>(currentCharacter);
             }
             // Whitespace (excluding newline, handled separately above)
             else if(isspace(currentCharacter))
@@ -374,7 +374,8 @@ void Editor::updateFileMetrics()
                 // Consume all other instances of whitespace
                 else
                 {
-                    while(i + 1 < documentLength && isspace((unsigned char)documentContents[i + 1].toLatin1()))
+                    while(i + 1 < documentLength &&
+                          isspace(qvariant_cast<unsigned char>(documentContents[i + 1].toLatin1())))
                     {
                         i++;
                     }
@@ -681,8 +682,8 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
-    int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    int bottom = top + (int) blockBoundingRect(block).height();
+    int top = qvariant_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+    int bottom = top + qvariant_cast<int>(blockBoundingRect(block).height());
 
     // Loop through each block (paragraph) and paint its corresponding number
     while (block.isValid() && top <= event->rect().bottom())
@@ -696,7 +697,7 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
         block = block.next();
         top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
+        bottom = top + qvariant_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
 }
