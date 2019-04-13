@@ -33,7 +33,8 @@ SOURCES += \
     searchhistory.cpp \
     gotodialog.cpp \
     tabbededitor.cpp \
-    highlighter.cpp
+    highlighter.cpp \
+    language.cpp
 
 HEADERS += \
         mainwindow.h \

@@ -15,6 +15,9 @@
 #include <QtDebug>
 
 
+using namespace ProgrammingLanguage;
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -51,6 +54,7 @@ private:
     QActionGroup *languageGroup;
     QMap<QAction*, Language> menuActionToLanguageMap;
     QMap<QString, Language> extensionToLanguageMap;
+    QLabel *languageLabel;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
     QLabel *charLabel;

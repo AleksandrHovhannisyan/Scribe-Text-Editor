@@ -89,6 +89,7 @@ void MainWindow::mapFileExtensionsToLanguages()
  */
 MainWindow::~MainWindow()
 {
+    delete languageLabel;
     delete wordLabel;
     delete wordCountLabel;
     delete charLabel;
@@ -216,6 +217,7 @@ void MainWindow::selectProgrammingLanguage(Language language)
     }
 
     syntaxHighlighter = generateHighlighterFor(language);
+    languageLabel->setText(toString(language));
     triggerCorrespondingMenuLanguageOption(language);
 }
 
@@ -294,13 +296,16 @@ void MainWindow::on_currentTab_changed(int index)
         syntaxHighlighter = generateHighlighterFor(tabLanguage);
     }
     else
-    {
+    {        
         // If a menu language is checked but the current tab has no language set, uncheck the menu option
         if(languageGroup->checkedAction())
         {
             languageGroup->checkedAction()->setChecked(false);
         }
     }
+
+    // Update language reflected on status bar
+    languageLabel->setText(toString(tabLanguage));
 
     // Update main window actions to reflect the current tab's available actions
     toggleRedo(editor->redoAvailable());
@@ -322,12 +327,14 @@ void MainWindow::on_currentTab_changed(int index)
  */
 void MainWindow::initializeStatusBarLabels()
 {
+    languageLabel = new QLabel("Language: not selected");
     wordLabel = new QLabel("Words: ");
     wordCountLabel = new QLabel();
     charLabel = new QLabel("Chars: ");
     charCountLabel = new QLabel();
     columnLabel = new QLabel("Column: ");
     columnCountLabel = new QLabel();
+    ui->statusBar->addWidget(languageLabel);
     ui->statusBar->addPermanentWidget(wordLabel);
     ui->statusBar->addPermanentWidget(wordCountLabel);
     ui->statusBar->addPermanentWidget(charLabel);
@@ -492,7 +499,6 @@ void MainWindow::on_actionOpen_triggered()
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    ui->statusBar->showMessage("Loaded file", 2000);
 
     // Read the file contents into the editor and close the file descriptor
     QTextStream in(&file);

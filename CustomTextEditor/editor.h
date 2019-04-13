@@ -10,6 +10,9 @@
 #include <QMessageBox>
 
 
+using namespace ProgrammingLanguage;
+
+
 /* Disclaimer: the code for painting the editor line numbers was not written by me.
  * I only changed some of the variable names and code to make things clearer,
  * but most of those functions are from this official Qt tutorial on line numbering:
