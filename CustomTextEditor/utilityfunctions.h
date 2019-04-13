@@ -7,8 +7,7 @@
 namespace Utility
 {
     QMessageBox::StandardButton promptYesOrNo(QWidget *parent, QString title, QString prompt);
-    bool braceIsBalanced(QString context, int openBraceIndex);
-    int indexOfFirstUnbalancedClosingBrace(QString context);
+    bool closingBraceNeeded(QString context);
 }
 
 #endif // UTILITYFUNCTIONS_H

@@ -486,14 +486,13 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
             // Hit ENTER after opening brace
             if(character == '{')
             {
-                bool alreadyPaired = Utility::braceIsBalanced(documentContents, indexToLeftOfCursor);
+                bool notPaired = Utility::closingBraceNeeded(documentContents);
 
                 int braceLevel = indentationLevelOfCurrentLine();
                 insertPlainText("\n");
                 insertTabs(braceLevel + 1);
 
-                // TODO not working for edge case of trying to insert new pair above an existing one
-                if(!alreadyPaired)
+                if(notPaired)
                 {
                     insertPlainText("\n");
                     insertTabs(braceLevel);
