@@ -31,21 +31,26 @@ public:
     Editor(QWidget *parent = nullptr);
     ~Editor() override;
     void reset();
+
     inline QString getFileName() { return getFileNameFromPath(); }
     void setCurrentFilePath(QString newPath);
     inline QString getCurrentFilePath() const { return currentFilePath; }
     inline void setProgrammingLanguage(Language language) { programmingLanguage = language; }
     inline Language getProgrammingLanguage() const { return programmingLanguage; }
     inline bool isUntitled() const { return fileIsUntitled; }
+
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     void launchFontDialog();
     void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
     void updateFileMetrics();
+
     inline bool isUnsaved() const { return document()->isModified(); }
     void setModifiedState(bool modified) { document()->setModified(modified); }
+
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
     void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
     void toggleWrapMode(bool wrap) { wrap ? setLineWrapMode(LineWrapMode::WidgetWidth) : setLineWrapMode(LineWrapMode::NoWrap); }
+
     inline bool redoAvailable() const { return canRedo; }
     inline bool undoAvailable() const { return canUndo; }
 
@@ -73,6 +78,7 @@ private slots:
     void updateLineNumberAreaWidth();
     void on_cursorPositionChanged();
     void updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
+
     void setUndoAvailable(bool available) { canUndo = available; }
     void setRedoAvailable(bool available) { canRedo = available; }
 
@@ -80,6 +86,8 @@ private:
     QString getFileNameFromPath();
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
     bool handleKeyPress(QObject* obj, QEvent* event, int key);
+    void moveCursorTo(int positionInText);
+
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
@@ -88,11 +96,14 @@ private:
     DocumentMetrics metrics;
     QString currentFilePath;
     bool fileIsUntitled = true;
+
     QFont font;
     QTextCharFormat defaultCharFormat;
     SearchHistory searchHistory;
+
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
+
     bool metricCalculationEnabled = true;
     bool autoIndentEnabled = true;
     bool canRedo = false;
