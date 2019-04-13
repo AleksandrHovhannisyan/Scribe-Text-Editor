@@ -15,74 +15,27 @@ QMessageBox::StandardButton Utility::promptYesOrNo(QWidget *parent, QString titl
 }
 
 
-/* Returns true if the opening brace at the given index is balanced and false otherwise.
+/* Returns true if a closing brace must be inserted into the given string
+ * to create a balanced expression and false otherwise.
  */
-bool Utility::braceIsBalanced(QString context, int openBraceIndex)
+bool Utility::closingBraceNeeded(QString context)
 {
-    QQueue<int> openBraceIndices;
-    QStack<char> expectedClosingBraces;
+    QStack<char> openingBraces;
 
-    for(int i = 0; i < context.length(); i++)
+    for (int i = 0; i < context.length(); i++)
     {
         char character = context.at(i).toLatin1();
 
         if(character == '{')
         {
-            openBraceIndices.enqueue(i);
-            expectedClosingBraces.push('}');
+            openingBraces.push(character);
         }
-        else if(character == '}')
+
+        else if(character == '}' && !openingBraces.empty())
         {
-            if(!expectedClosingBraces.empty() && !openBraceIndices.empty())
-            {
-                expectedClosingBraces.pop();
-                openBraceIndices.dequeue();
-            }
+            openingBraces.pop();
         }
     }
 
-    while(!openBraceIndices.empty())
-    {
-        int index = openBraceIndices.dequeue();
-
-        if(index == openBraceIndex)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-
-
-/* Returns the index of the first unbalanced closing brace within the given context.
- */
-int Utility::indexOfFirstUnbalancedClosingBrace(QString context)
-{
-    QStack<char> expectedClosingBraces;
-
-    for(int i = 0; i < context.length(); i++)
-    {
-        char character = context.at(i).toLatin1();
-
-        if(character == '{')
-        {
-            expectedClosingBraces.push('{');
-        }
-
-        else if(character == '}')
-        {
-            if(!expectedClosingBraces.empty())
-            {
-                expectedClosingBraces.pop();
-            }
-            else
-            {
-                return i;
-            }
-        }
-    }
-
-    return -1;
+    return !openingBraces.empty();
 }
