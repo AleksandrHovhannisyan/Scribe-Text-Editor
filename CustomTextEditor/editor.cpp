@@ -149,7 +149,7 @@ QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, b
 bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
 {
     // Keep track of the cursor position prior to this search so we can return to it if no match is found
-    int cursorPositionBeforeSearch = textCursor().position();
+    int cursorPositionBeforeCurrentSearch = textCursor().position();
 
     // Specify the options we'll be searching with
     QTextDocument::FindFlags searchOptions = getSearchOptionsFromFlags(caseSensitive, wholeWords);
@@ -174,7 +174,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         // Search history is always reset whenever we do a full cycle back to the first match or start a new search "chain"
         if(!previouslyFound)
         {
-            searchHistory.add(query, cursorPositionBeforeSearch, foundPosition);
+            searchHistory.add(query, cursorPositionBeforeCurrentSearch, foundPosition);
         }
         // If term was previously found, check that we didn't cycle back to the first-ever find
         else
@@ -187,10 +187,8 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
                 matchFound = false;
 
                 // Reset the cursor to its original position prior to first search for this term
-                QTextCursor newCursor = textCursor();
                 int cursorPositionBeforeFirstSearch = searchHistory.cursorPositionBeforeFirstSearchFor(query);
-                newCursor.setPosition(cursorPositionBeforeFirstSearch);
-                setTextCursor(newCursor);
+                moveCursorTo(cursorPositionBeforeFirstSearch);
 
                 // Clear search history
                 searchHistory.clear();
@@ -203,9 +201,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
     else
     {
         // Reset the cursor to its position prior to this particular search
-        QTextCursor newCursor = textCursor();
-        newCursor.setPosition(cursorPositionBeforeSearch);
-        setTextCursor(newCursor);
+        moveCursorTo(cursorPositionBeforeCurrentSearch);
 
         // Inform the user of the unsuccessful search
         emit(findResultReady("No results found."));
@@ -247,9 +243,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     metricCalculationEnabled = false;
 
     // Search the entire document from the very beginning
-    QTextCursor cursor = textCursor();
-    cursor.setPosition(0);
-    setTextCursor(cursor);
+    moveCursorTo(0);
 
     // Conduct an initial search; don't rely on our custom find
     QTextDocument::FindFlags searchOptions = getSearchOptionsFromFlags(caseSensitive, wholeWords);
@@ -257,6 +251,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     int replacements = 0;
 
     // Keep replacing while there are matches left
+    QTextCursor cursor(document());
     cursor.beginEditBlock();
     while(found)
     {
@@ -293,8 +288,8 @@ void Editor::goTo(int line)
         return;
     }
 
-    QTextCursor cursor(document()->findBlockByLineNumber(line - 1));
-    setTextCursor(cursor);
+    int beginningOfLine = document()->findBlockByLineNumber(line - 1).position();
+    moveCursorTo(beginningOfLine);
 }
 
 
@@ -345,7 +340,7 @@ void Editor::updateFileMetrics()
     for(int i = 0; i < documentLength; i++)
     {
         // Convert to unsigned char to avoid running into debug assertion problems
-        unsigned char currentCharacter = (unsigned char)documentContents[i].toLatin1();
+        unsigned char currentCharacter = qvariant_cast<unsigned char>(documentContents[i].toLatin1());
 
         // Newline
         if(currentCharacter == '\n')
@@ -365,7 +360,7 @@ void Editor::updateFileMetrics()
             // Alphanumeric character
             if(isalnum(currentCharacter))
             {
-                currentWord += (char)currentCharacter;
+                currentWord += qvariant_cast<char>(currentCharacter);
             }
             // Whitespace (excluding newline, handled separately above)
             else if(isspace(currentCharacter))
@@ -379,7 +374,8 @@ void Editor::updateFileMetrics()
                 // Consume all other instances of whitespace
                 else
                 {
-                    while(i + 1 < documentLength && isspace((unsigned char)documentContents[i + 1].toLatin1()))
+                    while(i + 1 < documentLength &&
+                          isspace(qvariant_cast<unsigned char>(documentContents[i + 1].toLatin1())))
                     {
                         i++;
                     }
@@ -504,9 +500,7 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
                     insertPlainText("}");
 
                     // Set the cursor so it's right after the nested tab
-                    QTextCursor cursor = textCursor();
-                    cursor.setPosition(cursor.position() - 2 - braceLevel);
-                    setTextCursor(cursor);
+                    moveCursorTo(textCursor().position() - 2 - braceLevel);
                 }
 
                 return true;
@@ -557,6 +551,16 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
     {
         return QObject::eventFilter(obj, event);
     }
+}
+
+
+/* Moves this Editor's text cursor to the specified index position in the document.
+ */
+void Editor::moveCursorTo(int positionInText)
+{
+    QTextCursor newCursor = textCursor();
+    newCursor.setPosition(positionInText);
+    setTextCursor(newCursor);
 }
 
 
@@ -678,8 +682,8 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
     QTextBlock block = firstVisibleBlock();
     int blockNumber = block.blockNumber();
-    int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    int bottom = top + (int) blockBoundingRect(block).height();
+    int top = qvariant_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+    int bottom = top + qvariant_cast<int>(blockBoundingRect(block).height());
 
     // Loop through each block (paragraph) and paint its corresponding number
     while (block.isValid() && top <= event->rect().bottom())
@@ -693,7 +697,7 @@ void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
         block = block.next();
         top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
+        bottom = top + qvariant_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
 }
