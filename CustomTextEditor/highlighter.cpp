@@ -1,4 +1,5 @@
 #include "highlighter.h"
+#include <QtDebug>
 
 
 /* Constructs a Highlighter object using the given list of patterns and the parent
@@ -73,35 +74,53 @@ void Highlighter::highlightBlock(const QString &text)
         }
     }
 
-    // The rest of the code is for dealing with comments
+    formatMultilineComments(text);
+}
 
-    setCurrentBlockState(0);
+
+/* Formats multiline comments per this Highlighter's
+ * blockCommentStart and blockCommentEnd patterns.
+ */
+void Highlighter::formatMultilineComments(const QString &text)
+{
+    setCurrentBlockState(BlockState::NotInComment);
+
+    qDebug() << "Previous state: " << previousBlockState();
+
     int startIndex = 0;
 
-    if(previousBlockState() != 1)
+    // If the previous state was not in comment, then start searching from very beginning
+    if(previousBlockState() != BlockState::InComment)
     {
         startIndex = text.indexOf(blockCommentStart);
     }
 
+    //qDebug() << "Start index: " << startIndex;
+
     while (startIndex >= 0)
     {
-           QRegularExpressionMatch match = blockCommentEnd.match(text, startIndex);
-           int endIndex = match.capturedStart();
-           int commentLength = 0;
+        QRegularExpressionMatch match = blockCommentEnd.match(text, startIndex);
+        int endIndex = match.capturedStart();
+        int commentLength = 0;
 
-           if (endIndex == -1)
-           {
-               setCurrentBlockState(1);
-               commentLength = text.length() - startIndex;
-           }
-           else
-           {
-               commentLength = endIndex - startIndex + match.capturedLength();
-           }
+        //qDebug() << "End index: " << endIndex;
 
-           setFormat(startIndex, commentLength, blockCommentFormat);
-           startIndex = text.indexOf(blockCommentStart, startIndex + commentLength);
-       }
+        // If we have not yet found the terminating pattern, we are still in comment
+        if (endIndex == -1)
+        {
+           setCurrentBlockState(BlockState::InComment);
+           commentLength = text.length() - startIndex;
+        }
+        else
+        {
+           commentLength = endIndex - startIndex + match.capturedLength();
+        }
+
+        //qDebug() << "Comment length: " << commentLength << "\n";
+
+        setFormat(startIndex, commentLength, blockCommentFormat);
+        startIndex = text.indexOf(blockCommentStart, startIndex + commentLength);
+   }
 }
 
 
@@ -122,7 +141,7 @@ Highlighter *cHighlighter(QTextDocument *doc)
     QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
     QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
     QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
-    QRegularExpression inlineCommentPattern("//[^\n]*");
+    QRegularExpression inlineCommentPattern("//.*");
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
 
@@ -157,7 +176,7 @@ Highlighter *cppHighlighter(QTextDocument *doc)
     QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
     QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
     QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()"); // TODO account for special operator overload cases
-    QRegularExpression inlineCommentPattern("//[^\n]*");
+    QRegularExpression inlineCommentPattern("//.*");
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
 
@@ -185,7 +204,7 @@ Highlighter *javaHighlighter(QTextDocument *doc)
     QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
     QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
     QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
-    QRegularExpression inlineCommentPattern("//[^\n]*");
+    QRegularExpression inlineCommentPattern("//.*");
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
 
@@ -210,11 +229,11 @@ Highlighter *pythonHighlighter(QTextDocument *doc)
     QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
     QRegularExpression quotePattern("(\".*\")|('.*')");
     QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
-    QRegularExpression inlineCommentPattern("#[^\n]*");
+    QRegularExpression inlineCommentPattern("#.*");
 
     // TODO change for Python
-    QRegularExpression blockCommentStart("/(''')|(\"\"\")");
-    QRegularExpression blockCommentEnd("\\*/");
+    QRegularExpression blockCommentStart("'''");
+    QRegularExpression blockCommentEnd("'''");
 
     return new Highlighter(keywords, classPattern, quotePattern, functionPattern,
                            inlineCommentPattern, blockCommentStart, blockCommentEnd, doc);

@@ -15,8 +15,10 @@ public:
 
 protected:
     void highlightBlock(const QString &text) override;
+    void formatMultilineComments(const QString &text);
 
 private:
+
     struct HighlightingRule
     {
         QRegularExpression pattern;
@@ -36,6 +38,13 @@ private:
     QTextCharFormat functionFormat;
 };
 
+
+/* Used for multi-line comment formatting */
+enum BlockState
+{
+    NotInComment,
+    InComment
+};
 
 Highlighter *cHighlighter(QTextDocument *doc);
 Highlighter *cppHighlighter(QTextDocument *doc);

@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     initializeStatusBarLabels();
     on_currentTab_changed(0);
+    selectProgrammingLanguage(Language::Python); // TODO delete
 
     // Connect tabbedEditor's signals to their handlers
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
