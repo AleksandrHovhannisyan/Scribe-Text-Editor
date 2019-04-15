@@ -2,7 +2,7 @@
 #include <QtDebug>
 
 
-void Highlighter::setKeywords(QStringList keywords)
+void Highlighter::addKeywords(QStringList keywords)
 {
     setKeywordFormat();
 
@@ -131,7 +131,7 @@ void Highlighter::highlightMultilineComments(const QString &text)
 {
     setCurrentBlockState(BlockState::NotInComment);
 
-    qDebug() << "Previous state: " << previousBlockState();
+    // qDebug() << "Previous state: " << previousBlockState();
 
     int startIndex = 0;
 
@@ -192,7 +192,7 @@ Highlighter *cHighlighter(QTextDocument *doc)
     QRegularExpression blockCommentEnd("\\*/");
 
     Highlighter *highlighter = new Highlighter(doc);
-    highlighter->setKeywords(keywords);
+    highlighter->addKeywords(keywords);
     highlighter->setClassPattern(classPattern);
     highlighter->setQuotePattern(quotePattern);
     highlighter->setFunctionPattern(functionPattern);
@@ -208,42 +208,22 @@ Highlighter *cHighlighter(QTextDocument *doc)
  */
 Highlighter *cppHighlighter(QTextDocument *doc)
 {
-    QStringList keywords;
+    Highlighter *cLanguage = cHighlighter(doc);
+    QStringList cppOnlyKeywords;
 
-    keywords << "\\basm\\b" << "\\belse\\b" << "\\bnew\\b" << "\\bthis\\b" <<
-                "\\bauto\\b" << "\\benum\\b" << "\\boperator\\b" << "\\bthrow\\b" <<
-                "\\bbool\\b" << "\\bexplicit\\b" << "\\bprivate\\b" << "\\btrue\\b" <<
-                "\\bbreak\\b" << "\\bexport\\b" << "\\bprotected\\b" << "\\btry\\b" <<
-                "\\bcase\\b" << "\\bextern\\b" << "\\bpublic\\b" << "\\btypedef\\b" <<
-                "\\bcatch\\b" << "\\bfalse\\b" << "\\bregister\\b" << "\\btypeid\\b" <<
-                "\\bchar\\b" << "\\bfloat\\b" << "\\breinterpret_cast\\b" << "\\btypename\\b" <<
-                "\\bclass\\b" << "\\bfor\\b" << "\\breturn\\b" << "\\bunion\\b" <<
-                "\\bconst\\b" << "\\bfriend\\b" << "\\bshort\\b" << "\\bunsigned\\b" <<
-                "\\bconst_cast\\b" << "\\bgoto\\b" << "\\bsigned\\b" << "\\busing\\b" <<
-                "\\bcontinue\\b" << "\\bif\\b" << "\\bsizeof\\b" << "\\bvirtual\\b" <<
-                "\\bdefault\\b" << "\\binline\\b" << "\\bstatic\\b" << "\\bvoid\\b" <<
-                "\\bdelete\\b" << "\\bint\\b" << "\\bstatic_cast\\b" << "\\bvolatile\\b" <<
-                "\\bdo\\b" << "\\blong\\b" << "\\bstruct\\b" << "\\bwchar_t\\b" <<
-                "\\bdouble\\b" << "\\bmutable\\b" << "\\bswitch\\b" << "\\bwhile\\b" <<
-                "\\bdynamic_cast\\b" << "\\bnamespace\\b" << "\\btemplate\\b";
+    cppOnlyKeywords <<  "\\basm\\b" << "\\bbool\\b" << "\\bcatch\\b" <<
+                        "\\bclass\\b" << "\\bconst_cast\\b" << "\\bdelete\\b" <<
+                        "\\bdynamic_cast\\b" << "\\bexplicit\\b" << "\\bfalse\\b" <<
+                        "\\bfriend\\b" << "\\binline\\b" << "\\bmutable\\b" <<
+                        "\\bnamespace\\b" << "\\bnew\\b" << "\\boperator\\b" <<
+                        "\\bprivate\\b" << "\\bprotected\\b" << "\\bpublic\\b" <<
+                        "\\breinterpret_cast\\b" << "\\bstatic_cast\\b" <<
+                        "\\btemplate\\b" << "\\bthis\\b" << "\\bthrow\\b" <<
+                        "\\btrue\\b" << "\\btry\\b" << "\\btypeid\\b" << "\\btypename\\b" <<
+                        "\\bvirtual\\b" << "\\busing\\b" << "\\bwchar_t\\b";
 
-    QRegularExpression classPattern("\\b[A-Z_][a-zA-Z0-9_]*\\b");
-    QRegularExpression quotePattern("(\".*\")|('\\\\.')|('.{0,1}')");
-    QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()"); // TODO account for special operator overload cases
-    QRegularExpression inlineCommentPattern("//.*");
-    QRegularExpression blockCommentStart("/\\*");
-    QRegularExpression blockCommentEnd("\\*/");
-
-    Highlighter *highlighter = new Highlighter(doc);
-    highlighter->setKeywords(keywords);
-    highlighter->setClassPattern(classPattern);
-    highlighter->setQuotePattern(quotePattern);
-    highlighter->setFunctionPattern(functionPattern);
-    highlighter->setInlineCommentPattern(inlineCommentPattern);
-    highlighter->setBlockCommentStartPattern(blockCommentStart);
-    highlighter->setBlockCommentEndPattern(blockCommentEnd);
-
-    return highlighter;
+    cLanguage->addKeywords(cppOnlyKeywords);
+    return cLanguage;
 }
 
 
@@ -271,7 +251,7 @@ Highlighter *javaHighlighter(QTextDocument *doc)
     QRegularExpression blockCommentEnd("\\*/");
 
     Highlighter *highlighter = new Highlighter(doc);
-    highlighter->setKeywords(keywords);
+    highlighter->addKeywords(keywords);
     highlighter->setClassPattern(classPattern);
     highlighter->setQuotePattern(quotePattern);
     highlighter->setFunctionPattern(functionPattern);
@@ -305,7 +285,7 @@ Highlighter *pythonHighlighter(QTextDocument *doc)
     QRegularExpression blockCommentEnd("'''");
 
     Highlighter *highlighter = new Highlighter(doc);
-    highlighter->setKeywords(keywords);
+    highlighter->addKeywords(keywords);
     highlighter->setClassPattern(classPattern);
     highlighter->setQuotePattern(quotePattern);
     highlighter->setFunctionPattern(functionPattern);

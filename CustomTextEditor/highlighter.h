@@ -10,7 +10,7 @@ class Highlighter : public QSyntaxHighlighter
 public:
 
     Highlighter(QTextDocument *parent = nullptr) : QSyntaxHighlighter (parent) {}
-    virtual void setKeywords(QStringList keywords);
+    virtual void addKeywords(QStringList keywords);
     virtual void setKeywordFormat();
     virtual void setClassPattern(QRegularExpression classPattern);
     virtual void setClassFormat();
