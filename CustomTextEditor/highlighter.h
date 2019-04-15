@@ -8,14 +8,27 @@ class Highlighter : public QSyntaxHighlighter
     Q_OBJECT
 
 public:
-    Highlighter(QStringList keywordPatterns, QRegularExpression classPattern,
-                QRegularExpression quotePattern, QRegularExpression functionPattern,
-                QRegularExpression inlineCommentPattern, QRegularExpression blockCommentStart,
-                QRegularExpression blockCommentEnd, QTextDocument *parent = nullptr);
+
+    Highlighter(QTextDocument *parent = nullptr) : QSyntaxHighlighter (parent) {}
+    virtual void setKeywords(QStringList keywords);
+    virtual void setKeywordFormat();
+    virtual void setClassPattern(QRegularExpression classPattern);
+    virtual void setClassFormat();
+    virtual void setFunctionPattern(QRegularExpression functionPattern);
+    virtual void setFunctionFormat();
+    virtual void setQuotePattern(QRegularExpression quotePattern);
+    virtual void setQuoteFormat();
+    virtual void setInlineCommentPattern(QRegularExpression inlineCommentPattern);
+    virtual void setInlineCommentFormat();
+    virtual void setBlockCommentStartPattern(QRegularExpression blockCommentStart);
+    virtual void setBlockCommentEndPattern(QRegularExpression blockCommentEnd);
+    virtual void setBlockCommentFormat();
+    virtual void addRule(QRegularExpression pattern, QTextCharFormat format);
 
 protected:
-    void highlightBlock(const QString &text) override;
-    void formatMultilineComments(const QString &text);
+
+    virtual void highlightBlock(const QString &text) override;
+    virtual void highlightMultilineComments(const QString &text);
 
 private:
 
@@ -34,7 +47,7 @@ private:
     QTextCharFormat classFormat;
     QTextCharFormat inlineCommentFormat;
     QTextCharFormat blockCommentFormat;
-    QTextCharFormat quotationFormat;
+    QTextCharFormat quoteFormat;
     QTextCharFormat functionFormat;
 };
 
@@ -45,6 +58,9 @@ enum BlockState
     NotInComment,
     InComment
 };
+
+
+/* Used to build specific types of highlighters */
 
 Highlighter *cHighlighter(QTextDocument *doc);
 Highlighter *cppHighlighter(QTextDocument *doc);

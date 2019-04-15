@@ -2,57 +2,103 @@
 #include <QtDebug>
 
 
-/* Constructs a Highlighter object using the given list of patterns and the parent
- * QTextDocument widget (nullptr by default).
- */
-Highlighter::Highlighter(QStringList keywordPatterns, QRegularExpression classPattern,
-                         QRegularExpression quotePattern, QRegularExpression functionPattern,
-                         QRegularExpression inlineCommentPattern, QRegularExpression blockCommentStart,
-                         QRegularExpression blockCommentEnd, QTextDocument *parent) : QSyntaxHighlighter (parent)
+void Highlighter::setKeywords(QStringList keywords)
 {
-    HighlightingRule rule;
+    setKeywordFormat();
 
-    // Class highlighting rule
-    classFormat.setFontWeight(QFont::Bold);
-    classFormat.setForeground(Qt::darkMagenta);
-    rule.pattern = classPattern;
-    rule.format = classFormat;
-    rules.append(rule);
+    foreach(const QString &keyword, keywords)
+    {
+        addRule(QRegularExpression(keyword), keywordFormat);
+    }
+}
 
+
+void Highlighter::setKeywordFormat()
+{
     keywordFormat.setForeground(Qt::darkBlue);
     keywordFormat.setFontWeight(QFont::Bold);
+}
 
-    // Create a HighlightingRule for each pattern and store it in the internal vector
-    foreach(const QString &pattern, keywordPatterns)
-    {
-        rule.pattern = QRegularExpression(pattern);
-        rule.format = keywordFormat;
-        rules.append(rule);
-    }
 
-    // Quotation (e.g., chars and strings) highlighting rule
-    quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = quotePattern;
-    rule.format = quotationFormat;
-    rules.append(rule);
+void Highlighter::setClassPattern(QRegularExpression classPattern)
+{
+    setClassFormat();
+    addRule(classPattern, classFormat);
+}
 
-    // Functions
+
+void Highlighter::setClassFormat()
+{
+    classFormat.setFontWeight(QFont::Bold);
+    classFormat.setForeground(Qt::darkMagenta);
+}
+
+
+void Highlighter::setFunctionPattern(QRegularExpression functionPattern)
+{
+    setFunctionFormat();
+    addRule(functionPattern, functionFormat);
+}
+
+
+void Highlighter::setFunctionFormat()
+{
     functionFormat.setFontItalic(true);
     functionFormat.setForeground(Qt::blue);
-    rule.pattern = functionPattern;
-    rule.format = functionFormat;
-    rules.append(rule);
+}
 
-    // Inline comments
+
+void Highlighter::setQuotePattern(QRegularExpression quotePattern)
+{
+    setQuoteFormat();
+    addRule(quotePattern, quoteFormat);
+}
+
+
+void Highlighter::setQuoteFormat()
+{
+    quoteFormat.setForeground(Qt::darkGreen);
+}
+
+
+void Highlighter::setInlineCommentPattern(QRegularExpression inlineCommentPattern)
+{
+    setInlineCommentFormat();
+    addRule(inlineCommentPattern, inlineCommentFormat);
+}
+
+
+void Highlighter::setInlineCommentFormat()
+{
     inlineCommentFormat.setForeground(Qt::darkGreen);
-    rule.pattern = inlineCommentPattern;
-    rule.format = inlineCommentFormat;
-    rules.append(rule);
+}
 
-    // Block comments
-    blockCommentFormat.setForeground(Qt::darkGreen);
+
+void Highlighter::setBlockCommentStartPattern(QRegularExpression blockCommentStart)
+{
+    setBlockCommentFormat();
     this->blockCommentStart = blockCommentStart;
+}
+
+
+void Highlighter::setBlockCommentEndPattern(QRegularExpression blockCommentEnd)
+{
     this->blockCommentEnd = blockCommentEnd;
+}
+
+
+void Highlighter::setBlockCommentFormat()
+{
+    blockCommentFormat.setForeground(Qt::darkGreen);
+}
+
+
+void Highlighter::addRule(QRegularExpression pattern, QTextCharFormat format)
+{
+    HighlightingRule rule;
+    rule.pattern = pattern;
+    rule.format = format;
+    rules.append(rule);
 }
 
 
@@ -74,14 +120,14 @@ void Highlighter::highlightBlock(const QString &text)
         }
     }
 
-    formatMultilineComments(text);
+    highlightMultilineComments(text);
 }
 
 
 /* Formats multiline comments per this Highlighter's
  * blockCommentStart and blockCommentEnd patterns.
  */
-void Highlighter::formatMultilineComments(const QString &text)
+void Highlighter::highlightMultilineComments(const QString &text)
 {
     setCurrentBlockState(BlockState::NotInComment);
 
@@ -145,8 +191,16 @@ Highlighter *cHighlighter(QTextDocument *doc)
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
 
-    return new Highlighter(keywords, classPattern, quotePattern, functionPattern,
-                           inlineCommentPattern, blockCommentStart, blockCommentEnd, doc);
+    Highlighter *highlighter = new Highlighter(doc);
+    highlighter->setKeywords(keywords);
+    highlighter->setClassPattern(classPattern);
+    highlighter->setQuotePattern(quotePattern);
+    highlighter->setFunctionPattern(functionPattern);
+    highlighter->setInlineCommentPattern(inlineCommentPattern);
+    highlighter->setBlockCommentStartPattern(blockCommentStart);
+    highlighter->setBlockCommentEndPattern(blockCommentEnd);
+
+    return highlighter;
 }
 
 
@@ -180,8 +234,16 @@ Highlighter *cppHighlighter(QTextDocument *doc)
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
 
-    return new Highlighter(keywords, classPattern, quotePattern, functionPattern,
-                           inlineCommentPattern, blockCommentStart, blockCommentEnd, doc);
+    Highlighter *highlighter = new Highlighter(doc);
+    highlighter->setKeywords(keywords);
+    highlighter->setClassPattern(classPattern);
+    highlighter->setQuotePattern(quotePattern);
+    highlighter->setFunctionPattern(functionPattern);
+    highlighter->setInlineCommentPattern(inlineCommentPattern);
+    highlighter->setBlockCommentStartPattern(blockCommentStart);
+    highlighter->setBlockCommentEndPattern(blockCommentEnd);
+
+    return highlighter;
 }
 
 
@@ -208,8 +270,16 @@ Highlighter *javaHighlighter(QTextDocument *doc)
     QRegularExpression blockCommentStart("/\\*");
     QRegularExpression blockCommentEnd("\\*/");
 
-    return new Highlighter(keywords, classPattern, quotePattern, functionPattern,
-                           inlineCommentPattern, blockCommentStart, blockCommentEnd, doc);
+    Highlighter *highlighter = new Highlighter(doc);
+    highlighter->setKeywords(keywords);
+    highlighter->setClassPattern(classPattern);
+    highlighter->setQuotePattern(quotePattern);
+    highlighter->setFunctionPattern(functionPattern);
+    highlighter->setInlineCommentPattern(inlineCommentPattern);
+    highlighter->setBlockCommentStartPattern(blockCommentStart);
+    highlighter->setBlockCommentEndPattern(blockCommentEnd);
+
+    return highlighter;
 }
 
 
@@ -230,13 +300,20 @@ Highlighter *pythonHighlighter(QTextDocument *doc)
     QRegularExpression quotePattern("(\".*\")|('.*')");
     QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
     QRegularExpression inlineCommentPattern("#.*");
-
     // TODO change for Python
     QRegularExpression blockCommentStart("'''");
     QRegularExpression blockCommentEnd("'''");
 
-    return new Highlighter(keywords, classPattern, quotePattern, functionPattern,
-                           inlineCommentPattern, blockCommentStart, blockCommentEnd, doc);
+    Highlighter *highlighter = new Highlighter(doc);
+    highlighter->setKeywords(keywords);
+    highlighter->setClassPattern(classPattern);
+    highlighter->setQuotePattern(quotePattern);
+    highlighter->setFunctionPattern(functionPattern);
+    highlighter->setInlineCommentPattern(inlineCommentPattern);
+    highlighter->setBlockCommentStartPattern(blockCommentStart);
+    highlighter->setBlockCommentEndPattern(blockCommentEnd);
+
+    return highlighter;
 }
 
 
