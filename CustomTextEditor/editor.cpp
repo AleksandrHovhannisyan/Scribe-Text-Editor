@@ -19,7 +19,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     document()->setModified(false);
     setLineWrapMode(QPlainTextEdit::LineWrapMode::NoWrap);
 
-    programmingLanguage = Language::None;
+    setProgrammingLanguage(Language::None);
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
 
@@ -41,6 +41,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 Editor::~Editor()
 {
     delete lineNumberArea;
+    delete syntaxHighlighter;
 }
 
 
@@ -115,6 +116,41 @@ void Editor::setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch
 
     QFontMetrics metrics(font);
     setTabStopWidth(tabStopWidth * metrics.width(' '));
+}
+
+
+/* Sets this Editor's programming language to the given language.
+ * @param language - the language that this Editor should use for
+ * syntax highlighting
+ */
+void Editor::setProgrammingLanguage(Language language)
+{
+    if(language == this->programmingLanguage)
+    {
+        return;
+    }
+
+    this->programmingLanguage = language;
+    this->syntaxHighlighter = generateHighlighterFor(language);
+}
+
+
+/* Returns a Highlighter corresponding to the given language.
+ * @param language - the programming language for which a
+ * syntax highlighter should be generated
+ */
+Highlighter *Editor::generateHighlighterFor(Language language)
+{
+    QTextDocument *doc = document();
+
+    switch (language)
+    {
+        case(Language::C): return cHighlighter(doc);
+        case(Language::CPP): return cppHighlighter(doc);
+        case(Language::Java): return javaHighlighter(doc);
+        case(Language::Python): return pythonHighlighter(doc);
+        default: return nullptr;
+    }
 }
 
 

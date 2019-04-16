@@ -40,7 +40,6 @@ private:
     QMessageBox::StandardButton askUserToSave();
     void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);
-    Highlighter *generateHighlighterFor(Language language);
     void mapMenuLanguageOptionToLanguageType();
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
@@ -50,7 +49,6 @@ private:
     Editor *editor = nullptr;
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
-    Highlighter *syntaxHighlighter = nullptr;
     QActionGroup *languageGroup;
     QMap<QAction*, Language> menuActionToLanguageMap;
     QMap<QString, Language> extensionToLanguageMap;

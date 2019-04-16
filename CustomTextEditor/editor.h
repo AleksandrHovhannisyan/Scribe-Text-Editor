@@ -5,6 +5,7 @@
 #include "searchhistory.h"
 #include "documentmetrics.h"
 #include "language.h"
+#include "highlighter.h"
 #include <QPlainTextEdit>
 #include <QFont>
 #include <QMessageBox>
@@ -35,7 +36,7 @@ public:
     inline QString getFileName() { return getFileNameFromPath(); }
     void setCurrentFilePath(QString newPath);
     inline QString getCurrentFilePath() const { return currentFilePath; }
-    inline void setProgrammingLanguage(Language language) { programmingLanguage = language; }
+    inline void setProgrammingLanguage(Language language);
     inline Language getProgrammingLanguage() const { return programmingLanguage; }
     inline bool isUntitled() const { return fileIsUntitled; }
 
@@ -83,6 +84,7 @@ private slots:
     void setRedoAvailable(bool available) { canRedo = available; }
 
 private:
+    Highlighter *generateHighlighterFor(Language language);
     QString getFileNameFromPath();
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
     bool handleKeyPress(QObject* obj, QEvent* event, int key);
@@ -93,6 +95,8 @@ private:
     void insertTabs(int numTabs);
 
     Language programmingLanguage;
+    Highlighter *syntaxHighlighter;
+
     DocumentMetrics metrics;
     QString currentFilePath;
     bool fileIsUntitled = true;

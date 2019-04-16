@@ -79,7 +79,7 @@
       <string>Language</string>
      </property>
      <addaction name="actionC_Lang"/>
-     <addaction name="actionCPP"/>
+     <addaction name="actionCPP_Lang"/>
      <addaction name="actionJava_Lang"/>
      <addaction name="actionPython_Lang"/>
     </widget>
@@ -259,14 +259,6 @@
     <string>Ctrl+F</string>
    </property>
   </action>
-  <action name="actionFind_Next">
-   <property name="text">
-    <string>Find Next</string>
-   </property>
-   <property name="shortcut">
-    <string>F3</string>
-   </property>
-  </action>
   <action name="actionReplace">
    <property name="text">
     <string>Replace...</string>
@@ -318,11 +310,6 @@
     <string>Status Bar</string>
    </property>
   </action>
-  <action name="actionAbout">
-   <property name="text">
-    <string>About</string>
-   </property>
-  </action>
   <action name="actionRedo">
    <property name="icon">
     <iconset>
@@ -355,63 +342,6 @@
     <string>Word Wrap</string>
    </property>
   </action>
-  <action name="actionC">
-   <property name="text">
-    <string>C</string>
-   </property>
-  </action>
-  <action name="actionC_2">
-   <property name="text">
-    <string>C++</string>
-   </property>
-  </action>
-  <action name="actionJava">
-   <property name="text">
-    <string>Java</string>
-   </property>
-  </action>
-  <action name="actionPython">
-   <property name="text">
-    <string>Python</string>
-   </property>
-  </action>
-  <action name="action_C">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>C</string>
-   </property>
-  </action>
-  <action name="action_CPP">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>C++</string>
-   </property>
-  </action>
-  <action name="action_Java">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Java</string>
-   </property>
-  </action>
-  <action name="action_Python">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Python</string>
-   </property>
-  </action>
-  <action name="actionC_3">
-   <property name="text">
-    <string>C</string>
-   </property>
-  </action>
   <action name="actionC_Lang">
    <property name="checkable">
     <bool>true</bool>
@@ -420,7 +350,7 @@
     <string>C</string>
    </property>
   </action>
-  <action name="actionCPP">
+  <action name="actionCPP_Lang">
    <property name="checkable">
     <bool>true</bool>
    </property>

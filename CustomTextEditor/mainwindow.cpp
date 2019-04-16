@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     languageGroup = new QActionGroup(this);
     languageGroup->setExclusive(true);
     languageGroup->addAction(ui->actionC_Lang);
-    languageGroup->addAction(ui->actionCPP);
+    languageGroup->addAction(ui->actionCPP_Lang);
     languageGroup->addAction(ui->actionJava_Lang);
     languageGroup->addAction(ui->actionPython_Lang);
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 void MainWindow::mapMenuLanguageOptionToLanguageType()
 {
     menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
-    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
+    menuActionToLanguageMap[ui->actionCPP_Lang] = Language::CPP;
     menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
     menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
 }
@@ -102,7 +102,7 @@ MainWindow::~MainWindow()
 
 
 /* Called when the user selects a language from the main menu. Sets the current language to
- * that language internally for the currently tabbed Editor and updates the syntax highlighter.
+ * that language internally for the currently tabbed Editor.
  */
 void MainWindow::on_languageSelected(QAction* languageAction)
 {
@@ -126,9 +126,9 @@ void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
             break;
 
         case(Language::CPP):
-            if(!ui->action_CPP->isChecked())
+            if(!ui->actionCPP_Lang->isChecked())
             {
-                ui->actionCPP->trigger();
+                ui->actionCPP_Lang->trigger();
             }
             break;
 
@@ -147,24 +147,6 @@ void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
             break;
 
         default: return;
-    }
-}
-
-
-/* Calls the appropriate method to return a Highlighter object for the given language.
- * @param language - the language for which the Highlighter needs to be generated
- */
-Highlighter *MainWindow::generateHighlighterFor(Language language)
-{
-    QTextDocument *doc = editor->document();
-
-    switch (language)
-    {
-        case(Language::C): return cHighlighter(doc);
-        case(Language::CPP): return cppHighlighter(doc);
-        case(Language::Java): return javaHighlighter(doc);
-        case(Language::Python): return pythonHighlighter(doc);
-        default: return nullptr;
     }
 }
 
@@ -199,8 +181,7 @@ void MainWindow::setLanguageFromExtension()
 
 
 /* Wrapper for all common logic that needs to run whenever a given language
- * is selected for use on a particular tab. Generates an appropriate syntax
- * highlighter and triggers the corresponding menu option.
+ * is selected for use on a particular tab. Triggers the corresponding menu option.
  */
 void MainWindow::selectProgrammingLanguage(Language language)
 {
@@ -210,13 +191,6 @@ void MainWindow::selectProgrammingLanguage(Language language)
     }
 
     editor->setProgrammingLanguage(language);
-
-    if(syntaxHighlighter)
-    {
-        delete syntaxHighlighter;
-    }
-
-    syntaxHighlighter = generateHighlighterFor(language);
     languageLabel->setText(toString(language));
     triggerCorrespondingMenuLanguageOption(language);
 }
@@ -288,12 +262,10 @@ void MainWindow::on_currentTab_changed(int index)
 
     Language tabLanguage = editor->getProgrammingLanguage();
 
-    // If this tab had a programming language set, give it a syntax highlighter
+    // If this tab had a programming language set, trigger the corresponding option
     if(tabLanguage != Language::None)
     {
         triggerCorrespondingMenuLanguageOption(tabLanguage);
-        delete syntaxHighlighter;
-        syntaxHighlighter = generateHighlighterFor(tabLanguage);
     }
     else
     {        
