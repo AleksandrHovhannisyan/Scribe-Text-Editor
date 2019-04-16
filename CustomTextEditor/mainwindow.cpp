@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     languageGroup = new QActionGroup(this);
     languageGroup->setExclusive(true);
     languageGroup->addAction(ui->actionC_Lang);
-    languageGroup->addAction(ui->actionCPP);
+    languageGroup->addAction(ui->actionCPP_Lang);
     languageGroup->addAction(ui->actionJava_Lang);
     languageGroup->addAction(ui->actionPython_Lang);
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 void MainWindow::mapMenuLanguageOptionToLanguageType()
 {
     menuActionToLanguageMap[ui->actionC_Lang] = Language::C;
-    menuActionToLanguageMap[ui->actionCPP] = Language::CPP;
+    menuActionToLanguageMap[ui->actionCPP_Lang] = Language::CPP;
     menuActionToLanguageMap[ui->actionJava_Lang] = Language::Java;
     menuActionToLanguageMap[ui->actionPython_Lang] = Language::Python;
 }
@@ -126,9 +126,9 @@ void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
             break;
 
         case(Language::CPP):
-            if(!ui->action_CPP->isChecked())
+            if(!ui->actionCPP_Lang->isChecked())
             {
-                ui->actionCPP->trigger();
+                ui->actionCPP_Lang->trigger();
             }
             break;
 
