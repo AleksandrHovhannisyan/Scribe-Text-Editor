@@ -14,21 +14,24 @@ class FindDialog : public QDialog
     Q_OBJECT
 
 public:
+
     FindDialog(QWidget *parent = nullptr);
     ~FindDialog();
-    inline QString getQueryText(){ return queryText; }
 
 signals:
+
     void startFinding(QString queryText, bool caseSensitive, bool wholeWords);
     void startReplacing(QString what, QString with, bool caseSensitive, bool wholeWords);
     void startReplacingAll(QString what, QString with, bool caseSensitive, bool wholeWords);
 
 public slots:
+
     void on_findNextButton_clicked();
     void on_replaceOperation_initiated();
     void onFindResultReady(QString message) { QMessageBox::information(this, "Find and Replace", message); }
 
 private:
+
     QLabel *findLabel;
     QLabel *replaceLabel;
     QPushButton *findNextButton;
@@ -38,7 +41,7 @@ private:
     QLineEdit *replaceLineEdit;
     QCheckBox *caseSensitiveCheckBox;
     QCheckBox *wholeWordsCheckBox;
-    QString queryText;
+
     QHBoxLayout *findHorizontalLayout;
     QHBoxLayout *replaceHorizontalLayout;
     QHBoxLayout *optionsLayout;
