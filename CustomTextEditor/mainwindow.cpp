@@ -43,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     initializeStatusBarLabels();
     on_currentTab_changed(0);
-    selectProgrammingLanguage(Language::Python); // TODO delete
 
     // Connect tabbedEditor's signals to their handlers
     connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
@@ -103,7 +102,7 @@ MainWindow::~MainWindow()
 
 
 /* Called when the user selects a language from the main menu. Sets the current language to
- * that language internally for the currently tabbed Editor and updates the syntax highlighter.
+ * that language internally for the currently tabbed Editor.
  */
 void MainWindow::on_languageSelected(QAction* languageAction)
 {
@@ -152,24 +151,6 @@ void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
 }
 
 
-/* Calls the appropriate method to return a Highlighter object for the given language.
- * @param language - the language for which the Highlighter needs to be generated
- */
-Highlighter *MainWindow::generateHighlighterFor(Language language)
-{
-    QTextDocument *doc = editor->document();
-
-    switch (language)
-    {
-        case(Language::C): return cHighlighter(doc);
-        case(Language::CPP): return cppHighlighter(doc);
-        case(Language::Java): return javaHighlighter(doc);
-        case(Language::Python): return pythonHighlighter(doc);
-        default: return nullptr;
-    }
-}
-
-
 /* Uses the extension of a file to determine what language, if any, it should be
  * mapped to. If the extension does not match one of the supported languages, or if
  * the file does not have an extension, then the language is set to Language::None.
@@ -200,8 +181,7 @@ void MainWindow::setLanguageFromExtension()
 
 
 /* Wrapper for all common logic that needs to run whenever a given language
- * is selected for use on a particular tab. Generates an appropriate syntax
- * highlighter and triggers the corresponding menu option.
+ * is selected for use on a particular tab. Triggers the corresponding menu option.
  */
 void MainWindow::selectProgrammingLanguage(Language language)
 {
@@ -211,13 +191,6 @@ void MainWindow::selectProgrammingLanguage(Language language)
     }
 
     editor->setProgrammingLanguage(language);
-
-    if(syntaxHighlighter)
-    {
-        delete syntaxHighlighter;
-    }
-
-    syntaxHighlighter = generateHighlighterFor(language);
     languageLabel->setText(toString(language));
     triggerCorrespondingMenuLanguageOption(language);
 }
@@ -289,12 +262,10 @@ void MainWindow::on_currentTab_changed(int index)
 
     Language tabLanguage = editor->getProgrammingLanguage();
 
-    // If this tab had a programming language set, give it a syntax highlighter
+    // If this tab had a programming language set, trigger the corresponding option
     if(tabLanguage != Language::None)
     {
         triggerCorrespondingMenuLanguageOption(tabLanguage);
-        delete syntaxHighlighter;
-        syntaxHighlighter = generateHighlighterFor(tabLanguage);
     }
     else
     {        
