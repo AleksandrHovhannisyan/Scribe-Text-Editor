@@ -11,24 +11,25 @@ public:
 
     Highlighter(QTextDocument *parent = nullptr) : QSyntaxHighlighter (parent) {}
     virtual void addKeywords(QStringList keywords);
-    virtual void setKeywordFormat();
     virtual void setClassPattern(QRegularExpression classPattern);
-    virtual void setClassFormat();
     virtual void setFunctionPattern(QRegularExpression functionPattern);
-    virtual void setFunctionFormat();
     virtual void setQuotePattern(QRegularExpression quotePattern);
-    virtual void setQuoteFormat();
     virtual void setInlineCommentPattern(QRegularExpression inlineCommentPattern);
-    virtual void setInlineCommentFormat();
     virtual void setBlockCommentStartPattern(QRegularExpression blockCommentStart);
     virtual void setBlockCommentEndPattern(QRegularExpression blockCommentEnd);
-    virtual void setBlockCommentFormat();
     virtual void addRule(QRegularExpression pattern, QTextCharFormat format);
 
 protected:
 
     virtual void highlightBlock(const QString &text) override;
     virtual void highlightMultilineComments(const QString &text);
+
+    virtual void setKeywordFormat();
+    virtual void setClassFormat();
+    virtual void setFunctionFormat();
+    virtual void setQuoteFormat();
+    virtual void setInlineCommentFormat();
+    virtual void setBlockCommentFormat();
 
 private:
 
