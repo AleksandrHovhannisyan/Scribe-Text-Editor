@@ -7,8 +7,7 @@
 #include <QTextDocumentFragment>
 #include <QPalette>
 #include <QStack>
-#include <QSet>
-#include <QQueue>
+#include <QFileInfo>
 #include <QtDebug>
 
 
@@ -76,12 +75,8 @@ QString Editor::getFileNameFromPath()
         return "Untitled document";
     }
 
-    // Note on directories: Qt automatically converts Windows backslashes to forward slashes
-    int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');
-    int lengthOfFileName = currentFilePath.length() - indexOfLastForwardSlash;
-
-    QString fileName = currentFilePath.mid(indexOfLastForwardSlash + 1, lengthOfFileName);
-    return fileName;
+    QFileInfo fileInfo(currentFilePath);
+    return fileInfo.fileName();
 }
 
 
