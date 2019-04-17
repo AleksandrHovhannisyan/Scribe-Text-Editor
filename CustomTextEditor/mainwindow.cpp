@@ -19,6 +19,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    readSettings();
 
     mapMenuLanguageOptionToLanguageType();
 
@@ -601,7 +602,42 @@ void MainWindow::on_actionExit_triggered()
         }
     }
 
+    writeSettings();
     QApplication::quit();
+}
+
+
+/* Saves the main application state/settings so they may be
+ * restored the next time the application is started. See
+ * readSettings and the constructor for more info.
+ */
+void MainWindow::writeSettings()
+{
+    QSettings settings;
+    settings.setValue(WINDOW_SIZE_KEY, size());
+    settings.setValue(WINDOW_POSITION_KEY, pos());
+}
+
+
+/* Reads the stored app settings and restores them.
+ */
+void MainWindow::readSettings()
+{
+    QSettings settings;
+
+    QSize windowSize = settings.value(WINDOW_SIZE_KEY).toSize();
+
+    if(!windowSize.isNull())
+    {
+        resize(settings.value(WINDOW_SIZE_KEY, QSize(400, 400)).toSize());
+    }
+
+    QPoint windowPosition = settings.value(WINDOW_POSITION_KEY).toPoint();
+
+    if(!windowPosition.isNull())
+    {
+        move(settings.value(WINDOW_POSITION_KEY, QPoint(200, 200)).toPoint());
+    }
 }
 
 
