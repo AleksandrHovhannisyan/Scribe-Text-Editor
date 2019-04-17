@@ -76,7 +76,7 @@ QString Editor::getFileNameFromPath()
         return "Untitled document";
     }
 
-    // Forward slash dependent on the OS, obviously
+    // Note on directories: Qt automatically converts Windows backslashes to forward slashes
     int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');
     int lengthOfFileName = currentFilePath.length() - indexOfLastForwardSlash;
 
