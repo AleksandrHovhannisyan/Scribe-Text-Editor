@@ -7,9 +7,11 @@
 #include <QFileDialog>                  // file open/save dialogs
 #include <QFile>                        // file descriptors, IO
 #include <QTextStream>                  // file IO
+#include <QStandardPaths>               // default open directory
 #include <QDateTime>                    // current time
 #include <QApplication>                 // quit
 #include <QShortcut>
+#include <QSettings>                    // storing app state
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -237,7 +239,6 @@ void MainWindow::reconnectEditorDependentSignals()
 }
 
 
-
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
  * reconnects any relevant signals, and updates the window.
  */
@@ -453,19 +454,35 @@ bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
  */
 void MainWindow::on_actionOpen_triggered()
 {
+    // Used to switch to a new tab if there's already an open doc
     bool openInCurrentTab = editor->isUntitled() && !editor->isUnsaved();
 
-    // Ask the user to specify the name of the file
-    QString filePath = QFileDialog::getOpenFileName(this, tr("Open"));
+    QSettings appSettings;
+
+    QString openedFilePath;
+    QString lastUsedDirectory = appSettings.value(DEFAULT_DIRECTORY_KEY).toString();
+
+    if(lastUsedDirectory.isEmpty())
+    {
+        openedFilePath = QFileDialog::getOpenFileName(this, tr("Open"), DEFAULT_DIRECTORY);
+    }
+    else
+    {
+        openedFilePath = QFileDialog::getOpenFileName(this, tr("Open"), lastUsedDirectory);
+    }
 
     // Don't do anything if the user hit Cancel
-    if(filePath.isNull())
+    if(openedFilePath.isNull())
     {
         return;
     }
 
+    // Update the recently used directory
+    QDir currentDirectory;
+    appSettings.setValue(DEFAULT_DIRECTORY_KEY, currentDirectory.absoluteFilePath(openedFilePath));
+
     // Attempt to create a file descriptor for the file at the given path
-    QFile file(filePath);
+    QFile file(openedFilePath);
     if (!file.open(QIODevice::ReadOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
@@ -480,7 +497,7 @@ void MainWindow::on_actionOpen_triggered()
     {
         tabbedEditor->add(new Editor());
     }
-    editor->setCurrentFilePath(filePath);
+    editor->setCurrentFilePath(openedFilePath);
     editor->setPlainText(documentContents);
     file.close();
 
@@ -752,4 +769,3 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
     on_actionExit_triggered();
 }
-

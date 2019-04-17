@@ -12,7 +12,7 @@
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels
 #include <QActionGroup>
-#include <QtDebug>
+#include <QStandardPaths>               // see default directory
 
 
 using namespace ProgrammingLanguage;
@@ -47,6 +47,10 @@ private:
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
     Editor *editor = nullptr;
+
+    const QString DEFAULT_DIRECTORY_KEY = "default_directory";
+    const QString DEFAULT_DIRECTORY = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
     QActionGroup *languageGroup;
