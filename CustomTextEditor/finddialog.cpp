@@ -19,7 +19,6 @@ FindDialog::FindDialog(QWidget *parent)
     replaceAllButton = new QPushButton(tr("&Replace all"));
     caseSensitiveCheckBox = new QCheckBox(tr("&Match case"));
     wholeWordsCheckBox = new QCheckBox(tr("&Whole words"));
-    queryText = "";
 
     // Ensures that the line edit gets the focus whenever the dialog is the active window
     setFocusProxy(findLineEdit);
@@ -86,11 +85,10 @@ void FindDialog::on_findNextButton_clicked()
         QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
         return;
     }
-    queryText = query;
 
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
     bool wholeWords = wholeWordsCheckBox->isChecked();
-    emit(startFinding(queryText, caseSensitive, wholeWords));
+    emit(startFinding(query, caseSensitive, wholeWords));
 }
 
 
@@ -107,7 +105,6 @@ void FindDialog::on_replaceOperation_initiated()
         QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
         return;
     }
-    queryText = what;
 
     QString with = replaceLineEdit->text();
     bool caseSensitive = caseSensitiveCheckBox->isChecked();
