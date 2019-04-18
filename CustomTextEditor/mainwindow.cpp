@@ -7,9 +7,11 @@
 #include <QFileDialog>                  // file open/save dialogs
 #include <QFile>                        // file descriptors, IO
 #include <QTextStream>                  // file IO
+#include <QStandardPaths>               // default open directory
 #include <QDateTime>                    // current time
 #include <QApplication>                 // quit
 #include <QShortcut>
+#include <QSettings>                    // storing app state
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -17,6 +19,9 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    readSettings();
+    matchFormatOptionsToEditorDefaults();
 
     mapMenuLanguageOptionToLanguageType();
 
@@ -58,6 +63,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
 
     mapFileExtensionsToLanguages();
+}
+
+
+/* Ensures that the checkable formatting menu options, like auto indent
+ * and word wrap, match the previously saved defaults for the Editor class.
+ */
+void MainWindow::matchFormatOptionsToEditorDefaults()
+{
+    QAction *autoIndent = ui->actionAuto_Indent;
+    Editor::autoIndentEnabled ? autoIndent->setChecked(true) : autoIndent->setChecked(false);
+
+    QAction *wordWrap = ui->actionWord_Wrap;
+    Editor::lineWrapMode ? wordWrap->setChecked(true) : wordWrap->setChecked(false);
 }
 
 
@@ -235,7 +253,6 @@ void MainWindow::reconnectEditorDependentSignals()
     connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
 
 }
-
 
 
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
@@ -453,19 +470,35 @@ bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
  */
 void MainWindow::on_actionOpen_triggered()
 {
+    // Used to switch to a new tab if there's already an open doc
     bool openInCurrentTab = editor->isUntitled() && !editor->isUnsaved();
 
-    // Ask the user to specify the name of the file
-    QString filePath = QFileDialog::getOpenFileName(this, tr("Open"));
+    QSettings appSettings;
+
+    QString openedFilePath;
+    QString lastUsedDirectory = appSettings.value(DEFAULT_DIRECTORY_KEY).toString();
+
+    if(lastUsedDirectory.isEmpty())
+    {
+        openedFilePath = QFileDialog::getOpenFileName(this, tr("Open"), DEFAULT_DIRECTORY);
+    }
+    else
+    {
+        openedFilePath = QFileDialog::getOpenFileName(this, tr("Open"), lastUsedDirectory);
+    }
 
     // Don't do anything if the user hit Cancel
-    if(filePath.isNull())
+    if(openedFilePath.isNull())
     {
         return;
     }
 
+    // Update the recently used directory
+    QDir currentDirectory;
+    appSettings.setValue(DEFAULT_DIRECTORY_KEY, currentDirectory.absoluteFilePath(openedFilePath));
+
     // Attempt to create a file descriptor for the file at the given path
-    QFile file(filePath);
+    QFile file(openedFilePath);
     if (!file.open(QIODevice::ReadOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
@@ -480,7 +513,7 @@ void MainWindow::on_actionOpen_triggered()
     {
         tabbedEditor->add(new Editor());
     }
-    editor->setCurrentFilePath(filePath);
+    editor->setCurrentFilePath(openedFilePath);
     editor->setPlainText(documentContents);
     file.close();
 
@@ -584,7 +617,42 @@ void MainWindow::on_actionExit_triggered()
         }
     }
 
+    writeSettings();
     QApplication::quit();
+}
+
+
+/* Saves the main application state/settings so they may be
+ * restored the next time the application is started. See
+ * readSettings and the constructor for more info.
+ */
+void MainWindow::writeSettings()
+{
+    QSettings settings;
+    settings.setValue(WINDOW_SIZE_KEY, size());
+    settings.setValue(WINDOW_POSITION_KEY, pos());
+}
+
+
+/* Reads the stored app settings and restores them.
+ */
+void MainWindow::readSettings()
+{
+    QSettings settings;
+
+    QSize windowSize = settings.value(WINDOW_SIZE_KEY).toSize();
+
+    if(!windowSize.isNull())
+    {
+        resize(settings.value(WINDOW_SIZE_KEY, QSize(400, 400)).toSize());
+    }
+
+    QPoint windowPosition = settings.value(WINDOW_POSITION_KEY).toPoint();
+
+    if(!windowPosition.isNull())
+    {
+        move(settings.value(WINDOW_POSITION_KEY, QPoint(200, 200)).toPoint());
+    }
 }
 
 
@@ -752,4 +820,3 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
     on_actionExit_triggered();
 }
-

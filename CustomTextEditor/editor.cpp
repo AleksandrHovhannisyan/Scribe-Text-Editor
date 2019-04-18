@@ -7,17 +7,21 @@
 #include <QTextDocumentFragment>
 #include <QPalette>
 #include <QStack>
-#include <QSet>
-#include <QQueue>
+#include <QFileInfo>
 #include <QtDebug>
+#include <QSettings>
+
+
+bool Editor::autoIndentEnabled = true;
+Editor::LineWrapMode Editor::lineWrapMode = Editor::LineWrapMode::NoWrap;
 
 
 /* Initializes this Editor.
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 {
+    readSettings();
     document()->setModified(false);
-    setLineWrapMode(QPlainTextEdit::LineWrapMode::NoWrap);
 
     setProgrammingLanguage(Language::None);
     metrics = DocumentMetrics();
@@ -37,11 +41,13 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 
 
 /* Performs all necessary memory cleanup operations.
+ * Saves editor settings for data persistence.
  */
 Editor::~Editor()
 {
     delete lineNumberArea;
     delete syntaxHighlighter;
+    writeSettings();
 }
 
 
@@ -76,12 +82,8 @@ QString Editor::getFileNameFromPath()
         return "Untitled document";
     }
 
-    // Forward slash dependent on the OS, obviously
-    int indexOfLastForwardSlash = currentFilePath.lastIndexOf('/');
-    int lengthOfFileName = currentFilePath.length() - indexOfLastForwardSlash;
-
-    QString fileName = currentFilePath.mid(indexOfLastForwardSlash + 1, lengthOfFileName);
-    return fileName;
+    QFileInfo fileInfo(currentFilePath);
+    return fileInfo.fileName();
 }
 
 
@@ -361,6 +363,32 @@ void Editor::formatSubtext(int startIndex, int endIndex, QTextCharFormat format,
 }
 
 
+/* Sets the Editor's line wrap mode to the given value.
+ */
+void Editor::setLineWrapMode(LineWrapMode lineWrapMode)
+{
+    QPlainTextEdit::setLineWrapMode(lineWrapMode);
+    this->lineWrapMode = lineWrapMode;
+}
+
+
+/* Used by checkable menu options (see MainWindow) to toggle
+ * the Editor's line wrap mode. That way, MainWindow does not
+ * need to worry about what "true" and "false" correspond to.
+ */
+void Editor::toggleWrapMode(bool wrap)
+{
+    if(wrap)
+    {
+        setLineWrapMode(LineWrapMode::WidgetWidth);
+    }
+    else
+    {
+        setLineWrapMode(LineWrapMode::NoWrap);
+    }
+}
+
+
 /* Scans the entire document character by character and tallies the number of
  * characters and words and storing the counts internally for reporting.
  * Note: column counting is handled by highlightCurrentLine.
@@ -616,8 +644,38 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
     {
         return QObject::eventFilter(obj, event);
     }
+}
 
-    return false;
+
+/* Preserves current settings for the editor so they can be
+ * persisted into the next execution.
+ */
+void Editor::writeSettings()
+{
+    QSettings settings;
+    settings.setValue(LINE_WRAP_KEY, lineWrapMode);
+    settings.setValue(AUTO_INDENT_KEY, autoIndentEnabled);
+}
+
+
+/* Loads previously saved settings for the editor.
+ */
+void Editor::readSettings()
+{
+    QSettings settings;
+
+    if(settings.value(LINE_WRAP_KEY).isValid())
+    {
+        LineWrapMode previousLineWrapping = qvariant_cast<LineWrapMode>(settings.value(LINE_WRAP_KEY));
+        setLineWrapMode(previousLineWrapping);
+        lineWrapMode = previousLineWrapping;
+    }
+
+    if(settings.value(AUTO_INDENT_KEY).isValid())
+    {
+        bool previousAutoIndent = qvariant_cast<bool>(settings.value(AUTO_INDENT_KEY));
+        autoIndentEnabled = previousAutoIndent;
+    }
 }
 
 

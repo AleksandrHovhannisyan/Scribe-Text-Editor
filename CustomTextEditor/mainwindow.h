@@ -12,7 +12,7 @@
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels
 #include <QActionGroup>
-#include <QtDebug>
+#include <QStandardPaths>               // see default directory
 
 
 using namespace ProgrammingLanguage;
@@ -38,15 +38,27 @@ private:
     void reconnectEditorDependentSignals();
     void disconnectEditorDependentSignals();
     QMessageBox::StandardButton askUserToSave();
+
     void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);
     void mapMenuLanguageOptionToLanguageType();
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
 
+    void matchFormatOptionsToEditorDefaults();
+    void writeSettings();
+    void readSettings();
+
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
     Editor *editor = nullptr;
+
+    // Used for storing application state upon termination
+    const QString WINDOW_SIZE_KEY = "window_size";
+    const QString WINDOW_POSITION_KEY = "window_position";
+    const QString DEFAULT_DIRECTORY_KEY = "default_directory";
+    const QString DEFAULT_DIRECTORY = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
     QActionGroup *languageGroup;
