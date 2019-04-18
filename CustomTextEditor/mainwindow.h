@@ -38,11 +38,14 @@ private:
     void reconnectEditorDependentSignals();
     void disconnectEditorDependentSignals();
     QMessageBox::StandardButton askUserToSave();
+
     void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);
     void mapMenuLanguageOptionToLanguageType();
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
+
+    void matchFormatOptionsToEditorDefaults();
     void writeSettings();
     void readSettings();
 

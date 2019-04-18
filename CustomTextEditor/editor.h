@@ -50,13 +50,18 @@ public:
 
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
     void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
-    void toggleWrapMode(bool wrap) { wrap ? setLineWrapMode(LineWrapMode::WidgetWidth) : setLineWrapMode(LineWrapMode::NoWrap); }
+    void toggleWrapMode(bool wrap);
 
     inline bool redoAvailable() const { return canRedo; }
     inline bool undoAvailable() const { return canUndo; }
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int getLineNumberAreaWidth();
+
+    void setLineWrapMode(LineWrapMode lineWrapMode);
+
+    static bool autoIndentEnabled;
+    static LineWrapMode lineWrapMode;
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -94,6 +99,9 @@ private:
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
 
+    void writeSettings();
+    void readSettings();
+
     Language programmingLanguage;
     Highlighter *syntaxHighlighter;
 
@@ -109,9 +117,11 @@ private:
     const int lineNumberAreaPadding = 30;
 
     bool metricCalculationEnabled = true;
-    bool autoIndentEnabled = true;
     bool canRedo = false;
     bool canUndo = false;
+
+    const QString AUTO_INDENT_KEY = "auto_indent";
+    const QString LINE_WRAP_KEY = "line_wrap";
 };
 
 #endif // EDITOR_H

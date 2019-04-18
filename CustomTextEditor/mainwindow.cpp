@@ -19,7 +19,9 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     readSettings();
+    matchFormatOptionsToEditorDefaults();
 
     mapMenuLanguageOptionToLanguageType();
 
@@ -61,6 +63,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
 
     mapFileExtensionsToLanguages();
+}
+
+
+/* Ensures that the checkable formatting menu options, like auto indent
+ * and word wrap, match the previously saved defaults for the Editor class.
+ */
+void MainWindow::matchFormatOptionsToEditorDefaults()
+{
+    QAction *autoIndent = ui->actionAuto_Indent;
+    Editor::autoIndentEnabled ? autoIndent->setChecked(true) : autoIndent->setChecked(false);
+
+    QAction *wordWrap = ui->actionWord_Wrap;
+    Editor::lineWrapMode ? wordWrap->setChecked(true) : wordWrap->setChecked(false);
 }
 
 
