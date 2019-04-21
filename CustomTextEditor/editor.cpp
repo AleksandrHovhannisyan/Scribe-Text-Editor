@@ -26,6 +26,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     setProgrammingLanguage(Language::None);
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
+    setFont(QFont("Courier", DEFAULT_FONT_SIZE), QFont::Monospace, true, NUM_CHARS_FOR_TAB);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -92,28 +93,26 @@ QString Editor::getFileNameFromPath()
 void Editor::launchFontDialog()
 {
     bool userChoseFont;
-    QFont font = QFontDialog::getFont(&userChoseFont, QFont("Courier", 10), this);
+    QFont newFont = QFontDialog::getFont(&userChoseFont, this->font, this);
 
     if(userChoseFont)
     {
-        setFont(font.family(), QFont::Monospace, true, font.pointSize(), 5);
+        setFont(newFont, QFont::Monospace, true, NUM_CHARS_FOR_TAB);
     }
 }
 
 
 /* Sets the editor's font using the specified parameters.
- * @param family - the name of the font family
+ * @param newFont - the font to be set
  * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.
  * @param fixedPitch - if true, monospace font (equal-width characters)
- * @param pointSize - the size, in points, of the desired font (e.g., 12 for 12-pt font)
  * @param tabStopWidth - the desired width of a tab in terms of the equivalent number of spaces
  */
-void Editor::setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth)
+void Editor::setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch, int tabStopWidth)
 {
-    font.setFamily(family);
+    font = newFont;
     font.setStyleHint(styleHint);
     font.setFixedPitch(fixedPitch);
-    font.setPointSize(pointSize);
     QPlainTextEdit::setFont(font);
 
     QFontMetrics metrics(font);

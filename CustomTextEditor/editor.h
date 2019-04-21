@@ -42,7 +42,7 @@ public:
 
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     void launchFontDialog();
-    void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
+    void setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch, int tabStopWidth);
     void updateFileMetrics();
 
     inline bool isUnsaved() const { return document()->isModified(); }
@@ -110,6 +110,9 @@ private:
     bool fileIsUntitled = true;
 
     QFont font;
+    const int DEFAULT_FONT_SIZE = 10;
+    const int NUM_CHARS_FOR_TAB = 5;
+
     QTextCharFormat defaultCharFormat;
     SearchHistory searchHistory;
 
