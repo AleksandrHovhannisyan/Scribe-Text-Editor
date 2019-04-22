@@ -1,5 +1,9 @@
 #include "tabbededitor.h"
+#include "utilityfunctions.h"
+#include <QFont>
+#include <QFontDialog>
 #include <QtDebug>
+
 
 /* Initializes this TabbedEditor with a single Editor tab.
  */
@@ -17,6 +21,158 @@ void TabbedEditor::add(Editor *tab)
 {
     QTabWidget::addTab(tab, tab->getFileName());
     setCurrentWidget(tab);
+}
+
+
+/* Returns a pointer to the current Editor tab of this TabbedEditor.
+ */
+Editor* TabbedEditor::currentTab() const
+{
+    return qobject_cast<Editor*>(widget(currentIndex()));
+}
+
+
+/* Returns the tab at the specified index (0 to count() -1).
+ */
+Editor* TabbedEditor::tabAt(int index) const
+{
+    if(index < 0 || index >= count())
+    {
+        return nullptr;
+    }
+
+    return qobject_cast<Editor*>(widget(index));
+}
+
+
+/* Returns a vector of all Editor tabs this TabbedEditor contains.
+ */
+QVector<Editor*> TabbedEditor::tabs() const
+{
+    QVector<Editor*> tabs;
+
+    for(int i = 0; i < count(); i++)
+    {
+        tabs.push_back(tabAt(i));
+    }
+
+    return tabs;
+}
+
+
+/* Returns a vector of all Editor tabs that are unsaved.
+ */
+QVector<Editor*> TabbedEditor::unsavedTabs() const
+{
+    QVector<Editor*> unsavedTabs;
+
+    for(int i = 0; i < count(); i++)
+    {
+        Editor *tab = tabAt(i);
+
+        if(tab->isUnsaved())
+        {
+            unsavedTabs.push_back(tab);
+        }
+    }
+
+    return unsavedTabs;
+}
+
+
+/* Launches a QFontDialog to allow the user to select a font.
+ */
+void TabbedEditor::promptFontSelection()
+{
+    bool userChoseFont;
+    QFont newFont = QFontDialog::getFont(&userChoseFont, currentTab()->getFont(), this);
+
+    if(!userChoseFont) return;
+
+    QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Font change"),
+                                                                      tr("Apply to all tabs?"));
+
+    // Apply font to all tabs
+    if(tabSelection == QMessageBox::Yes)
+    {
+        for (Editor *tab : tabs())
+        {
+            qDebug() << "Setting font!";
+            tab->setFont(newFont, QFont::Monospace, true, Editor::NUM_CHARS_FOR_TAB);
+        }
+    }
+
+    // Apply font only to current tab
+    else if(tabSelection == QMessageBox::No)
+    {
+        currentTab()->setFont(newFont, QFont::Monospace, true, Editor::NUM_CHARS_FOR_TAB);
+    }
+
+    // If user hit cancel
+    else
+    {
+        return;
+    }
+}
+
+
+/* Applies word wrapping to either all tabs or the current tab, depending on the user's selection.
+ */
+void TabbedEditor::applyWordWrapping(bool shouldWrap)
+{
+    QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Word wrapping"),
+                                                                      tr("Apply to all tabs?"));
+
+    // Apply wrapping to all tabs
+    if(tabSelection == QMessageBox::Yes)
+    {
+        for (Editor *tab : tabs())
+        {
+            tab->toggleWrapMode(shouldWrap);
+        }
+    }
+
+    // Apply wrapping only to current tab
+    else if(tabSelection == QMessageBox::No)
+    {
+        currentTab()->toggleWrapMode(shouldWrap);
+    }
+
+    // If user hit cancel
+    else
+    {
+        return;
+    }
+}
+
+
+/* Applies auto indentation to either all tabs or the current tab, depending on the user's selection.
+ */
+void TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
+{
+    QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Auto indentation"),
+                                                                      tr("Apply to all tabs?"));
+
+    // Apply auto indentation to all tabs
+    if(tabSelection == QMessageBox::Yes)
+    {
+        for (Editor *tab : tabs())
+        {
+            tab->toggleAutoIndent(shouldAutoIndent);
+        }
+    }
+
+    // Apply auto indentation only to current tab
+    else if(tabSelection == QMessageBox::No)
+    {
+        currentTab()->toggleAutoIndent(shouldAutoIndent);
+    }
+
+    // If user hit cancel
+    else
+    {
+        return;
+    }
 }
 
 
