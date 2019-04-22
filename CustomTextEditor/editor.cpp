@@ -88,20 +88,6 @@ QString Editor::getFileNameFromPath()
 }
 
 
-/* Launches a QFontDialog to allow the user to select a font.
- */
-void Editor::launchFontDialog()
-{
-    bool userChoseFont;
-    QFont newFont = QFontDialog::getFont(&userChoseFont, this->font, this);
-
-    if(userChoseFont)
-    {
-        setFont(newFont, QFont::Monospace, true, NUM_CHARS_FOR_TAB);
-    }
-}
-
-
 /* Sets the editor's font using the specified parameters.
  * @param newFont - the font to be set
  * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.

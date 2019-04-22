@@ -41,7 +41,7 @@ public:
     inline bool isUntitled() const { return fileIsUntitled; }
 
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
-    void launchFontDialog();
+    QFont getFont() { return font; }
     void setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch, int tabStopWidth);
     void updateFileMetrics();
 
@@ -60,6 +60,8 @@ public:
 
     void setLineWrapMode(LineWrapMode lineWrapMode);
 
+    const static int DEFAULT_FONT_SIZE = 10;
+    const static int NUM_CHARS_FOR_TAB = 5;
     static bool autoIndentEnabled;
     static LineWrapMode lineWrapMode;
 
@@ -110,9 +112,6 @@ private:
     bool fileIsUntitled = true;
 
     QFont font;
-    const int DEFAULT_FONT_SIZE = 10;
-    const int NUM_CHARS_FOR_TAB = 5;
-
     QTextCharFormat defaultCharFormat;
     SearchHistory searchHistory;
 
