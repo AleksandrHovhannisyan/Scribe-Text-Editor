@@ -274,7 +274,7 @@ void MainWindow::on_currentTab_changed(int index)
     }
 
     // Set the internal editor to the currently tabbed one
-    editor = qobject_cast<Editor*>(tabbedEditor->widget(index));
+    editor = tabbedEditor->currentTab();
     editor->setFocus(Qt::FocusReason::TabFocusReason);
 
     Language tabLanguage = editor->getProgrammingLanguage();
@@ -544,10 +544,9 @@ void MainWindow::on_actionPrint_triggered()
  * to save the contents of the tab if unsaved. Closes the tab, unless the file is unsaved
  * and the user declines saving. Returns true if the tab was closed and false otherwise.
  */
-bool MainWindow::closeTab(int index)
+bool MainWindow::closeTab(Editor *tabToClose)
 {
     Editor *currentTab = editor;
-    Editor *tabToClose = qobject_cast<Editor*>(tabbedEditor->widget(index));
     bool closingCurrentTab = (tabToClose == currentTab);
 
     // Allow the user to see what tab they're closing if it's not the current one
@@ -577,7 +576,8 @@ bool MainWindow::closeTab(int index)
         }
     }
 
-    tabbedEditor->removeTab(index);
+    int indexOfTabToClose = tabbedEditor->indexOf(tabToClose);
+    tabbedEditor->removeTab(indexOfTabToClose);
 
     // If we closed the last tab, make a new one
     if(tabbedEditor->count() == 0)
@@ -600,20 +600,15 @@ bool MainWindow::closeTab(int index)
  */
 void MainWindow::on_actionExit_triggered()
 {
-    while(true)
-    {
-        bool closed = closeTab(0);
+    QVector<Editor*> unsavedTabs = tabbedEditor->unsavedTabs();
 
-        if(!closed)
+    for(Editor *tab : unsavedTabs)
+    {
+        bool tabWasClosed = closeTab(tab);
+
+        if(!tabWasClosed)
         {
             return;
-        }
-
-        // The only time this will happen after a tab close is
-        // if the last one is closed and a new tab is automatically created
-        if(tabbedEditor->count() == 1 && !qobject_cast<Editor*>(tabbedEditor->currentWidget())->isUnsaved())
-        {
-            break;
         }
     }
 
@@ -772,33 +767,23 @@ void MainWindow::on_actionTime_Date_triggered()
  */
 void MainWindow::on_actionFont_triggered()
 {
-    editor->launchFontDialog();
+    tabbedEditor->promptFontSelection();
 }
 
 
 /* Called when the user selects the Auto Indent option from the Format menu.
- * Toggles auto indenting in all open tabs.
  */
 void MainWindow::on_actionAuto_Indent_triggered()
 {
-    for(int i = 0; i < tabbedEditor->count(); i++)
-    {
-        Editor *tab = qobject_cast<Editor*>(tabbedEditor->widget(i));
-        tab->toggleAutoIndent(ui->actionAuto_Indent->isChecked());
-    }
+    tabbedEditor->applyAutoIndentation(ui->actionAuto_Indent->isChecked());
 }
 
 
-/* Called when the user selects the Word Wrap option from the Format menu. Toggles
- * word wrapping in all open tabs.
+/* Called when the user selects the Word Wrap option from the Format menu.
  */
 void MainWindow::on_actionWord_Wrap_triggered()
 {
-    for(int i = 0; i < tabbedEditor->count(); i++)
-    {
-        Editor *tab = qobject_cast<Editor*>(tabbedEditor->widget(i));
-        tab->toggleWrapMode(ui->actionWord_Wrap->isChecked());
-    }
+    tabbedEditor->applyWordWrapping(ui->actionWord_Wrap->isChecked());
 }
 
 
