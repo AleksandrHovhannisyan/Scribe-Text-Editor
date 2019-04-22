@@ -1,7 +1,5 @@
 #include "finddialog.h"
 #include <QHBoxLayout>
-#include <QMessageBox>
-#include <QSplitter>
 
 
 /* Initializes this FindDialog object.
@@ -9,42 +7,14 @@
 FindDialog::FindDialog(QWidget *parent)
     : QDialog(parent)
 {
-    // Initialize all members
-    findLabel = new QLabel(tr("Find what:    "));
-    replaceLabel = new QLabel(tr("Replace with:"));
-    findLineEdit = new QLineEdit();
-    replaceLineEdit = new QLineEdit();
-    findNextButton = new QPushButton(tr("&Find next"));
-    replaceButton = new QPushButton(tr("&Replace"));
-    replaceAllButton = new QPushButton(tr("&Replace all"));
-    caseSensitiveCheckBox = new QCheckBox(tr("&Match case"));
-    wholeWordsCheckBox = new QCheckBox(tr("&Whole words"));
+    initializeWidgets();
 
     // Ensures that the line edit gets the focus whenever the dialog is the active window
     setFocusProxy(findLineEdit);
 
     // Set up all the widgets and layouts
-    findHorizontalLayout = new QHBoxLayout();
-    replaceHorizontalLayout = new QHBoxLayout();
-    optionsLayout = new QHBoxLayout();
-    verticalLayout = new QVBoxLayout();
+    initializeLayout();
 
-    verticalLayout->addLayout(findHorizontalLayout);
-    verticalLayout->addLayout(replaceHorizontalLayout);
-    verticalLayout->addLayout(optionsLayout);
-
-    findHorizontalLayout->addWidget(findLabel);
-    findHorizontalLayout->addWidget(findLineEdit);
-    replaceHorizontalLayout->addWidget(replaceLabel);
-    replaceHorizontalLayout->addWidget(replaceLineEdit);
-
-    optionsLayout->addWidget(caseSensitiveCheckBox);
-    optionsLayout->addWidget(wholeWordsCheckBox);
-    optionsLayout->addWidget(findNextButton);
-    optionsLayout->addWidget(replaceButton);
-    optionsLayout->addWidget(replaceAllButton);
-
-    setLayout(verticalLayout);
     setWindowTitle(tr("Find and Replace"));
 
     connect(findNextButton, SIGNAL(clicked()), this, SLOT(on_findNextButton_clicked()));
@@ -70,6 +40,51 @@ FindDialog::~FindDialog()
     delete replaceHorizontalLayout;
     delete optionsLayout;
     delete verticalLayout;
+}
+
+
+/* Initializes all child widgets, such as the labels, checkboxes, and buttons.
+ */
+void FindDialog::initializeWidgets()
+{
+    findLabel = new QLabel(tr("Find what:    "));
+    replaceLabel = new QLabel(tr("Replace with:"));
+    findLineEdit = new QLineEdit();
+    replaceLineEdit = new QLineEdit();
+    findNextButton = new QPushButton(tr("&Find next"));
+    replaceButton = new QPushButton(tr("&Replace"));
+    replaceAllButton = new QPushButton(tr("&Replace all"));
+    caseSensitiveCheckBox = new QCheckBox(tr("&Match case"));
+    wholeWordsCheckBox = new QCheckBox(tr("&Whole words"));
+}
+
+
+/* Defines this FindDialog's layout and adds the widgets
+ * to the appropriate child layouts.
+ */
+void FindDialog::initializeLayout()
+{
+    findHorizontalLayout = new QHBoxLayout();
+    replaceHorizontalLayout = new QHBoxLayout();
+    optionsLayout = new QHBoxLayout();
+    verticalLayout = new QVBoxLayout();
+
+    verticalLayout->addLayout(findHorizontalLayout);
+    verticalLayout->addLayout(replaceHorizontalLayout);
+    verticalLayout->addLayout(optionsLayout);
+
+    findHorizontalLayout->addWidget(findLabel);
+    findHorizontalLayout->addWidget(findLineEdit);
+    replaceHorizontalLayout->addWidget(replaceLabel);
+    replaceHorizontalLayout->addWidget(replaceLineEdit);
+
+    optionsLayout->addWidget(caseSensitiveCheckBox);
+    optionsLayout->addWidget(wholeWordsCheckBox);
+    optionsLayout->addWidget(findNextButton);
+    optionsLayout->addWidget(replaceButton);
+    optionsLayout->addWidget(replaceAllButton);
+
+    setLayout(verticalLayout);
 }
 
 
