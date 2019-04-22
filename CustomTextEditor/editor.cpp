@@ -38,13 +38,11 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 
 
 /* Performs all necessary memory cleanup operations.
- * Saves editor settings for data persistence.
  */
 Editor::~Editor()
 {
     delete lineNumberArea;
     delete syntaxHighlighter;
-    writeSettings();
 }
 
 
@@ -353,9 +351,19 @@ void Editor::setLineWrapMode(LineWrapMode lineWrapMode)
 }
 
 
-/* Used by checkable menu options (see MainWindow) to toggle
- * the Editor's line wrap mode. That way, MainWindow does not
- * need to worry about what "true" and "false" correspond to.
+/* Used to toggle the Editor's auto indentation mode (on/off).
+ */
+void Editor::toggleAutoIndent(bool autoIndent)
+{
+    autoIndentEnabled = autoIndent;
+
+    // Update the setting in case any new tabs are opened later
+    writeSetting(AUTO_INDENT_KEY, autoIndentEnabled);
+}
+
+
+/* Used to toggle the Editor's line wrap mode (wrapping or no wrapping).
+ * @param wrap - flag denoting whether text should wrap (true) or not (false)
  */
 void Editor::toggleWrapMode(bool wrap)
 {
@@ -367,6 +375,9 @@ void Editor::toggleWrapMode(bool wrap)
     {
         setLineWrapMode(LineWrapMode::NoWrap);
     }
+
+    // Update the setting in case any new tabs are opened later
+    writeSetting(LINE_WRAP_KEY, lineWrapMode);
 }
 
 
@@ -628,14 +639,24 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 }
 
 
+/* Convenience function used for writing a single setting.
+ * @param KEY - the string denoting the unique identifier for the setting
+ * @param VAL - the type to be written and associated with KEY
+ */
+void Editor::writeSetting(const QString KEY, QVariant VAL) const
+{
+    QSettings settings;
+    settings.setValue(KEY, VAL);
+}
+
+
 /* Preserves current settings for the editor so they can be
  * persisted into the next execution.
  */
 void Editor::writeSettings()
 {
-    QSettings settings;
-    settings.setValue(LINE_WRAP_KEY, lineWrapMode);
-    settings.setValue(AUTO_INDENT_KEY, autoIndentEnabled);
+    writeSetting(LINE_WRAP_KEY, lineWrapMode);
+    writeSetting(AUTO_INDENT_KEY, autoIndentEnabled);
 }
 
 

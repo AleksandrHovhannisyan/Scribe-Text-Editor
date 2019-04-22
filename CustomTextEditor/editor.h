@@ -49,7 +49,7 @@ public:
     void setModifiedState(bool modified) { document()->setModified(modified); }
 
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
-    void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
+    void toggleAutoIndent(bool autoIndent);
     bool textIsAutoIndented() const { return autoIndentEnabled; }
     void toggleWrapMode(bool wrap);
     bool textIsWrapped() const { return lineWrapMode == LineWrapMode::WidgetWidth; }
@@ -104,6 +104,7 @@ private:
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
 
+    void writeSetting(const QString KEY, QVariant VAL) const;
     void writeSettings();
     void readSettings();
 

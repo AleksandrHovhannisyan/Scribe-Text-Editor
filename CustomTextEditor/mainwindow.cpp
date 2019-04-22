@@ -418,8 +418,6 @@ QMessageBox::StandardButton MainWindow::askUserToSave()
 void MainWindow::on_actionNew_triggered()
 {
     tabbedEditor->add(new Editor());
-    editor->toggleWrapMode(ui->actionWord_Wrap->isChecked());
-    editor->toggleAutoIndent(ui->actionAuto_Indent->isChecked());
 }
 
 
