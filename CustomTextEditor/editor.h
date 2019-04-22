@@ -103,6 +103,7 @@ private:
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
+    void indentSelection(QTextDocumentFragment selection);
 
     void writeSetting(const QString KEY, QVariant VAL) const;
     void writeSettings();

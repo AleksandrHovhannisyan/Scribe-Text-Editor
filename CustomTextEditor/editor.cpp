@@ -522,6 +522,28 @@ void Editor::moveCursorToStartOfCurrentLine()
 }
 
 
+/* Indents the selected text, if the cursor has a selection.
+ * Returns true if it succeeds and false otherwise.
+ */
+void Editor::indentSelection(QTextDocumentFragment selection)
+{
+    QString text = selection.toPlainText();
+
+    text.insert(0, '\t');
+    for(int i = 1; i < text.length(); i++)
+    {
+        // Insert a tab after each newline
+        if(text.at(i) == '\n' && i + 1 < text.length())
+        {
+            text.insert(i + 1, '\t');
+        }
+    }
+
+    // Replace the selection with the new tabbed text
+    insertPlainText(text);
+}
+
+
 /* Called when a user presses a key. Used to handle special formatting.
  */
 bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
@@ -591,22 +613,11 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
     {
         if(textCursor().hasSelection())
         {
-            QString text = textCursor().selection().toPlainText();
-
-            text.insert(0, '\t');
-            for(int i = 1; i < text.length(); i++)
-            {
-                // Insert a tab after each newline
-                if(text.at(i) == '\n' && i + 1 < text.length())
-                {
-                    text.insert(i + 1, '\t');
-                }
-            }
-
-            // Replace the selection with the new tabbed text
-            insertPlainText(text);
+            indentSelection(textCursor().selection());
             return true;
         }
+
+        return false;
     }
     // Process anything else normally
     else
