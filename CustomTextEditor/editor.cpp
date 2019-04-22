@@ -12,10 +12,6 @@
 #include <QSettings>
 
 
-bool Editor::autoIndentEnabled = true;
-Editor::LineWrapMode Editor::lineWrapMode = Editor::LineWrapMode::NoWrap;
-
-
 /* Initializes this Editor.
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
@@ -26,6 +22,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     setProgrammingLanguage(Language::None);
     metrics = DocumentMetrics();
     lineNumberArea = new LineNumberArea(this);
+    setFont(QFont("Courier", DEFAULT_FONT_SIZE), QFont::Monospace, true, NUM_CHARS_FOR_TAB);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -41,13 +38,11 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 
 
 /* Performs all necessary memory cleanup operations.
- * Saves editor settings for data persistence.
  */
 Editor::~Editor()
 {
     delete lineNumberArea;
     delete syntaxHighlighter;
-    writeSettings();
 }
 
 
@@ -87,33 +82,17 @@ QString Editor::getFileNameFromPath()
 }
 
 
-/* Launches a QFontDialog to allow the user to select a font.
- */
-void Editor::launchFontDialog()
-{
-    bool userChoseFont;
-    QFont font = QFontDialog::getFont(&userChoseFont, QFont("Courier", 10), this);
-
-    if(userChoseFont)
-    {
-        setFont(font.family(), QFont::Monospace, true, font.pointSize(), 5);
-    }
-}
-
-
 /* Sets the editor's font using the specified parameters.
- * @param family - the name of the font family
+ * @param newFont - the font to be set
  * @param styleHint - used to select an appropriate default font family if the specified one is unavailable.
  * @param fixedPitch - if true, monospace font (equal-width characters)
- * @param pointSize - the size, in points, of the desired font (e.g., 12 for 12-pt font)
  * @param tabStopWidth - the desired width of a tab in terms of the equivalent number of spaces
  */
-void Editor::setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth)
+void Editor::setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch, int tabStopWidth)
 {
-    font.setFamily(family);
+    font = newFont;
     font.setStyleHint(styleHint);
     font.setFixedPitch(fixedPitch);
-    font.setPointSize(pointSize);
     QPlainTextEdit::setFont(font);
 
     QFontMetrics metrics(font);
@@ -372,9 +351,19 @@ void Editor::setLineWrapMode(LineWrapMode lineWrapMode)
 }
 
 
-/* Used by checkable menu options (see MainWindow) to toggle
- * the Editor's line wrap mode. That way, MainWindow does not
- * need to worry about what "true" and "false" correspond to.
+/* Used to toggle the Editor's auto indentation mode (on/off).
+ */
+void Editor::toggleAutoIndent(bool autoIndent)
+{
+    autoIndentEnabled = autoIndent;
+
+    // Update the setting in case any new tabs are opened later
+    writeSetting(AUTO_INDENT_KEY, autoIndentEnabled);
+}
+
+
+/* Used to toggle the Editor's line wrap mode (wrapping or no wrapping).
+ * @param wrap - flag denoting whether text should wrap (true) or not (false)
  */
 void Editor::toggleWrapMode(bool wrap)
 {
@@ -386,6 +375,9 @@ void Editor::toggleWrapMode(bool wrap)
     {
         setLineWrapMode(LineWrapMode::NoWrap);
     }
+
+    // Update the setting in case any new tabs are opened later
+    writeSetting(LINE_WRAP_KEY, lineWrapMode);
 }
 
 
@@ -530,6 +522,28 @@ void Editor::moveCursorToStartOfCurrentLine()
 }
 
 
+/* Indents the selected text, if the cursor has a selection.
+ * Returns true if it succeeds and false otherwise.
+ */
+void Editor::indentSelection(QTextDocumentFragment selection)
+{
+    QString text = selection.toPlainText();
+
+    text.insert(0, '\t');
+    for(int i = 1; i < text.length(); i++)
+    {
+        // Insert a tab after each newline
+        if(text.at(i) == '\n' && i + 1 < text.length())
+        {
+            text.insert(i + 1, '\t');
+        }
+    }
+
+    // Replace the selection with the new tabbed text
+    insertPlainText(text);
+}
+
+
 /* Called when a user presses a key. Used to handle special formatting.
  */
 bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
@@ -540,8 +554,7 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
         QString documentContents = document()->toPlainText();
         int indexToLeftOfCursor = textCursor().position() - 1;
 
-        if(autoIndentEnabled &&
-           documentContents.length() >= 1 &&
+        if(documentContents.length() >= 1 &&
            indexToLeftOfCursor >= 0 &&
            indexToLeftOfCursor < documentContents.length())
         {
@@ -554,7 +567,7 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
 
                 int braceLevel = indentationLevelOfCurrentLine();
                 insertPlainText("\n");
-                insertTabs(braceLevel + 1);
+                if(autoIndentEnabled) insertTabs(braceLevel + 1);
 
                 if(notPaired)
                 {
@@ -579,9 +592,17 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
             // Hit ENTER after anything else
             else
             {
-                int indentationLevel = indentationLevelOfCurrentLine();
-                insertPlainText("\n");
-                insertTabs(indentationLevel);
+                if(autoIndentEnabled)
+                {
+                    int indentationLevel = indentationLevelOfCurrentLine();
+                    insertPlainText("\n");
+                    insertTabs(indentationLevel);
+                }
+                else
+                {
+                    insertPlainText("\n");
+                }
+
                 return true;
             }
         }
@@ -592,22 +613,11 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
     {
         if(textCursor().hasSelection())
         {
-            QString text = textCursor().selection().toPlainText();
-
-            text.insert(0, '\t');
-            for(int i = 1; i < text.length(); i++)
-            {
-                // Insert a tab after each newline
-                if(text.at(i) == '\n' && i + 1 < text.length())
-                {
-                    text.insert(i + 1, '\t');
-                }
-            }
-
-            // Replace the selection with the new tabbed text
-            insertPlainText(text);
+            indentSelection(textCursor().selection());
             return true;
         }
+
+        return false;
     }
     // Process anything else normally
     else
@@ -647,14 +657,24 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 }
 
 
+/* Convenience function used for writing a single setting.
+ * @param KEY - the string denoting the unique identifier for the setting
+ * @param VAL - the type to be written and associated with KEY
+ */
+void Editor::writeSetting(const QString KEY, QVariant VAL) const
+{
+    QSettings settings;
+    settings.setValue(KEY, VAL);
+}
+
+
 /* Preserves current settings for the editor so they can be
  * persisted into the next execution.
  */
 void Editor::writeSettings()
 {
-    QSettings settings;
-    settings.setValue(LINE_WRAP_KEY, lineWrapMode);
-    settings.setValue(AUTO_INDENT_KEY, autoIndentEnabled);
+    writeSetting(LINE_WRAP_KEY, lineWrapMode);
+    writeSetting(AUTO_INDENT_KEY, autoIndentEnabled);
 }
 
 

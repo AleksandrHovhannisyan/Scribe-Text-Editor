@@ -45,7 +45,9 @@ private:
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
 
+
     void matchFormatOptionsToEditorDefaults();
+    void updateFormatMenuOptions();
     void writeSettings();
     void readSettings();
 
@@ -79,8 +81,9 @@ public slots:
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);
-    bool closeTab(int index);
-    void closeTabShortcut() { closeTab(tabbedEditor->currentIndex()); }
+    bool closeTab(Editor *tabToClose);
+    bool closeTab(int index) { return closeTab(tabbedEditor->tabAt(index)); }
+    void closeTabShortcut() { closeTab(tabbedEditor->currentTab()); }
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
 private slots:

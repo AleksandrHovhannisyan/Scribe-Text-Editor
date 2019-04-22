@@ -41,16 +41,18 @@ public:
     inline bool isUntitled() const { return fileIsUntitled; }
 
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
-    void launchFontDialog();
-    void setFont(QString family, QFont::StyleHint styleHint, bool fixedPitch, int pointSize, int tabStopWidth);
+    QFont getFont() { return font; }
+    void setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch, int tabStopWidth);
     void updateFileMetrics();
 
     inline bool isUnsaved() const { return document()->isModified(); }
     void setModifiedState(bool modified) { document()->setModified(modified); }
 
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
-    void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
+    void toggleAutoIndent(bool autoIndent);
+    bool textIsAutoIndented() const { return autoIndentEnabled; }
     void toggleWrapMode(bool wrap);
+    bool textIsWrapped() const { return lineWrapMode == LineWrapMode::WidgetWidth; }
 
     inline bool redoAvailable() const { return canRedo; }
     inline bool undoAvailable() const { return canUndo; }
@@ -60,8 +62,11 @@ public:
 
     void setLineWrapMode(LineWrapMode lineWrapMode);
 
-    static bool autoIndentEnabled;
-    static LineWrapMode lineWrapMode;
+    const static int DEFAULT_FONT_SIZE = 10;
+    const static int NUM_CHARS_FOR_TAB = 5;
+
+    bool autoIndentEnabled = true;
+    LineWrapMode lineWrapMode = Editor::LineWrapMode::NoWrap;
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -98,7 +103,9 @@ private:
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
     void insertTabs(int numTabs);
+    void indentSelection(QTextDocumentFragment selection);
 
+    void writeSetting(const QString KEY, QVariant VAL) const;
     void writeSettings();
     void readSettings();
 
