@@ -97,7 +97,6 @@ void TabbedEditor::promptFontSelection()
     {
         for (Editor *tab : tabs())
         {
-            qDebug() << "Setting font!";
             tab->setFont(newFont, QFont::Monospace, true, Editor::NUM_CHARS_FOR_TAB);
         }
     }
@@ -200,7 +199,7 @@ bool TabbedEditor::eventFilter(QObject* obj, QEvent* event)
             // Ctrl + num = jump to that tab number
             if(key >= Qt::Key_1 && key <= Qt::Key_9)
             {
-                setCurrentWidget(widget(key - Qt::Key_1));
+                setCurrentWidget(tabAt(key - Qt::Key_1));
                 return true;
             }
 
@@ -208,7 +207,7 @@ bool TabbedEditor::eventFilter(QObject* obj, QEvent* event)
             else if(key == Qt::Key_T)
             {
                 int newTabIndex = (currentIndex() + 1) % count();
-                setCurrentWidget(widget(newTabIndex));
+                setCurrentWidget(tabAt(newTabIndex));
                 return true;
             }
         }
