@@ -532,8 +532,7 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
         QString documentContents = document()->toPlainText();
         int indexToLeftOfCursor = textCursor().position() - 1;
 
-        if(autoIndentEnabled &&
-           documentContents.length() >= 1 &&
+        if(documentContents.length() >= 1 &&
            indexToLeftOfCursor >= 0 &&
            indexToLeftOfCursor < documentContents.length())
         {
@@ -546,7 +545,7 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
 
                 int braceLevel = indentationLevelOfCurrentLine();
                 insertPlainText("\n");
-                insertTabs(braceLevel + 1);
+                if(autoIndentEnabled) insertTabs(braceLevel + 1);
 
                 if(notPaired)
                 {
@@ -571,9 +570,17 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
             // Hit ENTER after anything else
             else
             {
-                int indentationLevel = indentationLevelOfCurrentLine();
-                insertPlainText("\n");
-                insertTabs(indentationLevel);
+                if(autoIndentEnabled)
+                {
+                    int indentationLevel = indentationLevelOfCurrentLine();
+                    insertPlainText("\n");
+                    insertTabs(indentationLevel);
+                }
+                else
+                {
+                    insertPlainText("\n");
+                }
+
                 return true;
             }
         }
