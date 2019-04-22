@@ -118,7 +118,7 @@ void TabbedEditor::promptFontSelection()
 
 /* Applies word wrapping to either all tabs or the current tab, depending on the user's selection.
  */
-void TabbedEditor::applyWordWrapping(bool shouldWrap)
+bool TabbedEditor::applyWordWrapping(bool shouldWrap)
 {
     QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Word wrapping"),
                                                                       tr("Apply to all tabs?"));
@@ -130,25 +130,29 @@ void TabbedEditor::applyWordWrapping(bool shouldWrap)
         {
             tab->toggleWrapMode(shouldWrap);
         }
+
+        return true;
     }
 
     // Apply wrapping only to current tab
     else if(tabSelection == QMessageBox::No)
     {
         currentTab()->toggleWrapMode(shouldWrap);
+        return true;
     }
 
     // If user hit cancel
     else
     {
-        return;
+        return false;
     }
 }
 
 
 /* Applies auto indentation to either all tabs or the current tab, depending on the user's selection.
+ * Returns true if the formatting was applied at all, and false if the operation was canceled.
  */
-void TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
+bool TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
 {
     QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Auto indentation"),
                                                                       tr("Apply to all tabs?"));
@@ -160,18 +164,21 @@ void TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
         {
             tab->toggleAutoIndent(shouldAutoIndent);
         }
+
+        return true;
     }
 
     // Apply auto indentation only to current tab
     else if(tabSelection == QMessageBox::No)
     {
         currentTab()->toggleAutoIndent(shouldAutoIndent);
+        return true;
     }
 
     // If user hit cancel
     else
     {
-        return;
+        return false;
     }
 }
 

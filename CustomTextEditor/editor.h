@@ -50,7 +50,9 @@ public:
 
     void formatSubtext(int startIndex, int endIndex, QTextCharFormat format, bool unformatAllFirst = false);
     void toggleAutoIndent(bool autoIndent) { autoIndentEnabled = autoIndent; }
+    bool textIsAutoIndented() const { return autoIndentEnabled; }
     void toggleWrapMode(bool wrap);
+    bool textIsWrapped() const { return lineWrapMode == LineWrapMode::WidgetWidth; }
 
     inline bool redoAvailable() const { return canRedo; }
     inline bool undoAvailable() const { return canUndo; }
@@ -62,8 +64,9 @@ public:
 
     const static int DEFAULT_FONT_SIZE = 10;
     const static int NUM_CHARS_FOR_TAB = 5;
-    static bool autoIndentEnabled;
-    static LineWrapMode lineWrapMode;
+
+    bool autoIndentEnabled = true;
+    LineWrapMode lineWrapMode = Editor::LineWrapMode::NoWrap;
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

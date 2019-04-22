@@ -12,10 +12,6 @@
 #include <QSettings>
 
 
-bool Editor::autoIndentEnabled = true;
-Editor::LineWrapMode Editor::lineWrapMode = Editor::LineWrapMode::NoWrap;
-
-
 /* Initializes this Editor.
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)

@@ -19,8 +19,8 @@ public:
     QVector<Editor*> unsavedTabs() const;
 
     void promptFontSelection();
-    void applyWordWrapping(bool shouldWrap);
-    void applyAutoIndentation(bool shouldAutoIndent);
+    bool applyWordWrapping(bool shouldWrap);
+    bool applyAutoIndentation(bool shouldAutoIndent);
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;

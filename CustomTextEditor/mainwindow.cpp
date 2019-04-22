@@ -19,11 +19,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     readSettings();
-    matchFormatOptionsToEditorDefaults();
-
-    mapMenuLanguageOptionToLanguageType();
 
     // Used to ensure that only one language can ever be checked at a time
     languageGroup = new QActionGroup(this);
@@ -62,20 +58,35 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QShortcut *tabCloseShortcut = new QShortcut(QKeySequence("Ctrl+W"), this);
     QObject::connect(tabCloseShortcut, SIGNAL(activated()), this, SLOT(closeTabShortcut()));
 
+    // For word wrap and auto indent
+    matchFormatOptionsToEditorDefaults();
+
+    mapMenuLanguageOptionToLanguageType();
     mapFileExtensionsToLanguages();
 }
 
 
 /* Ensures that the checkable formatting menu options, like auto indent
  * and word wrap, match the previously saved defaults for the Editor class.
+ * See constructor for usage.
  */
 void MainWindow::matchFormatOptionsToEditorDefaults()
 {
     QAction *autoIndent = ui->actionAuto_Indent;
-    Editor::autoIndentEnabled ? autoIndent->setChecked(true) : autoIndent->setChecked(false);
+    editor->autoIndentEnabled ? autoIndent->setChecked(true) : autoIndent->setChecked(false);
 
     QAction *wordWrap = ui->actionWord_Wrap;
-    Editor::lineWrapMode ? wordWrap->setChecked(true) : wordWrap->setChecked(false);
+    editor->lineWrapMode ? wordWrap->setChecked(true) : wordWrap->setChecked(false);
+}
+
+
+/* Updates the Format menu options (e.g., Word wrap, Auto indent) to match
+ * the settings of the currently selected editor. See onCurrentTabChanged for usage.
+ */
+void MainWindow::updateFormatMenuOptions()
+{
+    ui->actionWord_Wrap->setChecked(editor->textIsWrapped());
+    ui->actionAuto_Indent->setChecked(editor->textIsAutoIndented());
 }
 
 
@@ -223,6 +234,7 @@ void MainWindow::disconnectEditorDependentSignals()
     disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
     disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+
     disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -301,6 +313,7 @@ void MainWindow::on_currentTab_changed(int index)
     toggleUndo(editor->undoAvailable());
     toggleCopyAndCut(editor->textCursor().hasSelection());
 
+    updateFormatMenuOptions();
     reconnectEditorDependentSignals();
 
     // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
@@ -604,9 +617,9 @@ void MainWindow::on_actionExit_triggered()
 
     for(Editor *tab : unsavedTabs)
     {
-        bool tabWasClosed = closeTab(tab);
+        bool userClosedTab = closeTab(tab);
 
-        if(!tabWasClosed)
+        if(!userClosedTab)
         {
             return;
         }
@@ -775,7 +788,14 @@ void MainWindow::on_actionFont_triggered()
  */
 void MainWindow::on_actionAuto_Indent_triggered()
 {
-    tabbedEditor->applyAutoIndentation(ui->actionAuto_Indent->isChecked());
+    bool shouldAutoIndent = ui->actionAuto_Indent->isChecked();
+    bool autoIndentToggled = tabbedEditor->applyAutoIndentation(shouldAutoIndent);
+
+    // If the user canceled the operation, reverse the checking
+    if(!autoIndentToggled)
+    {
+        ui->actionAuto_Indent->setChecked(!shouldAutoIndent);
+    }
 }
 
 

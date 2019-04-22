@@ -45,7 +45,9 @@ private:
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
 
+
     void matchFormatOptionsToEditorDefaults();
+    void updateFormatMenuOptions();
     void writeSettings();
     void readSettings();
 
