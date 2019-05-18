@@ -58,6 +58,7 @@ private:
     // Used for storing application state upon termination
     const QString WINDOW_SIZE_KEY = "window_size";
     const QString WINDOW_POSITION_KEY = "window_position";
+    const QString WINDOW_STATUS_BAR = "window_status_bar";
     const QString DEFAULT_DIRECTORY_KEY = "default_directory";
     const QString DEFAULT_DIRECTORY = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 

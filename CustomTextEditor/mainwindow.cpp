@@ -637,6 +637,7 @@ void MainWindow::writeSettings()
     QSettings settings;
     settings.setValue(WINDOW_SIZE_KEY, size());
     settings.setValue(WINDOW_POSITION_KEY, pos());
+    settings.setValue(WINDOW_STATUS_BAR, ui->statusBar->isVisible());
 }
 
 
@@ -658,6 +659,13 @@ void MainWindow::readSettings()
     if(!windowPosition.isNull())
     {
         move(settings.value(WINDOW_POSITION_KEY, QPoint(200, 200)).toPoint());
+    }
+
+    QVariant statusBarVisible = settings.value(WINDOW_STATUS_BAR);
+
+    if(!statusBarVisible.isNull())
+    {
+        ui->statusBar->setVisible(qvariant_cast<bool>(statusBarVisible));
     }
 }
 
