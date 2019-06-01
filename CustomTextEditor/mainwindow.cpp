@@ -235,6 +235,9 @@ void MainWindow::disconnectEditorDependentSignals()
     disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
 
+    disconnect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
+    disconnect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
+    disconnect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateTabAndWindowTitle()));
     disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -281,12 +284,11 @@ void MainWindow::on_currentTab_changed(int index)
     // Note: editor will only be nullptr on the first launch, so this will get skipped in that edge case
     if(editor != nullptr)
     {
-        // Disconnect for previous active editor
         disconnectEditorDependentSignals();
     }
 
-    // Set the internal editor to the currently tabbed one
     editor = tabbedEditor->currentTab();
+    reconnectEditorDependentSignals();
     editor->setFocus(Qt::FocusReason::TabFocusReason);
 
     Language tabLanguage = editor->getProgrammingLanguage();
@@ -314,7 +316,7 @@ void MainWindow::on_currentTab_changed(int index)
     toggleCopyAndCut(editor->textCursor().hasSelection());
 
     updateFormatMenuOptions();
-    reconnectEditorDependentSignals();
+
 
     // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
     DocumentMetrics metrics = editor->getDocumentMetrics();
