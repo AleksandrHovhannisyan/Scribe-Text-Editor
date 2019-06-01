@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     languageGroup->addAction(ui->actionPython_Lang);
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
 
+    // Language label frame
+    setupLanguageOnStatusBar();
+
     // Set up the find dialog
     findDialog = new FindDialog();
     findDialog->setParent(this, Qt::Tool | Qt::MSWindowsFixedSizeDialogHint);
@@ -42,7 +45,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tabbedEditor = ui->tabWidget;
     tabbedEditor->setTabsClosable(true);
 
-    initializeStatusBarLabels();
+    // Add metric reporter and simulate a tab switch
+    metricReporter = new MetricReporter();
+    ui->statusBar->addPermanentWidget(metricReporter);
     on_currentTab_changed(0);
 
     // Connect tabbedEditor's signals to their handlers
@@ -90,6 +95,20 @@ void MainWindow::updateFormatMenuOptions()
 }
 
 
+/* Initializes the language label and adds it to a frame
+ * that gets set as a widget on the far left of the status bar.
+ */
+void MainWindow::setupLanguageOnStatusBar()
+{
+    languageLabel = new QLabel("Language: not selected");
+    QFrame *langFrame = new QFrame();
+    QHBoxLayout *langLayout = new QHBoxLayout();
+    langLayout->addWidget(languageLabel);
+    langFrame->setLayout(langLayout);
+    ui->statusBar->addWidget(langFrame);
+}
+
+
 /* Maps each menu language option (from the Format dropdown) to its corresponding
  * Language type, for convenience.
  */
@@ -119,14 +138,6 @@ void MainWindow::mapFileExtensionsToLanguages()
 MainWindow::~MainWindow()
 {
     delete languageLabel;
-    delete wordLabel;
-    delete wordCountLabel;
-    delete charLabel;
-    delete charCountLabel;
-    delete lineLabel;
-    delete lineCountLabel;
-    delete columnCountLabel;
-    delete columnLabel;
     delete languageGroup;
     delete ui;
 }
@@ -236,15 +247,15 @@ void MainWindow::disconnectEditorDependentSignals()
     disconnect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
     disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
-
-    disconnect(editor, SIGNAL(wordCountChanged(int)), this, SLOT(updateWordCount(int)));
-    disconnect(editor, SIGNAL(charCountChanged(int)), this, SLOT(updateCharCount(int)));
-    disconnect(editor, SIGNAL(lineCountChanged(int, int)), this, SLOT(updateLineCount(int, int)));
-    disconnect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
-    disconnect(editor, SIGNAL(fileContentsChanged()), this, SLOT(updateTabAndWindowTitle()));
-
     disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
+
+    disconnect(editor, SIGNAL(wordCountChanged(int)), metricReporter, SLOT(updateWordCount(int)));
+    disconnect(editor, SIGNAL(charCountChanged(int)), metricReporter, SLOT(updateCharCount(int)));
+    disconnect(editor, SIGNAL(lineCountChanged(int, int)), metricReporter, SLOT(updateLineCount(int, int)));
+    disconnect(editor, SIGNAL(columnCountChanged(int)), metricReporter, SLOT(updateColumnCount(int)));
+    disconnect(editor, SIGNAL(fileContentsChanged()), this, SLOT(updateTabAndWindowTitle()));
+
     disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
     disconnect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
     disconnect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
@@ -256,56 +267,22 @@ void MainWindow::disconnectEditorDependentSignals()
  */
 void MainWindow::reconnectEditorDependentSignals()
 {
-    // Reconnect editor signals
-    connect(editor, SIGNAL(wordCountChanged(int)), this, SLOT(updateWordCount(int)));
-    connect(editor, SIGNAL(charCountChanged(int)), this, SLOT(updateCharCount(int)));
-    connect(editor, SIGNAL(lineCountChanged(int, int)), this, SLOT(updateLineCount(int, int)));
-    connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
-    connect(editor, SIGNAL(fileContentsChanged()), this, SLOT(updateTabAndWindowTitle()));
-
-    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
-    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
-    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
-    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
-    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
-
-    // Reconnect find/goto signals and slots to the current editor
     connect(findDialog, SIGNAL(startFinding(QString, bool, bool)), editor, SLOT(find(QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacing(QString, QString, bool, bool)), editor, SLOT(replace(QString, QString, bool, bool)));
     connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
+    connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
+    connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
 
-}
+    connect(editor, SIGNAL(wordCountChanged(int)), metricReporter, SLOT(updateWordCount(int)));
+    connect(editor, SIGNAL(charCountChanged(int)), metricReporter, SLOT(updateCharCount(int)));
+    connect(editor, SIGNAL(lineCountChanged(int, int)), metricReporter, SLOT(updateLineCount(int, int)));
+    connect(editor, SIGNAL(columnCountChanged(int)), metricReporter, SLOT(updateColumnCount(int)));
+    connect(editor, SIGNAL(fileContentsChanged()), this, SLOT(updateTabAndWindowTitle()));
 
-
-void MainWindow::updateWordCount(int wordCount)
-{
-    wordCountLabel->setText(QString::number(wordCount) + tr("   "));
-}
-
-
-/* Updates the char count displayed on the status bar.
- */
-void MainWindow::updateCharCount(int charCount)
-{
-    charCountLabel->setText(QString::number(charCount) + tr("   "));
-}
-
-
-/* Updates the line number displayed on the status bar.
- */
-void MainWindow::updateLineCount(int current, int total)
-{
-    lineCountLabel->setText(QString::number(current) + tr("/") +
-                            QString::number(total) + tr("   "));
-}
-
-
-/* Updates the column number displayed on the status bar.
- */
-void MainWindow::updateColumnCount(int columnCount)
-{
-    columnCountLabel->setText(QString::number(columnCount) + tr("   "));
+    connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
+    connect(editor, SIGNAL(redoAvailable(bool)), this, SLOT(toggleRedo(bool)));
+    connect(editor, SIGNAL(copyAvailable(bool)), this, SLOT(toggleCopyAndCut(bool)));
 }
 
 
@@ -360,37 +337,10 @@ void MainWindow::on_currentTab_changed(int index)
     // We need to update this information manually for tab changes
     DocumentMetrics metrics = editor->getDocumentMetrics();
     updateTabAndWindowTitle();
-    updateWordCount(metrics.wordCount);
-    updateCharCount(metrics.charCount);
-    updateLineCount(metrics.currentLine, metrics.totalLines);
-    updateColumnCount(metrics.currentColumn);
-}
-
-
-/* Initializes the status bar labels and adds them as permanent
- * widgets to the status bar of the main application window.
- */
-void MainWindow::initializeStatusBarLabels()
-{
-    languageLabel = new QLabel("Language: not selected");
-    wordLabel = new QLabel("Words: ");
-    wordCountLabel = new QLabel();
-    charLabel = new QLabel("Chars: ");
-    charCountLabel = new QLabel();
-    lineLabel = new QLabel("Line: ");
-    lineCountLabel = new QLabel();
-    columnLabel = new QLabel("Column: ");
-    columnCountLabel = new QLabel();
-
-    ui->statusBar->addWidget(languageLabel);
-    ui->statusBar->addPermanentWidget(wordLabel);
-    ui->statusBar->addPermanentWidget(wordCountLabel);
-    ui->statusBar->addPermanentWidget(charLabel);
-    ui->statusBar->addPermanentWidget(charCountLabel);
-    ui->statusBar->addPermanentWidget(lineLabel);
-    ui->statusBar->addPermanentWidget(lineCountLabel);
-    ui->statusBar->addPermanentWidget(columnLabel);
-    ui->statusBar->addPermanentWidget(columnCountLabel);
+    metricReporter->updateWordCount(metrics.wordCount);
+    metricReporter->updateCharCount(metrics.charCount);
+    metricReporter->updateLineCount(metrics.currentLine, metrics.totalLines);
+    metricReporter->updateColumnCount(metrics.currentColumn);
 }
 
 
