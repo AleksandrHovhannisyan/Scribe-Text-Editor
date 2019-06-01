@@ -7,6 +7,7 @@
 #include "gotodialog.h"
 #include "tabbededitor.h"
 #include "language.h"
+#include "metricreporter.h"
 #include <highlighter.h>
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
@@ -29,7 +30,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-    void initializeStatusBarLabels();
     void launchFindDialog();
     void launchGotoDialog();
     void closeEvent(QCloseEvent *event) override;
@@ -39,6 +39,7 @@ private:
     void disconnectEditorDependentSignals();
     QMessageBox::StandardButton askUserToSave();
 
+    void setupLanguageOnStatusBar();
     void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);
     void mapMenuLanguageOptionToLanguageType();
@@ -53,6 +54,7 @@ private:
     // The "core" or essential members
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
+    MetricReporter *metricReporter;
     Editor *editor = nullptr;
 
     // Used for storing application state upon termination
@@ -66,30 +68,16 @@ private:
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
     QActionGroup *languageGroup;
+    QLabel *languageLabel;
     QMap<QAction*, Language> menuActionToLanguageMap;
     QMap<QString, Language> extensionToLanguageMap;
 
-    QLabel *languageLabel;
-    QLabel *wordLabel;
-    QLabel *wordCountLabel;
-    QLabel *lineLabel;
-    QLabel *lineCountLabel;
-    QLabel *charLabel;
-    QLabel *charCountLabel;
-    QLabel *columnLabel;
-    QLabel *columnCountLabel;
-
 public slots:
-    void updateWordCount(int wordCount);
-    void updateCharCount(int charCount);
-    void updateLineCount(int current, int total);
-    void updateColumnCount(int columnCount);
-    void updateTabAndWindowTitle();
-
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);
 
+    void updateTabAndWindowTitle();
     bool closeTab(Editor *tabToClose);
     bool closeTab(int index) { return closeTab(tabbedEditor->tabAt(index)); }
     void closeTabShortcut() { closeTab(tabbedEditor->currentTab()); }

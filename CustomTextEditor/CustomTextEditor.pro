@@ -29,6 +29,7 @@ SOURCES += \
         mainwindow.cpp \
         finddialog.cpp \
     editor.cpp \
+    metricreporter.cpp \
     utilityfunctions.cpp \
     searchhistory.cpp \
     gotodialog.cpp \
@@ -42,6 +43,7 @@ HEADERS += \
         finddialog.h \
     editor.h \
     linenumberarea.h \
+    metricreporter.h \
     utilityfunctions.h \
     searchhistory.h \
     gotodialog.h \
