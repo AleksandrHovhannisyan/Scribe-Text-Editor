@@ -12,6 +12,9 @@
 #include <QSettings>
 
 
+const QColor Editor::LINE_COLOR = QColor(Qt::lightGray).lighter(125);
+
+
 /* Initializes this Editor.
  */
 Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
@@ -25,7 +28,7 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
     setFont(QFont("Courier", DEFAULT_FONT_SIZE), QFont::Monospace, true, NUM_CHARS_FOR_TAB);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
-    connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
+    connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(redrawLineNumberArea(QRect,int)));
     connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
     connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
     connect(this, SIGNAL(undoAvailable(bool)), this, SLOT(setUndoAvailable(bool)));
@@ -732,7 +735,7 @@ void Editor::updateLineNumberAreaWidth()
 
 /* Called when the editor viewport is scrolled. Redraws the line number area accordingly.
  */
-void Editor::updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically)
+void Editor::redrawLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically)
 {
     if(numPixelsScrolledVertically != 0)
     {
@@ -761,31 +764,47 @@ void Editor::resizeEvent(QResizeEvent *event)
 }
 
 
-/* Called when the cursor changes position. Highlights the line the cursor is on.
- * Also computes the current column within that line.
+/* Called when the cursor changes position. Highlights the current line and
+ * updates the column count.
  */
 void Editor::on_cursorPositionChanged()
+{
+    highlightCurrentLine();
+    updateAndEmitColumnCount();
+}
+
+
+/* Updates the column count internally for this Editor and emits a signal
+ * to any subscribed entities (namely, MainWindow) to pass along the new
+ * column count.
+ */
+void Editor::updateAndEmitColumnCount()
+{
+    if(!metricCalculationEnabled)
+    {
+        return;
+    }
+
+    metrics.currentColumn = textCursor().positionInBlock() + 1;
+    emit(columnCountChanged(metrics.currentColumn));
+}
+
+
+/* Highlights the current line. See on_cursorPositionChanged() for invocation.
+ */
+void Editor::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
     if (!isReadOnly())
     {
        QTextEdit::ExtraSelection selection;
-       QColor lineColor = QColor(Qt::lightGray).lighter(125);
-
-       selection.format.setBackground(lineColor);
+       selection.format.setBackground(LINE_COLOR);
        selection.format.setProperty(QTextFormat::FullWidthSelection, true);
        selection.cursor = textCursor();
        selection.cursor.clearSelection();
        extraSelections.append(selection);
     }
     setExtraSelections(extraSelections);
-
-    // When the cursor position changes, the column changes, so we need to update that
-    if(metricCalculationEnabled)
-    {
-        metrics.currentColumn = textCursor().positionInBlock() + 1;
-        emit(columnCountChanged(metrics.currentColumn));
-    }
 }
 
 

@@ -88,7 +88,8 @@ private slots:
     void on_textChanged();
     void updateLineNumberAreaWidth();
     void on_cursorPositionChanged();
-    void updateLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
+
+    void redrawLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically);
 
     void setUndoAvailable(bool available) { canUndo = available; }
     void setRedoAvailable(bool available) { canRedo = available; }
@@ -99,6 +100,9 @@ private:
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
     bool handleKeyPress(QObject* obj, QEvent* event, int key);
     void moveCursorTo(int positionInText);
+
+    void highlightCurrentLine();
+    void updateAndEmitColumnCount();
 
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
@@ -111,6 +115,7 @@ private:
 
     Language programmingLanguage;
     Highlighter *syntaxHighlighter;
+    const static QColor LINE_COLOR;
 
     DocumentMetrics metrics;
     QString currentFilePath;
