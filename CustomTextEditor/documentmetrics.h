@@ -3,9 +3,11 @@
 
 struct DocumentMetrics
 {
-    DocumentMetrics() : charCount(0), wordCount(0), currentColumn(1) {}
-    int charCount;
+    DocumentMetrics() : wordCount(0), charCount(0), currentLine(1), totalLines(1), currentColumn(1) {}
     int wordCount;
+    int charCount;
+    int currentLine;
+    int totalLines;
     int currentColumn;
 };
 
