@@ -45,12 +45,12 @@ private:
     void mapFileExtensionsToLanguages();
     void setLanguageFromExtension();
 
-
     void matchFormatOptionsToEditorDefaults();
     void updateFormatMenuOptions();
     void writeSettings();
     void readSettings();
 
+    // The "core" or essential members
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
     Editor *editor = nullptr;
@@ -62,31 +62,40 @@ private:
     const QString DEFAULT_DIRECTORY_KEY = "default_directory";
     const QString DEFAULT_DIRECTORY = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 
+    // Other widget members
     FindDialog *findDialog;
     GotoDialog *gotoDialog;
     QActionGroup *languageGroup;
     QMap<QAction*, Language> menuActionToLanguageMap;
     QMap<QString, Language> extensionToLanguageMap;
+
     QLabel *languageLabel;
     QLabel *wordLabel;
     QLabel *wordCountLabel;
+    QLabel *lineLabel;
+    QLabel *lineCountLabel;
     QLabel *charLabel;
     QLabel *charCountLabel;
     QLabel *columnLabel;
     QLabel *columnCountLabel;
 
 public slots:
-    inline void updateColumnCount(int col) { columnCountLabel->setText(QString::number(col) + tr("   ")); }
+    void updateWordCount(int wordCount);
+    void updateCharCount(int charCount);
+    void updateLineCount(int current, int total);
+    void updateColumnCount(int columnCount);
     void updateTabAndWindowTitle();
-    void updateWordAndCharCount(DocumentMetrics metrics);
+
     void toggleUndo(bool undoAvailable);
     void toggleRedo(bool redoAvailable);
     void toggleCopyAndCut(bool copyCutAvailable);
+
     bool closeTab(Editor *tabToClose);
     bool closeTab(int index) { return closeTab(tabbedEditor->tabAt(index)); }
     void closeTabShortcut() { closeTab(tabbedEditor->currentTab()); }
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
+// All UI and/or keyboard shortcut interactions
 private slots:
     void on_currentTab_changed(int index);
     void on_languageSelected(QAction* languageAction);

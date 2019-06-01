@@ -53,7 +53,6 @@ Editor::~Editor()
  */
 void Editor::reset()
 {
-    metricCalculationEnabled = true;
     currentFilePath.clear();
     document()->setModified(false);
     setPlainText(QString());
@@ -260,7 +259,8 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
 void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool wholeWords)
 {
     // Optimization, don't update screen until the end of all replacements
-    metricCalculationEnabled = false;
+    disconnect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
+    disconnect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
 
     // Search the entire document from the very beginning
     moveCursorTo(0);
@@ -292,9 +292,11 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
         emit(findResultReady("Document searched. Replaced " + QString::number(replacements) + " instances."));
     }
 
-    metricCalculationEnabled = true; // reset here
-    updateFileMetrics();
-    emit(windowNeedsToBeUpdated(metrics));
+    // Reset here and calculate the metrics in one go
+    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(on_cursorPositionChanged()));
+    connect(this, SIGNAL(textChanged()), this, SLOT(on_textChanged()));
+    on_cursorPositionChanged();
+    on_textChanged();
 }
 
 
@@ -384,28 +386,35 @@ void Editor::toggleWrapMode(bool wrap)
 }
 
 
-/* Scans the entire document character by character and tallies the number of
- * characters and words and storing the counts internally for reporting.
- * Note: column counting is handled by highlightCurrentLine.
+/* Called whenever the contents of the text editor change. Resets this
+ * Editor's search history, updates the char count, and emits a signal
+ * so that other entities (MainWindow) can update their content accordingly.
  */
-void Editor::updateFileMetrics()
+void Editor::on_textChanged()
 {
+    searchHistory.clear();
+    updateCharCount();
+    updateWordCount();
+    emit(fileContentsChanged());
+}
+
+
+/* Manually parses the document to update the word count. Emits the word count.
+ */
+void Editor::updateWordCount()
+{
+    metrics.wordCount = 0;
     QString documentContents = toPlainText().toUtf8();
     int documentLength = documentContents.length();
-
-    DocumentMetrics oldMetrics = metrics;
-    metrics = DocumentMetrics();
-    metrics.currentColumn = oldMetrics.currentColumn;
     QString currentWord = "";
 
-    // Loop through each character in the document
     for(int i = 0; i < documentLength; i++)
     {
         // Convert to unsigned char to avoid running into debug assertion problems
-        unsigned char currentCharacter = qvariant_cast<unsigned char>(documentContents[i].toLatin1());
+        unsigned char character = qvariant_cast<unsigned char>(documentContents[i].toLatin1());
 
         // Newline
-        if(currentCharacter == '\n')
+        if(character == '\n')
         {
             // Special case: newline following a word
             if(!currentWord.isEmpty())
@@ -417,30 +426,19 @@ void Editor::updateFileMetrics()
         // All other valid characters
         else
         {
-            metrics.charCount++;
-
             // Alphanumeric character
-            if(isalnum(currentCharacter))
+            if(isalnum(character))
             {
-                currentWord += qvariant_cast<char>(currentCharacter);
+                currentWord += qvariant_cast<char>(character);
             }
             // Whitespace (excluding newline, handled separately above)
-            else if(isspace(currentCharacter))
+            else if(isspace(character))
             {
                 // Whitespace following a word means we completed a word
                 if(!currentWord.isEmpty())
                 {
                     metrics.wordCount++;
                     currentWord.clear();
-                }
-                // Consume all other instances of whitespace
-                else
-                {
-                    while(i + 1 < documentLength &&
-                          isspace(qvariant_cast<unsigned char>(documentContents[i + 1].toLatin1())))
-                    {
-                        i++;
-                    }
                 }
             }
         }
@@ -452,19 +450,17 @@ void Editor::updateFileMetrics()
         metrics.wordCount++;
         currentWord.clear();
     }
+
+    emit(wordCountChanged(metrics.wordCount));
 }
 
 
-/* Called whenever the contents of the text editor change, even if they are deleted
- * and restored to their original state. Marks the document as needing to be saved
- * and updates the file metrics. Emits the windowNeedsToBeUpdated signal when it's done
- * to direct its parent window to update any information it displays to the user.
+/* Updates and emits the char count.
  */
-void Editor::on_textChanged()
+void Editor::updateCharCount()
 {
-    searchHistory.clear();
-    updateFileMetrics();
-    emit(windowNeedsToBeUpdated(metrics));
+    metrics.charCount = toPlainText().length();
+    emit(charCountChanged(metrics.charCount));
 }
 
 
@@ -764,27 +760,30 @@ void Editor::resizeEvent(QResizeEvent *event)
 }
 
 
-/* Called when the cursor changes position. Highlights the current line and
- * updates the column count.
+/* Called when the cursor changes position.
  */
 void Editor::on_cursorPositionChanged()
 {
     highlightCurrentLine();
-    updateAndEmitColumnCount();
+    updateLineCount();
+    updateColumnCount();
 }
 
 
-/* Updates the column count internally for this Editor and emits a signal
- * to any subscribed entities (namely, MainWindow) to pass along the new
- * column count.
+/* Updates and emits the line count (current and total).
  */
-void Editor::updateAndEmitColumnCount()
+void Editor::updateLineCount()
 {
-    if(!metricCalculationEnabled)
-    {
-        return;
-    }
+    metrics.currentLine = textCursor().blockNumber() + 1;
+    metrics.totalLines = document()->lineCount();
+    emit(lineCountChanged(metrics.currentLine, metrics.totalLines));
+}
 
+
+/* Updates and emits the column count.
+ */
+void Editor::updateColumnCount()
+{
     metrics.currentColumn = textCursor().positionInBlock() + 1;
     emit(columnCountChanged(metrics.currentColumn));
 }

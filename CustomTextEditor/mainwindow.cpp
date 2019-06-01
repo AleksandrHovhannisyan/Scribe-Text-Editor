@@ -123,6 +123,8 @@ MainWindow::~MainWindow()
     delete wordCountLabel;
     delete charLabel;
     delete charCountLabel;
+    delete lineLabel;
+    delete lineCountLabel;
     delete columnCountLabel;
     delete columnLabel;
     delete languageGroup;
@@ -235,9 +237,12 @@ void MainWindow::disconnectEditorDependentSignals()
     disconnect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     disconnect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
 
+    disconnect(editor, SIGNAL(wordCountChanged(int)), this, SLOT(updateWordCount(int)));
+    disconnect(editor, SIGNAL(charCountChanged(int)), this, SLOT(updateCharCount(int)));
+    disconnect(editor, SIGNAL(lineCountChanged(int, int)), this, SLOT(updateLineCount(int, int)));
     disconnect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
-    disconnect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
-    disconnect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateTabAndWindowTitle()));
+    disconnect(editor, SIGNAL(fileContentsChanged()), this, SLOT(updateTabAndWindowTitle()));
+
     disconnect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     disconnect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     disconnect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -252,9 +257,12 @@ void MainWindow::disconnectEditorDependentSignals()
 void MainWindow::reconnectEditorDependentSignals()
 {
     // Reconnect editor signals
+    connect(editor, SIGNAL(wordCountChanged(int)), this, SLOT(updateWordCount(int)));
+    connect(editor, SIGNAL(charCountChanged(int)), this, SLOT(updateCharCount(int)));
+    connect(editor, SIGNAL(lineCountChanged(int, int)), this, SLOT(updateLineCount(int, int)));
     connect(editor, SIGNAL(columnCountChanged(int)), this, SLOT(updateColumnCount(int)));
-    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateWordAndCharCount(DocumentMetrics)));
-    connect(editor, SIGNAL(windowNeedsToBeUpdated(DocumentMetrics)), this, SLOT(updateTabAndWindowTitle()));
+    connect(editor, SIGNAL(fileContentsChanged()), this, SLOT(updateTabAndWindowTitle()));
+
     connect(editor, SIGNAL(findResultReady(QString)), findDialog, SLOT(onFindResultReady(QString)));
     connect(editor, SIGNAL(gotoResultReady(QString)), gotoDialog, SLOT(onGotoResultReady(QString)));
     connect(editor, SIGNAL(undoAvailable(bool)), this, SLOT(toggleUndo(bool)));
@@ -267,6 +275,37 @@ void MainWindow::reconnectEditorDependentSignals()
     connect(findDialog, SIGNAL(startReplacingAll(QString, QString, bool, bool)), editor, SLOT(replaceAll(QString, QString, bool, bool)));
     connect(gotoDialog, SIGNAL(gotoLine(int)), editor, SLOT(goTo(int)));
 
+}
+
+
+void MainWindow::updateWordCount(int wordCount)
+{
+    wordCountLabel->setText(QString::number(wordCount) + tr("   "));
+}
+
+
+/* Updates the char count displayed on the status bar.
+ */
+void MainWindow::updateCharCount(int charCount)
+{
+    charCountLabel->setText(QString::number(charCount) + tr("   "));
+}
+
+
+/* Updates the line number displayed on the status bar.
+ */
+void MainWindow::updateLineCount(int current, int total)
+{
+    lineCountLabel->setText(QString::number(current) + tr("/") +
+                            QString::number(total) + tr("   "));
+}
+
+
+/* Updates the column number displayed on the status bar.
+ */
+void MainWindow::updateColumnCount(int columnCount)
+{
+    columnCountLabel->setText(QString::number(columnCount) + tr("   "));
 }
 
 
@@ -318,10 +357,12 @@ void MainWindow::on_currentTab_changed(int index)
     updateFormatMenuOptions();
 
 
-    // This info only gets passed on by Editor when its contents change, not when a new tab is added to TabbedEditor
+    // We need to update this information manually for tab changes
     DocumentMetrics metrics = editor->getDocumentMetrics();
-    updateWordAndCharCount(metrics);
     updateTabAndWindowTitle();
+    updateWordCount(metrics.wordCount);
+    updateCharCount(metrics.charCount);
+    updateLineCount(metrics.currentLine, metrics.totalLines);
     updateColumnCount(metrics.currentColumn);
 }
 
@@ -336,13 +377,18 @@ void MainWindow::initializeStatusBarLabels()
     wordCountLabel = new QLabel();
     charLabel = new QLabel("Chars: ");
     charCountLabel = new QLabel();
+    lineLabel = new QLabel("Line: ");
+    lineCountLabel = new QLabel();
     columnLabel = new QLabel("Column: ");
     columnCountLabel = new QLabel();
+
     ui->statusBar->addWidget(languageLabel);
     ui->statusBar->addPermanentWidget(wordLabel);
     ui->statusBar->addPermanentWidget(wordCountLabel);
     ui->statusBar->addPermanentWidget(charLabel);
     ui->statusBar->addPermanentWidget(charCountLabel);
+    ui->statusBar->addPermanentWidget(lineLabel);
+    ui->statusBar->addPermanentWidget(lineCountLabel);
     ui->statusBar->addPermanentWidget(columnLabel);
     ui->statusBar->addPermanentWidget(columnCountLabel);
 }
@@ -381,24 +427,17 @@ void MainWindow::launchGotoDialog()
  */
 void MainWindow::updateTabAndWindowTitle()
 {
-    QString fileName = editor->getFileName();
-    bool editorUnsaved = editor->isUnsaved();
+    QString tabTitle = editor->getFileName();
+    QString windowTitle = tabTitle;
 
-    tabbedEditor->setTabText(tabbedEditor->currentIndex(), fileName + (editorUnsaved ? " *" : ""));
-    setWindowTitle(fileName + (editorUnsaved ? " [Unsaved]" : ""));
-}
+    if(editor->isUnsaved())
+    {
+        tabTitle += " *";
+        windowTitle += " [Unsaved]";
+    }
 
-
-/* Updates the window and status bar labels to reflect the most up-to-date word and char counts.
- * Note: updating the column count is handled separately. See updateColumnCount in mainwindow.h.
- */
-void MainWindow::updateWordAndCharCount(DocumentMetrics metrics)
-{
-    QString wordText = QString::number(metrics.wordCount) + tr("   ");
-    QString charText = QString::number(metrics.charCount) + tr("   ");
-
-    wordCountLabel->setText(wordText);
-    charCountLabel->setText(charText);
+    tabbedEditor->setTabText(tabbedEditor->currentIndex(), tabTitle);
+    setWindowTitle(windowTitle);
 }
 
 

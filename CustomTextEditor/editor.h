@@ -43,7 +43,6 @@ public:
     inline DocumentMetrics getDocumentMetrics() const { return metrics; }
     QFont getFont() { return font; }
     void setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch, int tabStopWidth);
-    void updateFileMetrics();
 
     inline bool isUnsaved() const { return document()->isModified(); }
     void setModifiedState(bool modified) { document()->setModified(modified); }
@@ -75,8 +74,11 @@ protected:
 signals:
     void findResultReady(QString message);
     void gotoResultReady(QString message);
+    void wordCountChanged(int words);
+    void charCountChanged(int chars);
+    void lineCountChanged(int current, int total);
     void columnCountChanged(int col);
-    void windowNeedsToBeUpdated(DocumentMetrics metrics);
+    void fileContentsChanged();
 
 public slots:
     bool find(QString query, bool caseSensitive, bool wholeWords);
@@ -102,7 +104,10 @@ private:
     void moveCursorTo(int positionInText);
 
     void highlightCurrentLine();
-    void updateAndEmitColumnCount();
+    void updateWordCount();
+    void updateCharCount();
+    void updateColumnCount();
+    void updateLineCount();
 
     int indentationLevelOfCurrentLine();
     void moveCursorToStartOfCurrentLine();
@@ -128,7 +133,6 @@ private:
     QWidget *lineNumberArea;
     const int lineNumberAreaPadding = 30;
 
-    bool metricCalculationEnabled = true;
     bool canRedo = false;
     bool canUndo = false;
 
