@@ -389,7 +389,10 @@ void Editor::updateFileMetrics()
 {
     QString documentContents = toPlainText().toUtf8();
     int documentLength = documentContents.length();
+
+    DocumentMetrics oldMetrics = metrics;
     metrics = DocumentMetrics();
+    metrics.currentColumn = oldMetrics.currentColumn;
     QString currentWord = "";
 
     // Loop through each character in the document
