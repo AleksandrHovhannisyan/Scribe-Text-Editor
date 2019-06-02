@@ -49,7 +49,6 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 Editor::~Editor()
 {
     delete lineNumberArea;
-    delete syntaxHighlighter;
 }
 
 
