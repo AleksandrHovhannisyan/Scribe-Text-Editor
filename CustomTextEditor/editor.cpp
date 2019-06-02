@@ -1,6 +1,10 @@
 #include "editor.h"
 #include "linenumberarea.h"
 #include "utilityfunctions.h"
+#include "highlighters/chighlighter.h"
+#include "highlighters/cpphighlighter.h"
+#include "highlighters/javahighlighter.h"
+#include "highlighters/pythonhighlighter.h"
 #include <QPainter>
 #include <QTextBlock>
 #include <QFontDialog>
@@ -45,7 +49,6 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit (parent)
 Editor::~Editor()
 {
     delete lineNumberArea;
-    delete syntaxHighlighter;
 }
 
 
@@ -128,10 +131,10 @@ Highlighter *Editor::generateHighlighterFor(Language language)
 
     switch (language)
     {
-        case(Language::C): return cHighlighter(doc);
-        case(Language::CPP): return cppHighlighter(doc);
-        case(Language::Java): return javaHighlighter(doc);
-        case(Language::Python): return pythonHighlighter(doc);
+        case(Language::C): return new CHighlighter(doc);
+        case(Language::CPP): return new CPPHighlighter(doc);
+        case(Language::Java): return new JavaHighlighter(doc);
+        case(Language::Python): return new PythonHighlighter(doc);
         default: return nullptr;
     }
 }
