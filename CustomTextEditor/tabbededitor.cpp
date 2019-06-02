@@ -11,6 +11,7 @@ TabbedEditor::TabbedEditor(QWidget *parent) : QTabWidget(parent)
 {
     add(new Editor());
     installEventFilter(this);
+    setMovable(true);
 }
 
 
