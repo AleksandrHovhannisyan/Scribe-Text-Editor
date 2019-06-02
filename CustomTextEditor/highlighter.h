@@ -31,8 +31,6 @@ protected:
     virtual void setInlineCommentFormat();
     virtual void setBlockCommentFormat();
 
-private:
-
     struct HighlightingRule
     {
         QRegularExpression pattern;

@@ -120,6 +120,7 @@ void Highlighter::highlightBlock(const QString &text)
         }
     }
 
+    setCurrentBlockState(BlockState::NotInComment);
     highlightMultilineComments(text);
 }
 
@@ -129,10 +130,6 @@ void Highlighter::highlightBlock(const QString &text)
  */
 void Highlighter::highlightMultilineComments(const QString &text)
 {
-    setCurrentBlockState(BlockState::NotInComment);
-
-    // qDebug() << "Previous state: " << previousBlockState();
-
     int startIndex = 0;
 
     // If the previous state was not in comment, then start searching from very beginning
@@ -141,15 +138,11 @@ void Highlighter::highlightMultilineComments(const QString &text)
         startIndex = text.indexOf(blockCommentStart);
     }
 
-    //qDebug() << "Start index: " << startIndex;
-
     while (startIndex >= 0)
     {
         QRegularExpressionMatch match = blockCommentEnd.match(text, startIndex);
         int endIndex = match.capturedStart();
         int commentLength = 0;
-
-        //qDebug() << "End index: " << endIndex;
 
         // If we have not yet found the terminating pattern, we are still in comment
         if (endIndex == -1)
@@ -161,8 +154,6 @@ void Highlighter::highlightMultilineComments(const QString &text)
         {
            commentLength = endIndex - startIndex + match.capturedLength();
         }
-
-        //qDebug() << "Comment length: " << commentLength << "\n";
 
         setFormat(startIndex, commentLength, blockCommentFormat);
         startIndex = text.indexOf(blockCommentStart, startIndex + commentLength);
@@ -263,6 +254,8 @@ Highlighter *javaHighlighter(QTextDocument *doc)
 }
 
 
+#include "pythonhighlighter.h"
+
 /* Returns a Highlighter object specific to the Python language and its grammar and syntax.
  */
 Highlighter *pythonHighlighter(QTextDocument *doc)
@@ -280,18 +273,13 @@ Highlighter *pythonHighlighter(QTextDocument *doc)
     QRegularExpression quotePattern("(\".*\")|('.*')");
     QRegularExpression functionPattern("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()");
     QRegularExpression inlineCommentPattern("#.*");
-    // TODO change for Python
-    QRegularExpression blockCommentStart("'''");
-    QRegularExpression blockCommentEnd("'''");
 
-    Highlighter *highlighter = new Highlighter(doc);
+    Highlighter *highlighter = new PythonHighlighter(doc);
     highlighter->addKeywords(keywords);
     highlighter->setClassPattern(classPattern);
     highlighter->setQuotePattern(quotePattern);
     highlighter->setFunctionPattern(functionPattern);
     highlighter->setInlineCommentPattern(inlineCommentPattern);
-    highlighter->setBlockCommentStartPattern(blockCommentStart);
-    highlighter->setBlockCommentEndPattern(blockCommentEnd);
 
     return highlighter;
 }

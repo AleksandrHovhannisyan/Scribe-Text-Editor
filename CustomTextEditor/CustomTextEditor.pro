@@ -30,6 +30,7 @@ SOURCES += \
         finddialog.cpp \
     editor.cpp \
     metricreporter.cpp \
+    pythonhighlighter.cpp \
     utilityfunctions.cpp \
     searchhistory.cpp \
     gotodialog.cpp \
@@ -44,6 +45,7 @@ HEADERS += \
     editor.h \
     linenumberarea.h \
     metricreporter.h \
+    pythonhighlighter.h \
     utilityfunctions.h \
     searchhistory.h \
     gotodialog.h \
