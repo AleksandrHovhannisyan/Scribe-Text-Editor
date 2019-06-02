@@ -25,32 +25,38 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
-        finddialog.cpp \
+    highlighters/highlighter.cpp \
+    highlighters/chighlighter.cpp \
+    highlighters/cpphighlighter.cpp \
+    highlighters/javahighlighter.cpp \
+    highlighters/pythonhighlighter.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    finddialog.cpp \
     editor.cpp \
     metricreporter.cpp \
-    pythonhighlighter.cpp \
     utilityfunctions.cpp \
     searchhistory.cpp \
     gotodialog.cpp \
     tabbededitor.cpp \
-    highlighter.cpp \
     language.cpp
 
 HEADERS += \
-        mainwindow.h \
-        documentmetrics.h \
-        finddialog.h \
+    highlighters/highlighter.h \
+    highlighters/chighlighter.h \
+    highlighters/cpphighlighter.h \
+    highlighters/javahighlighter.h \
+    highlighters/pythonhighlighter.h \
+    mainwindow.h \
+    documentmetrics.h \
+    finddialog.h \
     editor.h \
     linenumberarea.h \
     metricreporter.h \
-    pythonhighlighter.h \
     utilityfunctions.h \
     searchhistory.h \
     gotodialog.h \
     tabbededitor.h \
-    highlighter.h \
     language.h
 
 FORMS += \

@@ -8,7 +8,7 @@
 #include "tabbededitor.h"
 #include "language.h"
 #include "metricreporter.h"
-#include <highlighter.h>
+#include <highlighters/highlighter.h>
 #include <QMainWindow>
 #include <QCloseEvent>                  // closeEvent
 #include <QLabel>                       // GUI labels

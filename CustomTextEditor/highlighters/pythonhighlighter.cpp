@@ -3,13 +3,25 @@
 
 PythonHighlighter::PythonHighlighter(QTextDocument *parent) : Highlighter(parent)
 {
+    QStringList keywords;
+    keywords << "\\band\\b" << "\\bas\\b" << "\\bassert\\b" << "\\bbreak\\b" << "\\bclass\\b" << "\\bcontinue\\b"
+             << "\\bdef\\b" << "\\bdel\\b" << "\\belif\\b" << "\\belse\\b" << "\\bexcept\\b" << "\\bFalse\\b"
+             << "\\bfinally\\b" << "\\bfor\\b" << "\\bfrom\\b" << "\\bglobal\\b" << "\\bif\\b" << "\\bimport\\b"
+             << "\\bin\\b" << "\\bis\\b" << "\\blambda\\b" << "\\bNone\\b" << "\\bnonlocal\\b" << "\\bnot\\b"
+             << "\\bor\\b" << "\\bpass\\b" << "\\braise\\b" << "\\breturn\\b" << "\\bTrue\\b" << "\\btry\\b"
+             << "\\bwhile\\b" << "\\bwith\\b" << "\\byield\\b";
+
+    addKeywords(keywords);
+    addRule(QRegularExpression("\\b[A-Z_][a-zA-Z0-9_]*\\b"), classFormat);
+    addRule(QRegularExpression("(\".*\")|('.*')"), quoteFormat);
+    addRule(QRegularExpression("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()"), functionFormat);
+    addRule(QRegularExpression("#.*"), inlineCommentFormat);
+
+    // Unique to PythonHighlighter
     triple_single_quote.first = QRegularExpression("'''");
     triple_single_quote.second = MultilineQuote::TRIPLE_SINGLE;
-
     triple_double_quote.first = QRegularExpression("\"\"\"");
     triple_double_quote.second = MultilineQuote::TRIPLE_DOUBLE;
-
-    blockCommentFormat.setForeground(Qt::darkGreen);
 }
 
 

@@ -5,7 +5,7 @@
 #include "searchhistory.h"
 #include "documentmetrics.h"
 #include "language.h"
-#include "highlighter.h"
+#include "highlighters/highlighter.h"
 #include <QPlainTextEdit>
 #include <QFont>
 #include <QMessageBox>
