@@ -8,9 +8,13 @@ Basic syntax highlighting for four languages: C, C++, Java, and Python.
 
 ![](CustomTextEditor/screenshots/Screenshot2.PNG)
 
-## Development
+### Demo
 
-### Getting started
+Here's a quick look at some of the app's basic functionality:
+
+![](CustomTextEditor/screenshots/demo.gif)
+
+## Development
 
 This project was developed in Qt5 using [Qt Creator](https://www.qt.io/download-qt-installer?hsCtaTracking=9f6a2170-a938-42df-a8e2-a9f0b1d6cdce%7C6cb0de4f-9bb5-4778-ab02-bfb62735f3e5).
 
@@ -24,6 +28,6 @@ To contribute your own code to the project:
 
 ## Credits
 
-All application icons are open source. Credits go to [Feather Icons](https://feathericons.com/), created by Cole Bemis.
+All application icons are open source. Credits go to [Feather Icons](https://feathericons.com/), created by Cole Bemis. (I colored them in for this app, though.)
 
 The code for highlighting the current line and numbering the margins on the left was borrowed from the official [Qt Code Editor Example](http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html) tutorial. All other code is original.
