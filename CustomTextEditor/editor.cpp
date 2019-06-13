@@ -13,7 +13,6 @@
 #include <QStack>
 #include <QFileInfo>
 #include <QtDebug>
-#include <QSettings>
 
 
 const QColor Editor::LINE_COLOR = QColor(Qt::lightGray).lighter(125);
@@ -366,7 +365,7 @@ void Editor::toggleAutoIndent(bool autoIndent)
     autoIndentEnabled = autoIndent;
 
     // Update the setting in case any new tabs are opened later
-    writeSetting(AUTO_INDENT_KEY, autoIndentEnabled);
+    settings->setValue(AUTO_INDENT_KEY, autoIndentEnabled);
 }
 
 
@@ -385,7 +384,7 @@ void Editor::toggleWrapMode(bool wrap)
     }
 
     // Update the setting in case any new tabs are opened later
-    writeSetting(LINE_WRAP_KEY, lineWrapMode);
+    settings->setValue(LINE_WRAP_KEY, lineWrapMode);
 }
 
 
@@ -662,36 +661,13 @@ bool Editor::eventFilter(QObject* obj, QEvent* event)
 }
 
 
-/* Convenience function used for writing a single setting.
- * @param KEY - the string denoting the unique identifier for the setting
- * @param VAL - the type to be written and associated with KEY
- */
-void Editor::writeSetting(const QString KEY, QVariant VAL) const
-{
-    QSettings settings;
-    settings.setValue(KEY, VAL);
-}
-
-
 /* Preserves current settings for the editor so they can be
  * persisted into the next execution.
  */
 void Editor::writeSettings()
 {
-    writeSetting(LINE_WRAP_KEY, lineWrapMode);
-    writeSetting(AUTO_INDENT_KEY, autoIndentEnabled);
-}
-
-
-/* Applies the given setting using the handler passed in as the second argument.
- * Note: handler must capture the local context (this).
-*/
-void Editor::applySetting(QVariant setting, std::function<void(QVariant)> handler)
-{
-    if(!setting.isNull())
-    {
-        handler(setting);
-    }
+    settings->setValue(LINE_WRAP_KEY, lineWrapMode);
+    settings->setValue(AUTO_INDENT_KEY, autoIndentEnabled);
 }
 
 
@@ -699,19 +675,17 @@ void Editor::applySetting(QVariant setting, std::function<void(QVariant)> handle
  */
 void Editor::readSettings()
 {
-    QSettings settings;
-
-    applySetting(settings.value(LINE_WRAP_KEY),
-                 [=](QVariant setting){
-                    LineWrapMode wrap = qvariant_cast<LineWrapMode>(setting);
-                    this->setLineWrapMode(wrap);
-                 }
+    settings->apply(settings->value(LINE_WRAP_KEY),
+                                [=](QVariant setting){
+                                    LineWrapMode wrap = qvariant_cast<LineWrapMode>(setting);
+                                    this->setLineWrapMode(wrap);
+                                }
     );
 
-    applySetting(settings.value(AUTO_INDENT_KEY),
-                 [=](QVariant setting){
-                    this->autoIndentEnabled = qvariant_cast<bool>(setting);
-                 }
+    settings->apply(settings->value(AUTO_INDENT_KEY),
+                                [=](QVariant setting){
+                                    this->autoIndentEnabled = qvariant_cast<bool>(setting);
+                                }
     );
 }
 

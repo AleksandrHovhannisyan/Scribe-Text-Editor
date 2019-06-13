@@ -6,6 +6,7 @@
 #include "documentmetrics.h"
 #include "language.h"
 #include "highlighters/highlighter.h"
+#include "settings.h"
 #include <QPlainTextEdit>
 #include <QFont>
 #include <QMessageBox>
@@ -114,9 +115,7 @@ private:
     void insertTabs(int numTabs);
     void indentSelection(QTextDocumentFragment selection);
 
-    void writeSetting(const QString KEY, QVariant VAL) const;
     void writeSettings();
-    void applySetting(QVariant setting, std::function<void(QVariant)> handler);
     void readSettings();
 
     Language programmingLanguage;
@@ -136,6 +135,8 @@ private:
 
     bool canRedo = false;
     bool canUndo = false;
+
+    Settings *settings = Settings::instance();
 
     const QString AUTO_INDENT_KEY = "auto_indent";
     const QString LINE_WRAP_KEY = "line_wrap";

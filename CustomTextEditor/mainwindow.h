@@ -49,7 +49,6 @@ private:
     void matchFormatOptionsToEditorDefaults();
     void updateFormatMenuOptions();
     void writeSettings();
-    void applySetting(QVariant setting, std::function<void(QVariant)> handler);
     void readSettings();
 
     void toggleVisibilityOf(QWidget *widget);
@@ -59,6 +58,7 @@ private:
     TabbedEditor *tabbedEditor;
     MetricReporter *metricReporter;
     Editor *editor = nullptr;
+    Settings *settings = Settings::instance();
 
     // Used for storing application state upon termination
     const QString WINDOW_SIZE_KEY = "window_size";

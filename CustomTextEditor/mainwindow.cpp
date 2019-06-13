@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "utilityfunctions.h"
 #include "ui_mainwindow.h"
+#include "settings.h"                   // storing app state
 #include <QtDebug>
 #include <QtPrintSupport/QPrinter>      // printing
 #include <QtPrintSupport/QPrintDialog>  // printing
@@ -11,7 +12,6 @@
 #include <QDateTime>                    // current time
 #include <QApplication>                 // quit
 #include <QShortcut>
-#include <QSettings>                    // storing app state
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -475,10 +475,8 @@ void MainWindow::on_actionOpen_triggered()
     // Used to switch to a new tab if there's already an open doc
     bool openInCurrentTab = editor->isUntitled() && !editor->isUnsaved();
 
-    QSettings appSettings;
-
     QString openedFilePath;
-    QString lastUsedDirectory = appSettings.value(DEFAULT_DIRECTORY_KEY).toString();
+    QString lastUsedDirectory = settings->value(DEFAULT_DIRECTORY_KEY).toString();
 
     if(lastUsedDirectory.isEmpty())
     {
@@ -497,7 +495,7 @@ void MainWindow::on_actionOpen_triggered()
 
     // Update the recently used directory
     QDir currentDirectory;
-    appSettings.setValue(DEFAULT_DIRECTORY_KEY, currentDirectory.absoluteFilePath(openedFilePath));
+    settings->setValue(DEFAULT_DIRECTORY_KEY, currentDirectory.absoluteFilePath(openedFilePath));
 
     // Attempt to create a file descriptor for the file at the given path
     QFile file(openedFilePath);
@@ -625,23 +623,10 @@ void MainWindow::on_actionExit_triggered()
  */
 void MainWindow::writeSettings()
 {
-    QSettings settings;
-    settings.setValue(WINDOW_SIZE_KEY, size());
-    settings.setValue(WINDOW_POSITION_KEY, pos());
-    settings.setValue(WINDOW_STATUS_BAR, ui->statusBar->isVisible());
-    settings.setValue(WINDOW_TOOL_BAR, ui->mainToolBar->isVisible());
-}
-
-
-/* Applies the given setting using the handler passed in as the second argument.
- * Note: handler must capture the local context (this).
-*/
-void MainWindow::applySetting(QVariant setting, std::function<void(QVariant)> handler)
-{
-    if(!setting.isNull())
-    {
-        handler(setting);
-    }
+    settings->setValue(WINDOW_SIZE_KEY, size());
+    settings->setValue(WINDOW_POSITION_KEY, pos());
+    settings->setValue(WINDOW_STATUS_BAR, ui->statusBar->isVisible());
+    settings->setValue(WINDOW_TOOL_BAR, ui->mainToolBar->isVisible());
 }
 
 
@@ -649,27 +634,23 @@ void MainWindow::applySetting(QVariant setting, std::function<void(QVariant)> ha
  */
 void MainWindow::readSettings()
 {
-    QSettings settings;
+    settings->apply(settings->value(WINDOW_SIZE_KEY, QSize(400, 400)),
+                    [=](QVariant setting){ this->resize(setting.toSize()); });
 
-    applySetting(settings.value(WINDOW_SIZE_KEY, QSize(400, 400)),
-                     [=](QVariant setting){ this->resize(setting.toSize()); });
+    settings->apply(settings->value(WINDOW_POSITION_KEY, QPoint(200, 200)),
+                    [=](QVariant setting){ this->move(setting.toPoint()); });
 
-    applySetting(settings.value(WINDOW_POSITION_KEY, QPoint(200, 200)),
-                 [=](QVariant setting){ this->move(setting.toPoint()); });
+    settings->apply(settings->value(WINDOW_STATUS_BAR),
+                    [=](QVariant setting) {
+                        this->ui->statusBar->setVisible(qvariant_cast<bool>(setting));
+                        this->ui->actionStatus_Bar->setChecked(qvariant_cast<bool>(setting));
+                    });
 
-    applySetting(settings.value(WINDOW_STATUS_BAR),
-                 [=](QVariant setting) {
-                    this->ui->statusBar->setVisible(qvariant_cast<bool>(setting));
-                    this->ui->actionStatus_Bar->setChecked(qvariant_cast<bool>(setting));
-                 }
-    );
-
-    applySetting(settings.value(WINDOW_TOOL_BAR),
-                 [=](QVariant setting) {
-                    this->ui->mainToolBar->setVisible(qvariant_cast<bool>(setting));
-                    this->ui->actionTool_Bar->setChecked(qvariant_cast<bool>(setting));
-                 }
-    );
+    settings->apply(settings->value(WINDOW_TOOL_BAR),
+                    [=](QVariant setting) {
+                        this->ui->mainToolBar->setVisible(qvariant_cast<bool>(setting));
+                        this->ui->actionTool_Bar->setChecked(qvariant_cast<bool>(setting));
+                    });
 }
 
 
