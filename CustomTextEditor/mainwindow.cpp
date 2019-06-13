@@ -633,43 +633,43 @@ void MainWindow::writeSettings()
 }
 
 
+/* Applies the given setting using the handler passed in as the second argument.
+ * Note: handler must capture the local context (this).
+*/
+void MainWindow::applySetting(QVariant setting, std::function<void(QVariant)> handler)
+{
+    if(!setting.isNull())
+    {
+        handler(setting);
+    }
+}
+
+
 /* Reads the stored app settings and restores them.
  */
 void MainWindow::readSettings()
 {
     QSettings settings;
 
-    QSize windowSize = settings.value(WINDOW_SIZE_KEY).toSize();
+    applySetting(settings.value(WINDOW_SIZE_KEY, QSize(400, 400)),
+                     [=](QVariant setting){ this->resize(setting.toSize()); });
 
-    if(!windowSize.isNull())
-    {
-        resize(settings.value(WINDOW_SIZE_KEY, QSize(400, 400)).toSize());
-    }
+    applySetting(settings.value(WINDOW_POSITION_KEY, QPoint(200, 200)),
+                 [=](QVariant setting){ this->move(setting.toPoint()); });
 
-    QPoint windowPosition = settings.value(WINDOW_POSITION_KEY).toPoint();
+    applySetting(settings.value(WINDOW_STATUS_BAR),
+                 [=](QVariant setting) {
+                    this->ui->statusBar->setVisible(qvariant_cast<bool>(setting));
+                    this->ui->actionStatus_Bar->setChecked(qvariant_cast<bool>(setting));
+                 }
+    );
 
-    if(!windowPosition.isNull())
-    {
-        move(settings.value(WINDOW_POSITION_KEY, QPoint(200, 200)).toPoint());
-    }
-
-    QVariant statusBarVisible = settings.value(WINDOW_STATUS_BAR);
-
-    if(!statusBarVisible.isNull())
-    {
-        bool visible = qvariant_cast<bool>(statusBarVisible);
-        ui->statusBar->setVisible(visible);
-        ui->actionStatus_Bar->setChecked(visible);
-    }
-
-    QVariant toolBarVisible = settings.value(WINDOW_TOOL_BAR);
-
-    if(!toolBarVisible.isNull())
-    {
-        bool visible = qvariant_cast<bool>(toolBarVisible);
-        ui->mainToolBar->setVisible(visible);
-        ui->actionTool_Bar->setChecked(visible);
-    }
+    applySetting(settings.value(WINDOW_TOOL_BAR),
+                 [=](QVariant setting) {
+                    this->ui->mainToolBar->setVisible(qvariant_cast<bool>(setting));
+                    this->ui->actionTool_Bar->setChecked(qvariant_cast<bool>(setting));
+                 }
+    );
 }
 
 

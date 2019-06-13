@@ -49,6 +49,7 @@ private:
     void matchFormatOptionsToEditorDefaults();
     void updateFormatMenuOptions();
     void writeSettings();
+    void applySetting(QVariant setting, std::function<void(QVariant)> handler);
     void readSettings();
 
     void toggleVisibilityOf(QWidget *widget);

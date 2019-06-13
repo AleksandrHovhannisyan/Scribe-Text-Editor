@@ -683,24 +683,36 @@ void Editor::writeSettings()
 }
 
 
+/* Applies the given setting using the handler passed in as the second argument.
+ * Note: handler must capture the local context (this).
+*/
+void Editor::applySetting(QVariant setting, std::function<void(QVariant)> handler)
+{
+    if(!setting.isNull())
+    {
+        handler(setting);
+    }
+}
+
+
 /* Loads previously saved settings for the editor.
  */
 void Editor::readSettings()
 {
     QSettings settings;
 
-    if(settings.value(LINE_WRAP_KEY).isValid())
-    {
-        LineWrapMode previousLineWrapping = qvariant_cast<LineWrapMode>(settings.value(LINE_WRAP_KEY));
-        setLineWrapMode(previousLineWrapping);
-        lineWrapMode = previousLineWrapping;
-    }
+    applySetting(settings.value(LINE_WRAP_KEY),
+                 [=](QVariant setting){
+                    LineWrapMode wrap = qvariant_cast<LineWrapMode>(setting);
+                    this->setLineWrapMode(wrap);
+                 }
+    );
 
-    if(settings.value(AUTO_INDENT_KEY).isValid())
-    {
-        bool previousAutoIndent = qvariant_cast<bool>(settings.value(AUTO_INDENT_KEY));
-        autoIndentEnabled = previousAutoIndent;
-    }
+    applySetting(settings.value(AUTO_INDENT_KEY),
+                 [=](QVariant setting){
+                    this->autoIndentEnabled = qvariant_cast<bool>(setting);
+                 }
+    );
 }
 
 

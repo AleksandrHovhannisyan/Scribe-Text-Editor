@@ -116,6 +116,7 @@ private:
 
     void writeSetting(const QString KEY, QVariant VAL) const;
     void writeSettings();
+    void applySetting(QVariant setting, std::function<void(QVariant)> handler);
     void readSettings();
 
     Language programmingLanguage;
