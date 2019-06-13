@@ -51,6 +51,8 @@ private:
     void writeSettings();
     void readSettings();
 
+    void toggleVisibilityOf(QWidget *widget);
+
     // The "core" or essential members
     Ui::MainWindow *ui;
     TabbedEditor *tabbedEditor;
@@ -61,6 +63,7 @@ private:
     const QString WINDOW_SIZE_KEY = "window_size";
     const QString WINDOW_POSITION_KEY = "window_position";
     const QString WINDOW_STATUS_BAR = "window_status_bar";
+    const QString WINDOW_TOOL_BAR = "window_tool_bar";
     const QString DEFAULT_DIRECTORY_KEY = "default_directory";
     const QString DEFAULT_DIRECTORY = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 
@@ -105,6 +108,7 @@ private slots:
     void on_actionFont_triggered();
     void on_actionAuto_Indent_triggered();
     void on_actionWord_Wrap_triggered();
+    void on_actionTool_Bar_triggered();
 };
 
 #endif // MAINWINDOW_H

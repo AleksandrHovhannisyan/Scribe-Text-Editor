@@ -629,6 +629,7 @@ void MainWindow::writeSettings()
     settings.setValue(WINDOW_SIZE_KEY, size());
     settings.setValue(WINDOW_POSITION_KEY, pos());
     settings.setValue(WINDOW_STATUS_BAR, ui->statusBar->isVisible());
+    settings.setValue(WINDOW_TOOL_BAR, ui->mainToolBar->isVisible());
 }
 
 
@@ -656,7 +657,18 @@ void MainWindow::readSettings()
 
     if(!statusBarVisible.isNull())
     {
-        ui->statusBar->setVisible(qvariant_cast<bool>(statusBarVisible));
+        bool visible = qvariant_cast<bool>(statusBarVisible);
+        ui->statusBar->setVisible(visible);
+        ui->actionStatus_Bar->setChecked(visible);
+    }
+
+    QVariant toolBarVisible = settings.value(WINDOW_TOOL_BAR);
+
+    if(!toolBarVisible.isNull())
+    {
+        bool visible = qvariant_cast<bool>(toolBarVisible);
+        ui->mainToolBar->setVisible(visible);
+        ui->actionTool_Bar->setChecked(visible);
     }
 }
 
@@ -804,12 +816,29 @@ void MainWindow::on_actionWord_Wrap_triggered()
 }
 
 
+/* Toggles the visibility of the given widget. It is assumed that this
+ * widget is part of the main window. Otherwise, the effect may not be seen.
+ */
+void MainWindow::toggleVisibilityOf(QWidget *widget)
+{
+    bool opposite = !widget->isVisible();
+    widget->setVisible(opposite);
+}
+
+
 /* Toggles the visibility of the status bar.
  */
 void MainWindow::on_actionStatus_Bar_triggered()
 {
-    bool oppositeOfCurrentVisibility = !ui->statusBar->isVisible();
-    ui->statusBar->setVisible(oppositeOfCurrentVisibility);
+    toggleVisibilityOf(ui->statusBar);
+}
+
+
+/* Toggles the visibility of the main tool bar
+*/
+void MainWindow::on_actionTool_Bar_triggered()
+{
+    toggleVisibilityOf(ui->mainToolBar);
 }
 
 
