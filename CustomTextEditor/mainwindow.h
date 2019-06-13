@@ -83,8 +83,8 @@ public slots:
 
     void updateTabAndWindowTitle();
     bool closeTab(Editor *tabToClose);
-    bool closeTab(int index) { return closeTab(tabbedEditor->tabAt(index)); }
-    void closeTabShortcut() { closeTab(tabbedEditor->currentTab()); }
+    inline bool closeTab(int index) { return closeTab(tabbedEditor->tabAt(index)); }
+    inline void closeTabShortcut() { closeTab(tabbedEditor->currentTab()); }
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
 
 // All UI and/or keyboard shortcut interactions

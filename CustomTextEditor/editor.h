@@ -37,7 +37,7 @@ public:
     inline QString getFileName() { return getFileNameFromPath(); }
     void setCurrentFilePath(QString newPath);
     inline QString getCurrentFilePath() const { return currentFilePath; }
-    inline void setProgrammingLanguage(Language language);
+    void setProgrammingLanguage(Language language);
     inline Language getProgrammingLanguage() const { return programmingLanguage; }
     inline bool isUntitled() const { return fileIsUntitled; }
 
