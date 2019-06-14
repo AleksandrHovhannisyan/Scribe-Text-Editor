@@ -101,7 +101,8 @@ private:
     Highlighter *generateHighlighterFor(Language language);
     QString getFileNameFromPath();
     QTextDocument::FindFlags getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords);
-    bool handleKeyPress(QObject* obj, QEvent* event, int key);
+    bool handleEnterKeyPress();
+    bool handleTabKeyPress();
     void moveCursorTo(int positionInText);
 
     void highlightCurrentLine();
