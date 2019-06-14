@@ -100,7 +100,7 @@ void Editor::setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch,
     QPlainTextEdit::setFont(font);
 
     QFontMetrics metrics(font);
-    setTabStopWidth(tabStopWidth * metrics.width(' '));
+    setTabStopDistance(tabStopWidth * metrics.width(' '));
 }
 
 
@@ -610,6 +610,8 @@ bool Editor::handleKeyPress(QObject* obj, QEvent* event, int key)
                 return true;
             }
         }
+
+        return false;
     }
 
     // Indenting selections of text
