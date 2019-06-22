@@ -48,15 +48,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Add metric reporter and simulate a tab switch
     metricReporter = new MetricReporter();
     ui->statusBar->addPermanentWidget(metricReporter);
-    on_currentTab_changed(0);
+    on_currentTabChanged(0);
 
     // Connect tabbedEditor's signals to their handlers
-    connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTab_changed(int)));
+    connect(tabbedEditor, SIGNAL(currentChanged(int)), this, SLOT(on_currentTabChanged(int)));
     connect(tabbedEditor, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
     // Connect action signals to their handlers
-    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
-    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSave_or_actionSaveAs_triggered()));
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(on_actionSaveTriggered()));
+    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(on_actionSaveTriggered()));
     connect(ui->actionReplace, SIGNAL(triggered()), this, SLOT(on_actionFind_triggered()));
 
     // Have to add this shortcut manually because we can't define it via the GUI editor
@@ -154,7 +154,7 @@ void MainWindow::on_languageSelected(QAction* languageAction)
 
 
 /* Given a Language enum, this function checks the corresponding radio option from the Format > Language
- * menu. Used by on_currentTab_changed to reflect the current tab's selected language.
+ * menu. Used by on_currentTabChanged to reflect the current tab's selected language.
  */
 void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
 {
@@ -289,7 +289,7 @@ void MainWindow::reconnectEditorDependentSignals()
 /* Called each time the current tab changes in the tabbed editor. Sets the main window's current editor,
  * reconnects any relevant signals, and updates the window.
  */
-void MainWindow::on_currentTab_changed(int index)
+void MainWindow::on_currentTabChanged(int index)
 {
     // Happens when the tabbed editor's last tab is closed
     if(index == -1)
@@ -418,7 +418,7 @@ void MainWindow::on_actionNew_triggered()
  * user chose Save As, the program prompts the user to specify a name and directory for the file.
  * Returns true if the file was saved and false otherwise.
  */
-bool MainWindow::on_actionSave_or_actionSaveAs_triggered()
+bool MainWindow::on_actionSaveTriggered()
 {
     bool saveAs = sender() == ui->actionSave_As;
     QString currentFilePath = editor->getCurrentFilePath();
@@ -562,7 +562,7 @@ bool MainWindow::closeTab(Editor *tabToClose)
 
         if(selection == QMessageBox::StandardButton::Yes)
         {
-            bool fileSaved = on_actionSave_or_actionSaveAs_triggered();
+            bool fileSaved = on_actionSaveTriggered();
 
             if(!fileSaved)
             {

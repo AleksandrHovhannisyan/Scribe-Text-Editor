@@ -89,10 +89,10 @@ public slots:
 
 // All UI and/or keyboard shortcut interactions
 private slots:
-    void on_currentTab_changed(int index);
+    void on_currentTabChanged(int index);
     void on_languageSelected(QAction* languageAction);
     void on_actionNew_triggered();
-    bool on_actionSave_or_actionSaveAs_triggered();
+    bool on_actionSaveTriggered();
     void on_actionOpen_triggered();
     void on_actionExit_triggered();
     void on_actionUndo_triggered();
