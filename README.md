@@ -1,6 +1,9 @@
 # Scribe
 
-Scribe is a simple, user-friendly text editor.
+> A simple, user-friendly text editor.
+
+[![](https://img.shields.io/github/stars/AleksandrHovhannisyan/Scribe-Text-Editor.svg)](https://github.com/AleksandrHovhannisyan/Scribe-Text-Editor/stargazers)
+[![](https://img.shields.io/badge/releases-1-green.svg)](https://github.com/AleksandrHovhannisyan/Scribe-Text-Editor/releases)
 
 ![](CustomTextEditor/screenshots/Screenshot1.PNG)
 
