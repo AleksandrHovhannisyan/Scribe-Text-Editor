@@ -13,9 +13,9 @@ Basic syntax highlighting for four languages: C, C++, Java, and Python.
 
 ### Demo
 
-Here's a quick look at some of the app's basic functionality:
+Here's a look at some of the app's functionality and UIs:
 
-![](CustomTextEditor/screenshots/demo.gif)
+![](https://user-images.githubusercontent.com/19352442/63651891-d902c480-c727-11e9-9e25-24ac3c767e27.gif)
 
 ## Development
 
