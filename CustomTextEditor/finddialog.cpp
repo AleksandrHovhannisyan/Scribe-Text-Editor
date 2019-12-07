@@ -107,7 +107,7 @@ void FindDialog::on_findNextButton_clicked()
 }
 
 
-/* Caleld when the user clicks the Replace or Replace All button. Emits the appropriate
+/* Called when the user clicks the Replace or Replace All button. Emits the appropriate
  * signal (startReplacing or startReplacingAll, respectively), passing along all relevant
  * search and replace information.
  */

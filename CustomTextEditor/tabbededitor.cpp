@@ -91,7 +91,7 @@ void TabbedEditor::promptFontSelection()
     if(!userChoseFont) return;
 
     QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Font change"),
-                                                                      tr("Apply to all tabs?"));
+                                                                      tr("Apply to all open and future tabs?"));
 
     // Apply font to all tabs
     if(tabSelection == QMessageBox::Yes)
@@ -120,6 +120,13 @@ void TabbedEditor::promptFontSelection()
  */
 bool TabbedEditor::applyWordWrapping(bool shouldWrap)
 {
+    if (numTabs() == 1)
+    {
+        currentTab()->toggleWrapMode(shouldWrap);
+        return true;
+    }
+
+    // Anything below only applies if there are > 1 tabs open
     QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Word wrapping"),
                                                                       tr("Apply to all tabs?"));
 
@@ -154,8 +161,15 @@ bool TabbedEditor::applyWordWrapping(bool shouldWrap)
  */
 bool TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
 {
+    if (numTabs() == 1)
+    {
+        currentTab()->toggleAutoIndent(shouldAutoIndent);
+        return true;
+    }
+
+    // Anything below only applies if there are > 1 tabs open
     QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Auto indentation"),
-                                                                      tr("Apply to all tabs?"));
+                                                                      tr("Apply to all open and future tabs?"));
 
     // Apply auto indentation to all tabs
     if(tabSelection == QMessageBox::Yes)

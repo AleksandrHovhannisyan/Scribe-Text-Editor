@@ -16,6 +16,7 @@ public:
     Editor *currentTab() const;
     Editor *tabAt(int index) const;
     QVector<Editor*> tabs() const;
+    int numTabs() const { return tabs().length(); }
     QVector<Editor*> unsavedTabs() const;
 
     void promptFontSelection();
