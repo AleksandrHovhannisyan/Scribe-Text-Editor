@@ -75,7 +75,7 @@ void Editor::setCurrentFilePath(QString newPath)
  */
 QString Editor::getFileNameFromPath()
 {
-    if(currentFilePath.isEmpty())
+    if (currentFilePath.isEmpty())
     {
         fileIsUntitled = true;
         return "Untitled document";
@@ -110,7 +110,7 @@ void Editor::setFont(QFont newFont, QFont::StyleHint styleHint, bool fixedPitch,
  */
 void Editor::setProgrammingLanguage(Language language)
 {
-    if(language == this->programmingLanguage)
+    if (language == this->programmingLanguage)
     {
         return;
     }
@@ -130,10 +130,10 @@ Highlighter *Editor::generateHighlighterFor(Language language)
 
     switch (language)
     {
-        case(Language::C): return new CHighlighter(doc);
-        case(Language::CPP): return new CPPHighlighter(doc);
-        case(Language::Java): return new JavaHighlighter(doc);
-        case(Language::Python): return new PythonHighlighter(doc);
+        case (Language::C): return new CHighlighter(doc);
+        case (Language::CPP): return new CPPHighlighter(doc);
+        case (Language::Java): return new JavaHighlighter(doc);
+        case (Language::Python): return new PythonHighlighter(doc);
         default: return nullptr;
     }
 }
@@ -146,11 +146,11 @@ Highlighter *Editor::generateHighlighterFor(Language language)
 QTextDocument::FindFlags Editor::getSearchOptionsFromFlags(bool caseSensitive, bool wholeWords)
 {
     QTextDocument::FindFlags searchOptions = QTextDocument::FindFlags();
-    if(caseSensitive)
+    if (caseSensitive)
     {
         searchOptions |= QTextDocument::FindCaseSensitively;
     }
-    if(wholeWords)
+    if (wholeWords)
     {
         searchOptions |= QTextDocument::FindWholeWords;
     }
@@ -179,21 +179,21 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
     bool matchFound = QPlainTextEdit::find(query, searchOptions);
 
     // If we didn't find a match, search from the top of the document
-    if(!matchFound)
+    if (!matchFound)
     {
         moveCursor(QTextCursor::Start);
         matchFound = QPlainTextEdit::find(query, searchOptions);
     }
 
     // If we found a match...
-    if(matchFound)
+    if (matchFound)
     {
         int foundPosition = textCursor().position();
         bool previouslyFound = searchHistory.previouslyFound(query);
 
         // If it's the first time finding this, log the first position at which this query was found in the current document state
         // Search history is always reset whenever we do a full cycle back to the first match or start a new search "chain"
-        if(!previouslyFound)
+        if (!previouslyFound)
         {
             searchHistory.add(query, cursorPositionBeforeCurrentSearch, foundPosition);
         }
@@ -202,7 +202,7 @@ bool Editor::find(QString query, bool caseSensitive, bool wholeWords)
         {
             bool loopedBackToFirstMatch = foundPosition == searchHistory.firstFoundAt(query);
 
-            if(loopedBackToFirstMatch)
+            if (loopedBackToFirstMatch)
             {
                 // It's not really a match that we found; it's a repeat of the very first-ever match
                 matchFound = false;
@@ -242,7 +242,7 @@ void Editor::replace(QString what, QString with, bool caseSensitive, bool wholeW
 {
     bool found = find(what, caseSensitive, wholeWords);
 
-    if(found)
+    if (found)
     {
         QTextCursor cursor = textCursor();
         cursor.beginEditBlock();
@@ -275,7 +275,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     // Keep replacing while there are matches left
     QTextCursor cursor(document());
     cursor.beginEditBlock();
-    while(found)
+    while (found)
     {
         QTextCursor currentPosition = textCursor();
         currentPosition.insertText(with);
@@ -285,7 +285,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
     cursor.endEditBlock();
 
     // End-of-operation feedback
-    if(replacements == 0)
+    if (replacements == 0)
     {
         emit(findResultReady("No results found."));
     }
@@ -306,7 +306,7 @@ void Editor::replaceAll(QString what, QString with, bool caseSensitive, bool who
  */
 void Editor::goTo(int line)
 {
-    if(line > blockCount() || line < 1)
+    if (line > blockCount() || line < 1)
     {
         emit(gotoResultReady("Invalid line number."));
         return;
@@ -330,7 +330,7 @@ void Editor::formatSubtext(int startIndex, int endIndex, QTextCharFormat format,
     QTextCursor cursorBeforeFormatting = textCursor();
     QTextCursor formatter = textCursor();
 
-    if(unformatAllFirst)
+    if (unformatAllFirst)
     {
         QTextCursor unformatter = textCursor();
         unformatter.setPosition(0, QTextCursor::MoveAnchor);
@@ -374,7 +374,7 @@ void Editor::toggleAutoIndent(bool autoIndent)
  */
 void Editor::toggleWrapMode(bool wrap)
 {
-    if(wrap)
+    if (wrap)
     {
         setLineWrapMode(LineWrapMode::WidgetWidth);
     }
@@ -410,16 +410,16 @@ void Editor::updateWordCount()
     int documentLength = documentContents.length();
     QString currentWord = "";
 
-    for(int i = 0; i < documentLength; i++)
+    for (int i = 0; i < documentLength; i++)
     {
         // Convert to unsigned char to avoid running into debug assertion problems
         unsigned char character = qvariant_cast<unsigned char>(documentContents[i].toLatin1());
 
         // Newline
-        if(character == '\n')
+        if (character == '\n')
         {
             // Special case: newline following a word
-            if(!currentWord.isEmpty())
+            if (!currentWord.isEmpty())
             {
                 metrics.wordCount++;
                 currentWord.clear();
@@ -429,15 +429,15 @@ void Editor::updateWordCount()
         else
         {
             // Alphanumeric character
-            if(isalnum(character))
+            if (isalnum(character))
             {
                 currentWord += qvariant_cast<char>(character);
             }
             // Whitespace (excluding newline, handled separately above)
-            else if(isspace(character))
+            else if (isspace(character))
             {
                 // Whitespace following a word means we completed a word
-                if(!currentWord.isEmpty())
+                if (!currentWord.isEmpty())
                 {
                     metrics.wordCount++;
                     currentWord.clear();
@@ -447,7 +447,7 @@ void Editor::updateWordCount()
     }
 
     // e.g., if we stopped typing and still had a word in progress, we need to count it
-    if(!currentWord.isEmpty())
+    if (!currentWord.isEmpty())
     {
         metrics.wordCount++;
         currentWord.clear();
@@ -477,14 +477,14 @@ int Editor::indentationLevelOfCurrentLine()
     int indentationLevel = 0;
 
     int index = textCursor().position();
-    if(index >= documentContents.length())
+    if (index >= documentContents.length())
     {
         index--;
     }
 
-    while(index < documentContents.length())
+    while (index < documentContents.length())
     {
-        if(documentContents.at(index) == '\t')
+        if (documentContents.at(index) == '\t')
         {
             indentationLevel++;
             index++;
@@ -504,7 +504,7 @@ int Editor::indentationLevelOfCurrentLine()
  */
 void Editor::insertTabs(int numTabs)
 {
-    for(int i = 0; i < numTabs; i++)
+    for (int i = 0; i < numTabs; i++)
     {
         insertPlainText("\t");
     }
@@ -522,7 +522,7 @@ void Editor::moveCursorToStartOfCurrentLine()
         cursor.movePosition(QTextCursor::Left);
         setTextCursor(cursor);
     }
-    while(metrics.currentColumn != 1);
+    while (metrics.currentColumn != 1);
 }
 
 
@@ -534,10 +534,10 @@ void Editor::indentSelection(QTextDocumentFragment selection)
     QString text = selection.toPlainText();
 
     text.insert(0, '\t');
-    for(int i = 1; i < text.length(); i++)
+    for (int i = 1; i < text.length(); i++)
     {
         // Insert a tab after each newline
-        if(text.at(i) == '\n' && i + 1 < text.length())
+        if (text.at(i) == '\n' && i + 1 < text.length())
         {
             text.insert(i + 1, '\t');
         }
@@ -581,7 +581,7 @@ bool Editor::handleEnterKeyPress()
         QChar codeBlockEndDelimiter = syntaxHighlighter->getCodeBlockEndDelimiter();
 
         insertPlainText("\n");
-        if(autoIndentEnabled)
+        if (autoIndentEnabled)
         {
             insertTabs(currentIndent + 1);
         }
@@ -621,7 +621,7 @@ bool Editor::handleEnterKeyPress()
  */
 bool Editor::handleTabKeyPress()
 {
-    if(textCursor().hasSelection())
+    if (textCursor().hasSelection())
     {
         indentSelection(textCursor().selection());
         return true;
@@ -636,15 +636,15 @@ bool Editor::handleTabKeyPress()
  */
 bool Editor::eventFilter(QObject* obj, QEvent* event)
 {
-    if(event->type() == QEvent::KeyPress)
+    if (event->type() == QEvent::KeyPress)
     {
         int key = static_cast<QKeyEvent*>(event)->key();
 
-        if(key == Qt::Key_Enter || key == Qt::Key_Return)
+        if (key == Qt::Key_Enter || key == Qt::Key_Return)
         {
             return handleEnterKeyPress();
         }
-        else if(key == Qt::Key_Tab)
+        else if (key == Qt::Key_Tab)
         {
             return handleTabKeyPress();
         }
@@ -721,7 +721,7 @@ void Editor::updateLineNumberAreaWidth()
  */
 void Editor::redrawLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScrolledVertically)
 {
-    if(numPixelsScrolledVertically != 0)
+    if (numPixelsScrolledVertically != 0)
     {
         lineNumberArea->scroll(0, numPixelsScrolledVertically);
     }
@@ -730,7 +730,7 @@ void Editor::redrawLineNumberArea(const QRect &rectToBeRedrawn, int numPixelsScr
         lineNumberArea->update(0, rectToBeRedrawn.y(), lineNumberArea->width(), rectToBeRedrawn.height());
     }
 
-    if(rectToBeRedrawn.contains(viewport()->rect()))
+    if (rectToBeRedrawn.contains(viewport()->rect()))
     {
         updateLineNumberAreaWidth();
     }

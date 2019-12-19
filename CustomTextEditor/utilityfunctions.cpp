@@ -26,12 +26,12 @@ bool Utility::codeBlockNotClosed(QString context, QChar startDelimiter, QChar en
     {
         char character = context.at(i).toLatin1();
 
-        if(character == startDelimiter)
+        if (character == startDelimiter)
         {
             codeBlockStartDelimiters.push(character);
         }
 
-        else if(character == endDelimiter && !codeBlockStartDelimiters.empty())
+        else if (character == endDelimiter && !codeBlockStartDelimiters.empty())
         {
             codeBlockStartDelimiters.pop();
         }

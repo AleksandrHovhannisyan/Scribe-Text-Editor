@@ -5,13 +5,13 @@ QString ProgrammingLanguage::toString(Language language)
 {
     switch (language)
     {
-        case(Language::C):
+        case (Language::C):
             return "Language: C";
-        case(Language::CPP):
+        case (Language::CPP):
             return "Language: C++";
-        case(Language::Java):
+        case (Language::Java):
             return "Language: Java";
-        case(Language::Python):
+        case (Language::Python):
             return "Language: Python";
         default:
             return "Language not selected";

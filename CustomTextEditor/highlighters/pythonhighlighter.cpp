@@ -35,7 +35,7 @@ void PythonHighlighter::highlightBlock(const QString &text)
     {
         QRegularExpressionMatchIterator iterator = rule.pattern.globalMatch(text);
 
-        while(iterator.hasNext())
+        while (iterator.hasNext())
         {
             QRegularExpressionMatch match = iterator.next();
             setFormat(match.capturedStart(), match.capturedLength(), rule.format);
@@ -45,7 +45,7 @@ void PythonHighlighter::highlightBlock(const QString &text)
     setCurrentBlockState(BlockState::NotInComment);
 
     // Handle multiline comments
-    if(!highlightMultilineComments(text, triple_single_quote.first, triple_single_quote.second))
+    if (!highlightMultilineComments(text, triple_single_quote.first, triple_single_quote.second))
     {
         highlightMultilineComments(text, triple_double_quote.first, triple_double_quote.second);
     }
@@ -57,7 +57,7 @@ bool PythonHighlighter::highlightMultilineComments(const QString &text, QRegular
     int startIndex = 0;
     int offset = 0;
 
-    if(previousBlockState() != in_state)
+    if (previousBlockState() != in_state)
     {
         startIndex = text.indexOf(pattern);
         offset = pattern.match(text).capturedLength();
@@ -69,7 +69,7 @@ bool PythonHighlighter::highlightMultilineComments(const QString &text, QRegular
         int endIndex = match.capturedStart();
         int commentLength = 0;
 
-        if(endIndex >= offset)
+        if (endIndex >= offset)
         {
             commentLength = endIndex - startIndex + offset + pattern.match(text).capturedLength();
             setCurrentBlockState(BlockState::NotInComment);

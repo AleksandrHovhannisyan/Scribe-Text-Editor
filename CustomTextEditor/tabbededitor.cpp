@@ -37,7 +37,7 @@ Editor* TabbedEditor::currentTab() const
  */
 Editor* TabbedEditor::tabAt(int index) const
 {
-    if(index < 0 || index >= count())
+    if (index < 0 || index >= count())
     {
         return nullptr;
     }
@@ -52,7 +52,7 @@ QVector<Editor*> TabbedEditor::tabs() const
 {
     QVector<Editor*> tabs;
 
-    for(int i = 0; i < count(); i++)
+    for (int i = 0; i < count(); i++)
     {
         tabs.push_back(tabAt(i));
     }
@@ -67,11 +67,11 @@ QVector<Editor*> TabbedEditor::unsavedTabs() const
 {
     QVector<Editor*> unsavedTabs;
 
-    for(int i = 0; i < count(); i++)
+    for (int i = 0; i < count(); i++)
     {
         Editor *tab = tabAt(i);
 
-        if(tab->isUnsaved())
+        if (tab->isUnsaved())
         {
             unsavedTabs.push_back(tab);
         }
@@ -88,13 +88,13 @@ void TabbedEditor::promptFontSelection()
     bool userChoseFont;
     QFont newFont = QFontDialog::getFont(&userChoseFont, currentTab()->getFont(), this);
 
-    if(!userChoseFont) return;
+    if (!userChoseFont) return;
 
     QMessageBox::StandardButton tabSelection = Utility::promptYesOrNo(this, tr("Font change"),
                                                                       tr("Apply to all open and future tabs?"));
 
     // Apply font to all tabs
-    if(tabSelection == QMessageBox::Yes)
+    if (tabSelection == QMessageBox::Yes)
     {
         for (Editor *tab : tabs())
         {
@@ -103,7 +103,7 @@ void TabbedEditor::promptFontSelection()
     }
 
     // Apply font only to current tab
-    else if(tabSelection == QMessageBox::No)
+    else if (tabSelection == QMessageBox::No)
     {
         currentTab()->setFont(newFont, QFont::Monospace, true, Editor::NUM_CHARS_FOR_TAB);
     }
@@ -131,7 +131,7 @@ bool TabbedEditor::applyWordWrapping(bool shouldWrap)
                                                                       tr("Apply to all tabs?"));
 
     // Apply wrapping to all tabs
-    if(tabSelection == QMessageBox::Yes)
+    if (tabSelection == QMessageBox::Yes)
     {
         for (Editor *tab : tabs())
         {
@@ -142,7 +142,7 @@ bool TabbedEditor::applyWordWrapping(bool shouldWrap)
     }
 
     // Apply wrapping only to current tab
-    else if(tabSelection == QMessageBox::No)
+    else if (tabSelection == QMessageBox::No)
     {
         currentTab()->toggleWrapMode(shouldWrap);
         return true;
@@ -172,7 +172,7 @@ bool TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
                                                                       tr("Apply to all open and future tabs?"));
 
     // Apply auto indentation to all tabs
-    if(tabSelection == QMessageBox::Yes)
+    if (tabSelection == QMessageBox::Yes)
     {
         for (Editor *tab : tabs())
         {
@@ -183,7 +183,7 @@ bool TabbedEditor::applyAutoIndentation(bool shouldAutoIndent)
     }
 
     // Apply auto indentation only to current tab
-    else if(tabSelection == QMessageBox::No)
+    else if (tabSelection == QMessageBox::No)
     {
         currentTab()->toggleAutoIndent(shouldAutoIndent);
         return true;
@@ -204,22 +204,22 @@ bool TabbedEditor::eventFilter(QObject* obj, QEvent* event)
 {
     bool isKeyPress = event->type() == QEvent::KeyPress;
 
-    if(isKeyPress)
+    if (isKeyPress)
     {
         QKeyEvent *keyInfo = static_cast<QKeyEvent*>(event);
         int key = keyInfo->key();
 
-        if(keyInfo->modifiers() == Qt::ControlModifier)
+        if (keyInfo->modifiers() == Qt::ControlModifier)
         {
             // Ctrl + num = jump to that tab number
-            if(key >= Qt::Key_1 && key <= Qt::Key_9)
+            if (key >= Qt::Key_1 && key <= Qt::Key_9)
             {
                 setCurrentWidget(tabAt(key - Qt::Key_1));
                 return true;
             }
 
             // Ctrl + tab = advance tab by one
-            else if(key == Qt::Key_T)
+            else if (key == Qt::Key_T)
             {
                 int newTabIndex = (currentIndex() + 1) % count();
                 setCurrentWidget(tabAt(newTabIndex));

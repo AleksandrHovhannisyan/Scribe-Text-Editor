@@ -42,7 +42,7 @@ void GotoDialog::on_gotoButton_clicked()
 {
     QString line = gotoLineEdit->text();
 
-    if(line.isEmpty())
+    if (line.isEmpty())
     {
         QMessageBox::information(this, tr("Go"), tr("Must enter a line number."));
         return;
