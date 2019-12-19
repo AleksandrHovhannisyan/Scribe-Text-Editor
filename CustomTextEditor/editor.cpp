@@ -563,56 +563,51 @@ bool Editor::handleEnterKeyPress()
     QString documentContents = document()->toPlainText();
     int indexToLeftOfCursor = textCursor().position() - 1;
 
-    if(documentContents.length() < 1 || indexToLeftOfCursor < 0 || indexToLeftOfCursor >= documentContents.length())
+    // Edge cases
+    if (documentContents.length() < 1 ||
+        indexToLeftOfCursor < 0 ||
+        indexToLeftOfCursor >= documentContents.length())
     {
         return false;
     }
 
-    QChar character = documentContents.at(indexToLeftOfCursor);
+    int currentIndent = indentationLevelOfCurrentLine();
+    QChar characterToLeftOfCursor = documentContents.at(indexToLeftOfCursor);
 
-    // Hit ENTER after opening brace
-    if(character == '{')
+    // Did the user hit ENTER right after a code block start, like an opening brace in C++?
+    if (syntaxHighlighter && characterToLeftOfCursor == syntaxHighlighter->getCodeBlockStartDelimiter())
     {
-        int braceLevel = indentationLevelOfCurrentLine();
-        insertPlainText("\n");
+        QChar codeBlockStartDelimiter = syntaxHighlighter->getCodeBlockStartDelimiter();
+        QChar codeBlockEndDelimiter = syntaxHighlighter->getCodeBlockEndDelimiter();
 
+        insertPlainText("\n");
         if(autoIndentEnabled)
         {
-            insertTabs(braceLevel + 1);
+            insertTabs(currentIndent + 1);
         }
 
-        if(Utility::closingBraceNeeded(documentContents))
+        // Note: Some languages, like Python, don't have a code block end delimiter.
+        if (codeBlockEndDelimiter != NULL &&
+            Utility::codeBlockNotClosed(documentContents, codeBlockStartDelimiter, codeBlockEndDelimiter))
         {
             insertPlainText("\n");
-            insertTabs(braceLevel);
-            insertPlainText("}");
+            insertTabs(currentIndent);
+            insertPlainText(codeBlockEndDelimiter);
 
             // Set the cursor so it's right after the nested tab
-            moveCursorTo(textCursor().position() - 2 - braceLevel);
+            moveCursorTo(textCursor().position() - 2 - currentIndent);
         }
 
         return true;
     }
-    // Hit ENTER after colon (for Python only)
-    else if(character == ':' && programmingLanguage == Language::Python)
-    {
-        int level = indentationLevelOfCurrentLine();
-        insertPlainText("\n");
-        insertTabs(level + 1);
-        return true;
-    }
-    // Hit ENTER after anything else
+
+    // If the user hit ENTER after anything else, just take them to the next line but at the current indentation level
     else
     {
-        if(autoIndentEnabled)
+        insertPlainText("\n");
+        if (autoIndentEnabled)
         {
-            int indentationLevel = indentationLevelOfCurrentLine();
-            insertPlainText("\n");
-            insertTabs(indentationLevel);
-        }
-        else
-        {
-            insertPlainText("\n");
+            insertTabs(currentIndent);
         }
 
         return true;

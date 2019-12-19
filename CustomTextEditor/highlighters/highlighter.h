@@ -15,6 +15,9 @@ public:
     virtual void addKeywords(QStringList keywords);
     virtual void addRule(QRegularExpression pattern, QTextCharFormat format);
 
+    QChar getCodeBlockStartDelimiter() const { return codeBlockStart; }
+    QChar getCodeBlockEndDelimiter() const { return codeBlockEnd; }
+
 protected:
 
     virtual void highlightBlock(const QString &text) override;
@@ -39,12 +42,17 @@ protected:
     QRegularExpression blockCommentStart;
     QRegularExpression blockCommentEnd;
 
+    // For auto-indentation after a user hits ENTER
+    QChar codeBlockStart;
+    QChar codeBlockEnd;
+
     QTextCharFormat keywordFormat;
     QTextCharFormat classFormat;
     QTextCharFormat inlineCommentFormat;
     QTextCharFormat blockCommentFormat;
     QTextCharFormat quoteFormat;
     QTextCharFormat functionFormat;
+
 };
 
 #endif // HIGHLIGHTER_H

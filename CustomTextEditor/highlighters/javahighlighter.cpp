@@ -22,4 +22,7 @@ JavaHighlighter::JavaHighlighter(QTextDocument *parent) : Highlighter (parent)
 
     blockCommentStart = QRegularExpression("/\\*");
     blockCommentEnd = QRegularExpression("\\*/");
+
+    codeBlockStart = '{';
+    codeBlockEnd = '}';
 }

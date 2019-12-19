@@ -22,6 +22,9 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent) : Highlighter(parent
     triple_single_quote.second = MultilineQuote::TRIPLE_SINGLE;
     triple_double_quote.first = QRegularExpression("\"\"\"");
     triple_double_quote.second = MultilineQuote::TRIPLE_DOUBLE;
+
+    codeBlockStart = ':';
+    codeBlockEnd = NULL;
 }
 
 

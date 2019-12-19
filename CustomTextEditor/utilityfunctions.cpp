@@ -18,24 +18,24 @@ QMessageBox::StandardButton Utility::promptYesOrNo(QWidget *parent, QString titl
 /* Returns true if a closing brace must be inserted into the given string
  * to create a balanced expression and false otherwise.
  */
-bool Utility::closingBraceNeeded(QString context)
+bool Utility::codeBlockNotClosed(QString context, QChar startDelimiter, QChar endDelimiter)
 {
-    QStack<char> openingBraces;
+    QStack<char> codeBlockStartDelimiters;
 
     for (int i = 0; i < context.length(); i++)
     {
         char character = context.at(i).toLatin1();
 
-        if(character == '{')
+        if(character == startDelimiter)
         {
-            openingBraces.push(character);
+            codeBlockStartDelimiters.push(character);
         }
 
-        else if(character == '}' && !openingBraces.empty())
+        else if(character == endDelimiter && !codeBlockStartDelimiters.empty())
         {
-            openingBraces.pop();
+            codeBlockStartDelimiters.pop();
         }
     }
 
-    return !openingBraces.empty();
+    return !codeBlockStartDelimiters.empty();
 }
