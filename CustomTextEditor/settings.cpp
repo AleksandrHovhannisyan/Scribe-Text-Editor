@@ -32,7 +32,7 @@ QVariant Settings::value(const QString &key, const QVariant &defaultValue)
  */
 void Settings::apply(QVariant setting, std::function<void(QVariant)> handler)
 {
-    if(!setting.isNull())
+    if (!setting.isNull())
     {
         handler(setting);
     }

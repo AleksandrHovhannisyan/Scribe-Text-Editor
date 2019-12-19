@@ -95,7 +95,7 @@ void FindDialog::on_findNextButton_clicked()
 {
     QString query = findLineEdit->text();
 
-    if(query.isEmpty())
+    if (query.isEmpty())
     {
         QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
         return;
@@ -115,7 +115,7 @@ void FindDialog::on_replaceOperation_initiated()
 {
     QString what = findLineEdit->text();
 
-    if(what.isEmpty())
+    if (what.isEmpty())
     {
         QMessageBox::information(this, tr("Empty Field"), tr("Please enter a query."));
         return;
@@ -126,7 +126,7 @@ void FindDialog::on_replaceOperation_initiated()
     bool wholeWords = wholeWordsCheckBox->isChecked();
     bool replace = sender() == replaceButton;
 
-    if(replace)
+    if (replace)
     {
         emit(startReplacing(what, with, caseSensitive, wholeWords));
     }

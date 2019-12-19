@@ -50,7 +50,7 @@ void Highlighter::highlightBlock(const QString &text)
     {
         QRegularExpressionMatchIterator iterator = rule.pattern.globalMatch(text);
 
-        while(iterator.hasNext())
+        while (iterator.hasNext())
         {
             QRegularExpressionMatch match = iterator.next();
             setFormat(match.capturedStart(), match.capturedLength(), rule.format);
@@ -70,7 +70,7 @@ void Highlighter::highlightMultilineComments(const QString &text)
     int startIndex = 0;
 
     // If the previous state was not in comment, then start searching from very beginning
-    if(previousBlockState() != BlockState::InComment)
+    if (previousBlockState() != BlockState::InComment)
     {
         startIndex = text.indexOf(blockCommentStart);
     }

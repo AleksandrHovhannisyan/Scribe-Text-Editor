@@ -7,7 +7,7 @@
 namespace Utility
 {
     QMessageBox::StandardButton promptYesOrNo(QWidget *parent, QString title, QString prompt);
-    bool closingBraceNeeded(QString context);
+    bool codeBlockNotClosed(QString context, QChar startDelimiter, QChar endDelimiter);
 }
 
 #endif // UTILITYFUNCTIONS_H

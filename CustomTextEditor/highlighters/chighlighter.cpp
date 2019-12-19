@@ -20,4 +20,7 @@ CHighlighter::CHighlighter(QTextDocument *parent) : Highlighter(parent)
 
     blockCommentStart = QRegularExpression("/\\*");
     blockCommentEnd = QRegularExpression("\\*/");
+
+    codeBlockStart = '{';
+    codeBlockEnd = '}';
 }

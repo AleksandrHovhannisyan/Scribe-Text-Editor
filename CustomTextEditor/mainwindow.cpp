@@ -158,31 +158,31 @@ void MainWindow::on_languageSelected(QAction* languageAction)
  */
 void MainWindow::triggerCorrespondingMenuLanguageOption(Language lang)
 {
-    switch(lang)
+    switch (lang)
     {
-        case(Language::C):
-            if(!ui->actionC_Lang->isChecked())
+        case (Language::C):
+            if (!ui->actionC_Lang->isChecked())
             {
                 ui->actionC_Lang->trigger();
             }
             break;
 
-        case(Language::CPP):
-            if(!ui->actionCPP_Lang->isChecked())
+        case (Language::CPP):
+            if (!ui->actionCPP_Lang->isChecked())
             {
                 ui->actionCPP_Lang->trigger();
             }
             break;
 
-        case(Language::Java):
-            if(!ui->actionJava_Lang->isChecked())
+        case (Language::Java):
+            if (!ui->actionJava_Lang->isChecked())
             {
                 ui->actionJava_Lang->trigger();
             }
             break;
 
-        case(Language::Python):
-            if(!ui->actionPython_Lang->isChecked())
+        case (Language::Python):
+            if (!ui->actionPython_Lang->isChecked())
             {
                 ui->actionPython_Lang->trigger();
             }
@@ -202,7 +202,7 @@ void MainWindow::setLanguageFromExtension()
     QString fileName = editor->getFileName();
     int indexOfDot = fileName.indexOf('.');
 
-    if(indexOfDot == -1)
+    if (indexOfDot == -1)
     {
         selectProgrammingLanguage(Language::None);
         return;
@@ -212,7 +212,7 @@ void MainWindow::setLanguageFromExtension()
 
     bool extensionSupported = extensionToLanguageMap.find(fileExtension) != extensionToLanguageMap.end();
 
-    if(!extensionSupported)
+    if (!extensionSupported)
     {
         selectProgrammingLanguage(Language::None);
         return;
@@ -227,7 +227,7 @@ void MainWindow::setLanguageFromExtension()
  */
 void MainWindow::selectProgrammingLanguage(Language language)
 {
-    if(language == editor->getProgrammingLanguage())
+    if (language == editor->getProgrammingLanguage())
     {
         return;
     }
@@ -292,13 +292,13 @@ void MainWindow::reconnectEditorDependentSignals()
 void MainWindow::on_currentTabChanged(int index)
 {
     // Happens when the tabbed editor's last tab is closed
-    if(index == -1)
+    if (index == -1)
     {
         return;
     }
 
     // Note: editor will only be nullptr on the first launch, so this will get skipped in that edge case
-    if(editor != nullptr)
+    if (editor != nullptr)
     {
         disconnectEditorDependentSignals();
     }
@@ -310,14 +310,14 @@ void MainWindow::on_currentTabChanged(int index)
     Language tabLanguage = editor->getProgrammingLanguage();
 
     // If this tab had a programming language set, trigger the corresponding option
-    if(tabLanguage != Language::None)
+    if (tabLanguage != Language::None)
     {
         triggerCorrespondingMenuLanguageOption(tabLanguage);
     }
     else
     {        
         // If a menu language is checked but the current tab has no language set, uncheck the menu option
-        if(languageGroup->checkedAction())
+        if (languageGroup->checkedAction())
         {
             languageGroup->checkedAction()->setChecked(false);
         }
@@ -348,7 +348,7 @@ void MainWindow::on_currentTabChanged(int index)
  */
 void MainWindow::launchFindDialog()
 {
-    if(findDialog->isHidden())
+    if (findDialog->isHidden())
     {
         findDialog->show();
         findDialog->activateWindow();
@@ -362,7 +362,7 @@ void MainWindow::launchFindDialog()
  */
 void MainWindow::launchGotoDialog()
 {
-    if(gotoDialog->isHidden())
+    if (gotoDialog->isHidden())
     {
         gotoDialog->show();
         gotoDialog->activateWindow();
@@ -380,7 +380,7 @@ void MainWindow::updateTabAndWindowTitle()
     QString tabTitle = editor->getFileName();
     QString windowTitle = tabTitle;
 
-    if(editor->isUnsaved())
+    if (editor->isUnsaved())
     {
         tabTitle += " *";
         windowTitle += " [Unsaved]";
@@ -424,7 +424,7 @@ bool MainWindow::on_actionSaveTriggered()
     QString currentFilePath = editor->getCurrentFilePath();
 
     // If user hit Save As or user hit Save but current document was never saved to disk
-    if(saveAs || currentFilePath.isEmpty())
+    if (saveAs || currentFilePath.isEmpty())
     {
         // Title to be used for saving dialog
         QString saveDialogWindowTitle = saveAs ? tr("Save As") : tr("Save");
@@ -433,7 +433,7 @@ bool MainWindow::on_actionSaveTriggered()
         QString filePath = QFileDialog::getSaveFileName(this, saveDialogWindowTitle);
 
         // Don't do anything if the user changes their mind and hits Cancel
-        if(filePath.isNull())
+        if (filePath.isNull())
         {
             return false;
         }
@@ -478,7 +478,7 @@ void MainWindow::on_actionOpen_triggered()
     QString openedFilePath;
     QString lastUsedDirectory = settings->value(DEFAULT_DIRECTORY_KEY).toString();
 
-    if(lastUsedDirectory.isEmpty())
+    if (lastUsedDirectory.isEmpty())
     {
         openedFilePath = QFileDialog::getOpenFileName(this, tr("Open"), DEFAULT_DIRECTORY);
     }
@@ -488,7 +488,7 @@ void MainWindow::on_actionOpen_triggered()
     }
 
     // Don't do anything if the user hit Cancel
-    if(openedFilePath.isNull())
+    if (openedFilePath.isNull())
     {
         return;
     }
@@ -509,7 +509,7 @@ void MainWindow::on_actionOpen_triggered()
     QTextStream in(&file);
     QString documentContents = in.readAll();
 
-    if(!openInCurrentTab)
+    if (!openInCurrentTab)
     {
         tabbedEditor->add(new Editor());
     }
@@ -532,7 +532,7 @@ void MainWindow::on_actionPrint_triggered()
     printer.setPrinterName(tr("Document printer"));
     QPrintDialog printDialog(&printer, this);
 
-    if(printDialog.exec() != QPrintDialog::Rejected)
+    if (printDialog.exec() != QPrintDialog::Rejected)
     {
         editor->print(&printer);
         ui->statusBar->showMessage("Printing", 2000);
@@ -550,27 +550,27 @@ bool MainWindow::closeTab(Editor *tabToClose)
     bool closingCurrentTab = (tabToClose == currentTab);
 
     // Allow the user to see what tab they're closing if it's not the current one
-    if(!closingCurrentTab)
+    if (!closingCurrentTab)
     {
         tabbedEditor->setCurrentWidget(tabToClose);
     }
 
     // Don't close a tab immediately if it has unsaved contents
-    if(tabToClose->isUnsaved())
+    if (tabToClose->isUnsaved())
     {
         QMessageBox::StandardButton selection = askUserToSave();
 
-        if(selection == QMessageBox::StandardButton::Yes)
+        if (selection == QMessageBox::StandardButton::Yes)
         {
             bool fileSaved = on_actionSaveTriggered();
 
-            if(!fileSaved)
+            if (!fileSaved)
             {
                 return false;
             }
         }
 
-        else if(selection == QMessageBox::Cancel)
+        else if (selection == QMessageBox::Cancel)
         {
             return false;
         }
@@ -580,13 +580,13 @@ bool MainWindow::closeTab(Editor *tabToClose)
     tabbedEditor->removeTab(indexOfTabToClose);
 
     // If we closed the last tab, make a new one
-    if(tabbedEditor->count() == 0)
+    if (tabbedEditor->count() == 0)
     {
         on_actionNew_triggered();
     }
 
     // And finally, go back to original tab if the user was closing a different one
-    if(!closingCurrentTab)
+    if (!closingCurrentTab)
     {
         tabbedEditor->setCurrentWidget(currentTab);
     }
@@ -602,11 +602,11 @@ void MainWindow::on_actionExit_triggered()
 {
     QVector<Editor*> unsavedTabs = tabbedEditor->unsavedTabs();
 
-    for(Editor *tab : unsavedTabs)
+    for (Editor *tab : unsavedTabs)
     {
         bool userClosedTab = closeTab(tab);
 
-        if(!userClosedTab)
+        if (!userClosedTab)
         {
             return;
         }
@@ -674,7 +674,7 @@ void MainWindow::toggleRedo(bool redoAvailable)
  */
 void MainWindow::on_actionUndo_triggered()
 {
-    if(ui->actionUndo->isEnabled())
+    if (ui->actionUndo->isEnabled())
     {
         editor->undo();
     }
@@ -685,7 +685,7 @@ void MainWindow::on_actionUndo_triggered()
  */
 void MainWindow::on_actionRedo_triggered()
 {
-    if(ui->actionRedo->isEnabled())
+    if (ui->actionRedo->isEnabled())
     {
         editor->redo();
     }
@@ -705,7 +705,7 @@ void MainWindow::toggleCopyAndCut(bool copyCutAvailable)
  */
 void MainWindow::on_actionCut_triggered()
 {
-    if(ui->actionCut->isEnabled())
+    if (ui->actionCut->isEnabled())
     {
         editor->cut();
     }
@@ -716,7 +716,7 @@ void MainWindow::on_actionCut_triggered()
  */
 void MainWindow::on_actionCopy_triggered()
 {
-    if(ui->actionCopy->isEnabled())
+    if (ui->actionCopy->isEnabled())
     {
         editor->copy();
     }
@@ -782,7 +782,7 @@ void MainWindow::on_actionAuto_Indent_triggered()
     bool autoIndentToggled = tabbedEditor->applyAutoIndentation(shouldAutoIndent);
 
     // If the user canceled the operation, reverse the checking
-    if(!autoIndentToggled)
+    if (!autoIndentToggled)
     {
         ui->actionAuto_Indent->setChecked(!shouldAutoIndent);
     }
