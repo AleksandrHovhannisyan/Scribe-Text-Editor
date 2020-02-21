@@ -26,11 +26,11 @@ All code is written in C++ using the [Qt framework and its libraries](http://doc
 To contribute your own code to the project:
 
 1. Fork the repository here on Github.
-2. On the command-line, navigate to your desired project directory and input the following command: `git clone https://github.com/YourUsername/Scribe-Text-Editor`.
-3. Push changes to your forked repo, and then submit a pull request.
+2. Clone your fork using HTTP or SSH via the command-line.
+3. Push your feature branch to your forked repo, and then submit a pull request.
 
 ## Credits
 
-All application icons are open source. Credits go to [Feather Icons](https://feathericons.com/), created by Cole Bemis. (I colored them in for this app, though.)
+All application icons are open source. Credit goes to [Feather Icons](https://feathericons.com/), created by Cole Bemis. (I colored them in for this app, though.)
 
 The code for highlighting the current line and numbering the margins on the left was borrowed from the official [Qt Code Editor Example](http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html) tutorial. All other code is original.
