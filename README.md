@@ -5,11 +5,11 @@
 [![](https://img.shields.io/github/stars/AleksandrHovhannisyan/Scribe-Text-Editor.svg)](https://github.com/AleksandrHovhannisyan/Scribe-Text-Editor/stargazers)
 [![](https://img.shields.io/badge/releases-1-green.svg)](https://github.com/AleksandrHovhannisyan/Scribe-Text-Editor/releases)
 
-![](CustomTextEditor/screenshots/Screenshot1.PNG)
+![Tips for how to take advantage of Scribe's keyboard shortcuts.](https://user-images.githubusercontent.com/19352442/75026492-0fb55f80-546b-11ea-84d4-830ef9b3102d.PNG)
 
 Basic syntax highlighting for four languages: C, C++, Java, and Python.
 
-![](CustomTextEditor/screenshots/Screenshot2.PNG)
+![Syntax highlighting in Scribe.](https://user-images.githubusercontent.com/19352442/75026523-1f34a880-546b-11ea-866c-68d2b1286a26.PNG)
 
 ### Demo
 
