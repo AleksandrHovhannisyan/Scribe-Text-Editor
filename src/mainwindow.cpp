@@ -387,7 +387,7 @@ void MainWindow::updateTabAndWindowTitle()
     }
 
     tabbedEditor->setTabText(tabbedEditor->currentIndex(), tabTitle);
-    setWindowTitle(windowTitle);
+    setWindowTitle(windowTitle + " - Scribe");
 }
 
 
