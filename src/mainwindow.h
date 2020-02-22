@@ -39,6 +39,7 @@ private:
     void disconnectEditorDependentSignals();
     QMessageBox::StandardButton askUserToSave();
 
+    void appendShortcutsToToolbarTooltips();
     void setupLanguageOnStatusBar();
     void selectProgrammingLanguage(Language language);
     void triggerCorrespondingMenuLanguageOption(Language lang);

@@ -29,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     languageGroup->addAction(ui->actionJava_Lang);
     languageGroup->addAction(ui->actionPython_Lang);
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(on_languageSelected(QAction*)));
-
     // Language label frame
     setupLanguageOnStatusBar();
 
@@ -68,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     mapMenuLanguageOptionToLanguageType();
     mapFileExtensionsToLanguages();
+    appendShortcutsToToolbarTooltips();
 }
 
 
@@ -132,6 +132,15 @@ void MainWindow::mapFileExtensionsToLanguages()
     extensionToLanguageMap.insert("py", Language::Python);
 }
 
+
+void MainWindow::appendShortcutsToToolbarTooltips()
+{
+    for (QAction* action : ui->mainToolBar->actions())
+    {
+        QString tooltip = action->toolTip() + " (" + action->shortcut().toString() + ")";
+        action->setToolTip(tooltip);
+    }
+}
 
 /* Performs all necessary memory cleanup operations on dynamically allocated objects.
  */
