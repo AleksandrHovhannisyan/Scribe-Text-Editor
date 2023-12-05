@@ -24,7 +24,7 @@ PythonHighlighter::PythonHighlighter(QTextDocument *parent) : Highlighter(parent
     triple_double_quote.second = MultilineQuote::TRIPLE_DOUBLE;
 
     codeBlockStart = ':';
-    codeBlockEnd = NULL;
+
 }
 
 

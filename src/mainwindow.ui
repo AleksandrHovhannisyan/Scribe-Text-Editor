@@ -36,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>870</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -119,6 +119,9 @@
    <addaction name="actionCut"/>
    <addaction name="actionPaste"/>
    <addaction name="actionFind"/>
+   <addaction name="separator"/>
+   <addaction name="actionCompileRiscV"/>
+   <addaction name="actionUploadToSCMB"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="enabled">
@@ -384,6 +387,29 @@
    </property>
    <property name="text">
     <string>Tool Bar</string>
+   </property>
+  </action>
+  <action name="actionCompileRiscV">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/res/icons/compfile-256.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>CompileRiscV</string>
+   </property>
+  </action>
+  <action name="actionUploadToSCMB">
+   <property name="icon">
+    <iconset>
+     <normalon>res/icons/upload.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>UploadToSCMB</string>
+   </property>
+   <property name="toolTip">
+    <string>Upload to SCMB Board</string>
    </property>
   </action>
  </widget>

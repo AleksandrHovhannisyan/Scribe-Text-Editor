@@ -111,6 +111,8 @@ private slots:
     void on_actionAuto_Indent_triggered();
     void on_actionWord_Wrap_triggered();
     void on_actionTool_Bar_triggered();
+    void on_actionCompileRiscVTriggered();
+    void on_actionUploadToSCMBTriggered();
 };
 
 #endif // MAINWINDOW_H

@@ -11,5 +11,7 @@
         <file>res/icons/paste.bmp</file>
         <file>res/icons/save-as.bmp</file>
         <file>res/icons/redo.bmp</file>
+        <file>res/icons/compfile-256.png</file>
+        <file>res/icons/upload.png</file>
     </qresource>
 </RCC>

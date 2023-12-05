@@ -12,6 +12,7 @@
 #include <QDateTime>                    // current time
 #include <QApplication>                 // quit
 #include <QShortcut>
+#include <QProcess>
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -64,6 +65,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // For word wrap and auto indent
     matchFormatOptionsToEditorDefaults();
+
+    // Connect Compile and Upload buttons to slots
+    connect(ui->actionCompileRiscV, SIGNAL(triggered()), this, SLOT(on_actionCompileRiscVTriggered()));
+    connect(ui->actionUploadToSCMB, SIGNAL(triggered()), this, SLOT(on_actionUploadToSCMBTriggered()));
 
     mapMenuLanguageOptionToLanguageType();
     mapFileExtensionsToLanguages();
@@ -841,3 +846,36 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
     on_actionExit_triggered();
 }
+
+void MainWindow::on_actionCompileRiscVTriggered()
+{
+    // Start work directory at no change from process location
+    QString work_dir = "";
+    QProcess *proc;
+    proc = new QProcess(this);
+    work_dir = QFileDialog::getExistingDirectory(this, tr("Choose where Make is"), "$HOME", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    qInfo() << work_dir << endl;
+    proc->setWorkingDirectory(work_dir);
+    proc->start("make", {}, QProcess::Unbuffered | QProcess::ReadOnly);
+    proc->waitForFinished();
+    QString output(proc->readAllStandardOutput());
+    QMessageBox compileResults(this);
+    compileResults.setText(output);
+    compileResults.setWindowTitle("Compilation Results");
+    compileResults.exec();
+}
+
+void MainWindow::on_actionUploadToSCMBTriggered()
+{
+    // Get a string which points to the binary of whatever file
+    QString bin_file_location = "";
+    bin_file_location = QFileDialog::getOpenFileName(this, tr("Choose where the Binary is"), "Binary Files (*.bin)");
+    if (bin_file_location.isEmpty())
+    {
+        // Bin File not found. Warn user
+        return;
+    }
+    // Load binary using whatever call needs to be made to Isaac.
+
+}
+
