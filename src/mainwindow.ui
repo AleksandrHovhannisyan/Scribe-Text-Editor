@@ -398,18 +398,24 @@
    <property name="text">
     <string>CompileRiscV</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
   </action>
   <action name="actionUploadToSCMB">
    <property name="icon">
-    <iconset>
-     <normalon>res/icons/upload.png</normalon>
-    </iconset>
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/res/icons/upload.png</normaloff>
+     <normalon>res/icons/upload.png</normalon>:/icons/res/icons/upload.png</iconset>
    </property>
    <property name="text">
     <string>UploadToSCMB</string>
    </property>
    <property name="toolTip">
     <string>Upload to SCMB Board</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
    </property>
   </action>
  </widget>
@@ -422,6 +428,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -13,6 +13,9 @@
 #include <QApplication>                 // quit
 #include <QShortcut>
 #include <QProcess>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -854,7 +857,6 @@ void MainWindow::on_actionCompileRiscVTriggered()
     QProcess *proc;
     proc = new QProcess(this);
     work_dir = QFileDialog::getExistingDirectory(this, tr("Choose where Make is"), "$HOME", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    qInfo() << work_dir << endl;
     proc->setWorkingDirectory(work_dir);
     proc->start("make", {}, QProcess::Unbuffered | QProcess::ReadOnly);
     proc->waitForFinished();
@@ -873,9 +875,54 @@ void MainWindow::on_actionUploadToSCMBTriggered()
     if (bin_file_location.isEmpty())
     {
         // Bin File not found. Warn user
+        QMessageBox errorMessage(this);
+        errorMessage.setText("Error: File not found.");
+        errorMessage.setWindowTitle("Error opening bin file");
+        errorMessage.exec();
         return;
     }
     // Load binary using whatever call needs to be made to Isaac.
+    // Can be either a QFile or whatever is going to work for Isaac's solution.
+    // binary files are raw 1s and 0s. There is a list location that is in the same directory that contains the asm
+    QString lst_file_location = bin_file_location.replace(bin_file_location.size()-3, bin_file_location.size(), "lst");
+    // open the lst file as the replace does work correctly
+    bool openInCurrentTab = editor->isUntitled() && !editor->isUnsaved();
+    QFile file(lst_file_location);
+    if (!file.open(QIODevice::ReadOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot open lst file: " + file.errorString());
+        return;
+    }
 
+    QTextStream in(&file);
+    QString documentContents = in.readAll();
+
+    if (!openInCurrentTab)
+    {
+        tabbedEditor->add(new Editor());
+    }
+    editor->setCurrentFilePath(lst_file_location);
+    editor->setPlainText(documentContents);
+    file.close();
+
+    editor->setModifiedState(false);
+    updateTabAndWindowTitle();
+    setLanguageFromExtension();
+
+    // Now to read the stream to the uart interface
+
+    QFile program_binary(bin_file_location);
+    if (!program_binary.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot open bin file: " + program_binary.errorString());
+        return;
+    }
+
+    int binary_fd = program_binary.handle();
+    FILE* binary_open = fdopen(dup(binary_fd), "rb");
+
+    // Send file reference to the C++ library Isaac wrote
+
+    fclose(binary_open);
 }
 
