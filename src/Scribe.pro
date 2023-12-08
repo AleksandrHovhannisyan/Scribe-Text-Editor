@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    deviceinputdialog.cpp \
     highlighters/highlighter.cpp \
     highlighters/chighlighter.cpp \
     highlighters/cpphighlighter.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
     mainwindow.cpp \
     finddialog.cpp \
     editor.cpp \
+    memoryterminal.cpp \
     metricreporter.cpp \
     settings.cpp \
     utilityfunctions.cpp \
@@ -43,6 +45,7 @@ SOURCES += \
     language.cpp
 
 HEADERS += \
+    deviceinputdialog.h \
     highlighters/highlighter.h \
     highlighters/chighlighter.h \
     highlighters/cpphighlighter.h \
@@ -53,6 +56,7 @@ HEADERS += \
     finddialog.h \
     editor.h \
     linenumberarea.h \
+    memoryterminal.h \
     metricreporter.h \
     settings.h \
     utilityfunctions.h \
@@ -62,7 +66,9 @@ HEADERS += \
     language.h
 
 FORMS += \
-        mainwindow.ui
+        deviceinputdialog.ui \
+        mainwindow.ui \
+        memoryterminal.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

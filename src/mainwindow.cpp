@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "deviceinputdialog.h"
 
 
 /* Sets up the main application window and all of its children/widgets.
@@ -858,7 +859,7 @@ void MainWindow::on_actionCompileRiscVTriggered()
     proc = new QProcess(this);
     work_dir = QFileDialog::getExistingDirectory(this, tr("Choose where Make is"), "$HOME", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     proc->setWorkingDirectory(work_dir);
-    proc->start("make", {}, QProcess::Unbuffered | QProcess::ReadOnly);
+    proc->start("make", {"tetris", "TARGET=scmb"}, QProcess::Unbuffered | QProcess::ReadOnly);
     proc->waitForFinished();
     QString output(proc->readAllStandardOutput());
     QMessageBox compileResults(this);
@@ -909,20 +910,27 @@ void MainWindow::on_actionUploadToSCMBTriggered()
     updateTabAndWindowTitle();
     setLanguageFromExtension();
 
-    // Now to read the stream to the uart interface
-
-    QFile program_binary(bin_file_location);
-    if (!program_binary.open(QIODevice::ReadOnly))
+    // Get the device name
+    QString deviceName = "/dev/ttyACM0";
+    QString newDeviceName = DeviceInputDialog::getText();
+    if (!newDeviceName.isEmpty())
+        deviceName = newDeviceName;
+    // Open up a new process calling Isaac's "main"
+    QProcess *proc = new QProcess(this);
+    if (memoryProcess == nullptr)
     {
-        QMessageBox::warning(this, "Warning", "Cannot open bin file: " + program_binary.errorString());
-        return;
+        memoryProcess = new MemoryTerminal(nullptr, proc);
     }
+    connect(proc, SIGNAL(readyReadStandardOutput()), memoryProcess, SLOT(reportCurrentProcess()));
+    memoryProcess->show();
+    //
+    proc->setWorkingDirectory("~/Desktop/Senior Project/ComputerSideInterface/");
+    proc->start("main", {deviceName, bin_file_location}, QProcess::Unbuffered | QProcess::ReadOnly);
 
-    int binary_fd = program_binary.handle();
-    FILE* binary_open = fdopen(dup(binary_fd), "rb");
+}
 
-    // Send file reference to the C++ library Isaac wrote
+void MainWindow::reportMessage()
+{
 
-    fclose(binary_open);
 }
 

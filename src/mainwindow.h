@@ -5,6 +5,8 @@
 #include "editor.h"
 #include "finddialog.h"
 #include "gotodialog.h"
+#include "memoryterminal.h"
+#include "qprocess.h"
 #include "tabbededitor.h"
 #include "language.h"
 #include "metricreporter.h"
@@ -60,6 +62,9 @@ private:
     MetricReporter *metricReporter;
     Editor *editor = nullptr;
     Settings *settings = Settings::instance();
+    QProcess *procptr;
+
+    MemoryTerminal *memoryProcess;
 
     // Used for storing application state upon termination
     const QString WINDOW_SIZE_KEY = "window_size";
@@ -87,6 +92,7 @@ public slots:
     inline bool closeTab(int index) { return closeTab(tabbedEditor->tabAt(index)); }
     inline void closeTabShortcut() { closeTab(tabbedEditor->currentTab()); }
     inline void informUser(QString title, QString message) { QMessageBox::information(findDialog, title, message); }
+    void reportMessage();
 
 // All UI and/or keyboard shortcut interactions
 private slots:
